@@ -1596,6 +1596,91 @@ export function hideVisaForm() {
     currentEditingVisaId = null;
 }
 
+/**
+ * Computes structured field diffs between previous and updated visa application states.
+ * @param {Object} existing
+ * @param {Object} current
+ * @returns {Array<{field: string, from: any, to: any}>}
+ */
+export function computeVisaDiffs(existing, current) {
+    if (!existing || !current) return [];
+    const diffs = [];
+    const trackFields = [
+        { key: 'status', label: 'status' },
+        { key: 'submission_date', label: 'submission date' },
+        { key: 'expected_collection_date', label: 'expected collection' },
+        { key: 'decision_date', label: 'decision date' },
+        { key: 'collection_date', label: 'passport collected' },
+        { key: 'visa_no', label: 'visa no' },
+        { key: 'visa_valid_from', label: 'valid from' },
+        { key: 'visa_valid_until', label: 'valid until' },
+        { key: 'stay_days', label: 'stay duration', isNumber: true },
+        { key: 'payment_status', label: 'payment' },
+        { key: 'payment_method', label: 'payment method' },
+        { key: 'payment_date', label: 'paid date' },
+        { key: 'amount_paid_mmk', label: 'amount paid', isNumber: true },
+        { key: 'service_fee_mmk', label: 'service fee', isNumber: true },
+        { key: 'visa_fee_amount', label: 'visa fee amount', isNumber: true },
+        { key: 'other_costs_mmk', label: 'other costs', isNumber: true },
+        { key: 'customer_total_mmk', label: 'customer total', isNumber: true },
+        { key: 'service_fee_refund_mmk', label: 'refund', isNumber: true },
+        { key: 'applicant_name', label: 'applicant' },
+        { key: 'passport_no', label: 'passport no' },
+        { key: 'passport_issue_date', label: 'passport issue date' },
+        { key: 'passport_expiry', label: 'passport expiry' },
+        { key: 'nrc_no', label: 'nrc' },
+        { key: 'phone', label: 'phone' },
+        { key: 'email', label: 'email' },
+        { key: 'country', label: 'country' },
+        { key: 'visa_type', label: 'visa type' },
+        { key: 'travel_from', label: 'travel from' },
+        { key: 'travel_to', label: 'travel to' },
+        { key: 'notes', label: 'notes' }
+    ];
+
+    for (const f of trackFields) {
+        let oldVal = existing[f.key];
+        let newVal = current[f.key];
+
+        if (f.isNumber) {
+            oldVal = Number(oldVal) || 0;
+            newVal = Number(newVal) || 0;
+            if (oldVal !== newVal) {
+                diffs.push({
+                    field: f.label,
+                    from: oldVal ? oldVal.toLocaleString() : '0',
+                    to: newVal ? newVal.toLocaleString() : '0'
+                });
+            }
+        } else {
+            oldVal = String(oldVal ?? '').trim();
+            newVal = String(newVal ?? '').trim();
+            if (oldVal !== newVal) {
+                diffs.push({
+                    field: f.label,
+                    from: oldVal || '—',
+                    to: newVal || '—'
+                });
+            }
+        }
+    }
+
+    if (Array.isArray(existing.documents) && Array.isArray(current.documents)) {
+        current.documents.forEach(doc => {
+            const oldDoc = existing.documents.find(d => d.key === doc.key);
+            if (oldDoc && oldDoc.status !== doc.status) {
+                diffs.push({
+                    field: doc.label || doc.key,
+                    from: oldDoc.status || 'missing',
+                    to: doc.status || 'received'
+                });
+            }
+        });
+    }
+
+    return diffs;
+}
+
 export async function saveVisaApplication() {
     const val = (id) => (document.getElementById(id)?.value || '').trim();
     const numVal = (id) => parseFloat(document.getElementById(id)?.value) || 0;
@@ -1785,10 +1870,12 @@ export async function saveVisaApplication() {
 
     try {
         if (currentEditingVisaId) {
+            const visaDiffs = computeVisaDiffs(existing, visaData);
             await updateVisaApplication(currentEditingVisaId, visaData);
             saveHistory({ ...visaData, id: currentEditingVisaId, name: visaData.applicant_name, booking_reference: formatVisaRef(currentEditingVisaId) }, `Updated visa application for ${visaData.applicant_name}`, {
                 action: 'VISA_MODIFIED',
-                financial: true
+                financial: true,
+                changes: visaDiffs.length > 0 ? visaDiffs : [{ field: 'visa', from: 'saved', to: 'updated' }]
             }).catch(err => console.warn('Failed to save visa edit history:', err));
             showToast('Visa application updated.', 'success');
         } else {

@@ -1035,10 +1035,23 @@ async function saveHotelReservation() {
         };
 
         if (id) {
+            const existing = (state.allHotels || []).find(h => h.id === id);
+            const hotelDiffs = [];
+            if (existing) {
+                if (existing.hotel_name !== data.hotel_name) hotelDiffs.push({ field: 'hotel', from: existing.hotel_name || '—', to: data.hotel_name || '—' });
+                if (existing.checkin !== data.checkin) hotelDiffs.push({ field: 'checkin', from: existing.checkin || '—', to: data.checkin || '—' });
+                if (existing.checkout !== data.checkout) hotelDiffs.push({ field: 'checkout', from: existing.checkout || '—', to: data.checkout || '—' });
+                if (Number(existing.selling_price) !== Number(data.selling_price)) hotelDiffs.push({ field: 'price', from: (Number(existing.selling_price) || 0).toLocaleString(), to: (Number(data.selling_price) || 0).toLocaleString() });
+                if (Number(existing.commission) !== Number(data.commission)) hotelDiffs.push({ field: 'commission', from: (Number(existing.commission) || 0).toLocaleString(), to: (Number(data.commission) || 0).toLocaleString() });
+                if (existing.paid !== data.paid) hotelDiffs.push({ field: 'paid', from: existing.paid || 'unpaid', to: data.paid || 'unpaid' });
+                if (existing.payment_method !== data.payment_method) hotelDiffs.push({ field: 'payment method', from: existing.payment_method || '—', to: data.payment_method || '—' });
+                if (existing.payment_date !== data.payment_date) hotelDiffs.push({ field: 'paid date', from: existing.payment_date || '—', to: data.payment_date || '—' });
+            }
             await updateHotelReservation(id, data);
             saveHistory({ ...data, id, name: data.client_name, booking_reference: data.booking_ref || '—' }, `Updated hotel reservation for ${data.client_name} at ${data.hotel_name}`, {
                 action: 'HOTEL_MODIFIED',
-                financial: true
+                financial: true,
+                changes: hotelDiffs.length > 0 ? hotelDiffs : [{ field: 'hotel', from: 'saved', to: 'updated' }]
             }).catch(err => console.warn('Failed to save hotel edit history:', err));
             showToast('Hotel reservation updated successfully.', 'success');
         } else {

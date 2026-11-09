@@ -147,4 +147,31 @@ test('Activity Logs & Audit System', async (t) => {
         assert.equal(p5.changes[1].field, 'new net');
         assert.equal(p5.changes[1].to, '210,000');
     });
+
+    await t.test('computeVisaDiffs detects submission date, status, fee and document changes', () => {
+        const visaSource = readFileSync(new URL('../visa.js', import.meta.url), 'utf8');
+        const match = visaSource.match(/export function computeVisaDiffs\([\s\S]*?\n\}/);
+        assert.ok(match, 'computeVisaDiffs should be exported in visa.js');
+        const fn = new Function('existing', 'current', `${match[0].replace('export function computeVisaDiffs', 'function computeVisaDiffs')}; return computeVisaDiffs(existing, current);`);
+
+        const existing = {
+            status: 'collecting',
+            submission_date: '',
+            service_fee_mmk: 150000,
+            documents: [{ key: 'passport_copy', label: 'Passport bio-page copy', status: 'missing' }]
+        };
+        const current = {
+            status: 'submitted',
+            submission_date: '10/11/2026',
+            service_fee_mmk: 180000,
+            documents: [{ key: 'passport_copy', label: 'Passport bio-page copy', status: 'received' }]
+        };
+
+        const diffs = fn(existing, current);
+        assert.equal(diffs.length, 4);
+        assert.deepEqual(diffs[0], { field: 'status', from: 'collecting', to: 'submitted' });
+        assert.deepEqual(diffs[1], { field: 'submission date', from: '—', to: '10/11/2026' });
+        assert.deepEqual(diffs[2], { field: 'service fee', from: '150,000', to: '180,000' });
+        assert.deepEqual(diffs[3], { field: 'Passport bio-page copy', from: 'missing', to: 'received' });
+    });
 });
