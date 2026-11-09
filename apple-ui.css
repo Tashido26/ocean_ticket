@@ -1439,10 +1439,36 @@ body.material-theme #toast,
 body.material-theme .service-toast.is-visible {
     border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 12px;
-    background: rgba(28, 28, 30, 0.92);
+    background: rgba(28, 28, 30, 0.95);
+    color: #FFFFFF !important;
     box-shadow: var(--apple-shadow-floating);
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+}
+
+body.material-theme #toast.warning {
+    background: #B45309 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #D97706 !important;
+    box-shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.45) !important;
+}
+
+body.material-theme #toast.error {
+    background: #B91C1C !important;
+    color: #FFFFFF !important;
+    border: 1px solid #DC2626 !important;
+}
+
+body.material-theme #toast.success {
+    background: #15803D !important;
+    color: #FFFFFF !important;
+    border: 1px solid #16A34A !important;
+}
+
+body.material-theme #toast.info {
+    background: #0F4C75 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1B6CA8 !important;
 }
 
 /* VanillaJS Datepicker — Apple Calendar Polish */

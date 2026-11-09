@@ -209,10 +209,19 @@ export function getSocialPlatformMeta(accountType = '', rawLink = '') {
  * @param {string} [type='info'] The type of toast (info, success, error).
  */
 export function showToast(message, type = 'info') {
-    document.getElementById('toastMessage').textContent = message;
     const toastEl = document.getElementById('toast');
+    const msgEl = document.getElementById('toastMessage');
+    if (!toastEl) return;
+    if (msgEl) {
+        msgEl.textContent = message;
+    } else {
+        toastEl.textContent = message;
+    }
     toastEl.className = `show ${type}`;
-    setTimeout(() => toastEl.className = toastEl.className.replace('show', ''), 4000);
+    if (toastEl._hideTimer) clearTimeout(toastEl._hideTimer);
+    toastEl._hideTimer = setTimeout(() => {
+        toastEl.className = toastEl.className.replace('show', '').trim();
+    }, 4000);
 }
 
 /**
