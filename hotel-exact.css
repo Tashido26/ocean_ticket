@@ -42,7 +42,7 @@ body.material-theme,
     --hotel-sage-soft: #E9F4EC;
     --hotel-shadow: 0 1px 2px rgba(9, 44, 53, 0.05), 0 4px 16px -6px rgba(9, 44, 53, 0.07);
     --hotel-radius: 14px;
-    --hotel-font: "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --hotel-font: "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* ==========================================================================
@@ -50,7 +50,7 @@ body.material-theme,
    ========================================================================== */
 html body #hotel-view,
 html body #hotel-view :not(i):not([class*="fa-"]):not([class*="fas"]):not([class*="far"]):not([class*="fab"]):not([class*="fa"]):not([class*="fa-solid"]):not([class*="fa-regular"]):not([class*="fa-brands"]) {
-    font-family: "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    font-family: "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
 
 /* Explicitly protect Font Awesome icons */
@@ -155,19 +155,19 @@ html body #hotel-view .table-header {
 }
 
 html body #hotel-view .table-header h3 {
-    font-size: 20px !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
     color: #0D2B33 !important;
-    letter-spacing: -0.02em !important;
+    letter-spacing: -0.01em !important;
     display: flex !important;
     align-items: center !important;
-    gap: 9px !important;
+    gap: 8px !important;
     margin: 0 !important;
 }
 
 html body #hotel-view .table-header h3 i {
     color: #0C6B7A !important;
-    font-size: 17px !important;
+    font-size: 15px !important;
 }
 
 html body.material-theme section#hotel-view #hotel-display-container #newHotelResBtn,
@@ -255,8 +255,8 @@ html body #hotel-view .kpi-body {
 }
 
 html body #hotel-view .kpi-label {
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
     color: #8299A1 !important;
@@ -267,11 +267,11 @@ html body #hotel-view .kpi-label {
 }
 
 html body #hotel-view .kpi-value {
-    font-size: 21px !important;
+    font-size: 17px !important;
     font-weight: 700 !important;
     color: #0D2B33 !important;
-    line-height: 1.15 !important;
-    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.01em !important;
     font-variant-numeric: tabular-nums !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -299,7 +299,7 @@ html body #hotel-view #hotelResSearchText {
     min-width: 200px !important;
     height: 34px !important;
     min-height: 34px !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
     color: #0D2B33 !important;
     background: #FFFFFF !important;
@@ -408,11 +408,11 @@ html body #hotel-view .sell-table {
 html body #hotel-view .sell-table th {
     background: #F8FBFB !important;
     color: #8299A1 !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
-    padding: 9px 12px !important;
+    padding: 8px 10px !important;
     border-bottom: 1px solid #E2EAEC !important;
     border-top: none !important;
     border-left: none !important;
@@ -421,14 +421,15 @@ html body #hotel-view .sell-table th {
 }
 
 html body #hotel-view .sell-table td {
-    padding: 9px 12px !important;
-    font-size: 12px !important;
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
     color: #46626B !important;
     border-bottom: 1px solid #EEF4F5 !important;
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
     vertical-align: middle !important;
+    font-variant-numeric: tabular-nums !important;
 }
 
 html body #hotel-view .sell-table tr:hover td {
@@ -444,9 +445,56 @@ html body #hotel-view .sell-table [style*="color: #0D6E77"] {
     color: #0D2B33 !important;
 }
 
-html body #hotel-view .sell-table td div[style*="font-weight: 700"] {
+html body #hotel-view .sell-table td div[style*="font-weight: 700"],
+html body #hotel-view .sell-table td div[style*="font-weight: 600"],
+html body #hotel-view .hotel-cell-primary {
     font-weight: 600 !important;
+    font-size: 11.5px !important;
     color: #0D2B33 !important;
+    line-height: 1.35 !important;
+}
+
+html body #hotel-view .hotel-cell-sub {
+    font-size: 10.5px !important;
+    color: #8299A1 !important;
+    margin-top: 1px !important;
+    line-height: 1.3 !important;
+}
+
+html body #hotel-view .hotel-date-cell {
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    color: #0D2B33 !important;
+    font-variant-numeric: tabular-nums !important;
+    line-height: 1.3 !important;
+}
+
+html body #hotel-view .hotel-date-sep {
+    font-size: 9px !important;
+    color: #8299A1 !important;
+    margin: 1px 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    font-weight: 600 !important;
+}
+
+html body #hotel-view .hotel-cost-row {
+    font-size: 10.5px !important;
+    color: #6E878E !important;
+    font-variant-numeric: tabular-nums !important;
+    line-height: 1.35 !important;
+}
+
+html body #hotel-view .hotel-cost-row strong {
+    color: #0D2B33 !important;
+    font-weight: 600 !important;
+}
+
+html body #hotel-view .hotel-commission-cell {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #0C6B7A !important;
+    font-variant-numeric: tabular-nums !important;
 }
 
 html body #hotel-view .sell-table td [style*="color: #0D6E77"] {
@@ -464,13 +512,13 @@ html body #hotel-view .payment-badge {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 2px 8px !important;
+    padding: 2px 7px !important;
     border-radius: 999px !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     text-transform: capitalize !important;
     letter-spacing: 0.02em !important;
-    min-width: 52px !important;
+    min-width: 48px !important;
     line-height: 1.3 !important;
 }
 
@@ -494,9 +542,9 @@ html body #hotel-view .payment-badge.payment-partial {
 
 html body.material-theme section#hotel-view .search-row-actions .icon-btn,
 html body section#hotel-view .search-row-actions .icon-btn {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 7px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 6px !important;
     border: 1px solid #E2EAEC !important;
     background: #FFFFFF !important;
     color: #8299A1 !important;
@@ -504,7 +552,7 @@ html body section#hotel-view .search-row-actions .icon-btn {
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    font-size: 11.5px !important;
+    font-size: 10.5px !important;
     padding: 0 !important;
     flex-shrink: 0 !important;
     transition: all 0.15s ease !important;
@@ -688,7 +736,7 @@ html body.material-theme section#hotel-view #hotel-form-container form#newHotelR
 html body section#hotel-view #hotel-form-container input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
 html body section#hotel-view #hotel-form-container select,
 html body section#hotel-view #hotel-form-container textarea {
-    font-family: "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    font-family: "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     color: #0D2B33 !important;
