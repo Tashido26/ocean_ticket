@@ -1326,53 +1326,48 @@ export function renderHotelReservations() {
     if (paginated.length === 0) {
         rowsHtml = `
             <tr>
-                <td colspan="8" class="empty-row" style="text-align: center; padding: 2rem;">No hotel reservations found.</td>
+                <td colspan="10" class="empty-row" style="text-align: center; padding: 2rem;">No hotel reservations found.</td>
             </tr>
         `;
     } else {
         paginated.forEach(res => {
-            const bookingDateHtml = `
-                <div class="hotel-date-cell">${formatNiceDate(res.booking_date || res.checkin)}</div>
-            `;
-            const guestCell = `
-                <div class="hotel-cell-primary">${escapeHtml(res.client_name)}</div>
-                ${res.other_names ? `<div class="hotel-cell-sub">${!isNaN(parseInt(res.other_names, 10)) ? `Total Guests (incl. Lead): ${escapeHtml(res.other_names)}` : `Guests: ${escapeHtml(res.other_names)}`}</div>` : ''}
-            `;
-            const hotelCell = `
-                <div class="hotel-cell-primary"><i class="fa-solid fa-hotel" style="color: #0C6B7A; margin-right: 4px; font-size: 0.75rem;"></i> ${escapeHtml(res.hotel_name)}</div>
-                <div class="hotel-cell-sub">${escapeHtml(res.city)}, ${escapeHtml(res.country)}</div>
-            `;
-            const dateCell = `
-                <div class="hotel-date-cell">${formatNiceDate(res.checkin)}</div>
-                <div class="hotel-date-sep">to</div>
-                <div class="hotel-date-cell">${formatNiceDate(res.checkout)}</div>
-            `;
-            const costCell = `
-                <div class="hotel-cost-row">Base: <strong>${(res.base_fare || 0).toLocaleString()}</strong></div>
-                <div class="hotel-cost-row" style="margin-top: 2px;">Net: <strong>${(res.net_amount || 0).toLocaleString()}</strong></div>
-            `;
-            const statusBadge = `
-                <span class="payment-badge payment-${res.paid}">${res.paid === 'paid' ? 'Paid' : res.paid === 'partial' ? 'Partial' : 'Unpaid'}</span>
-                ${res.payment_method ? `<div class="hotel-cell-sub" style="margin-top: 3px; font-weight: 500;">${escapeHtml(res.payment_method)}</div>` : ''}
-            `;
+            const isPaid = res.paid === 'paid';
+            const isPartial = res.paid === 'partial';
+            const statusClass = isPaid ? 'status-paid' : (isPartial ? 'status-partial' : 'status-unpaid');
+            const statusLabel = isPaid ? 'Paid' : (isPartial ? 'Partial' : 'Unpaid');
+            const statusIcon = isPaid ? 'fa-check' : (isPartial ? 'fa-hourglass-half' : 'fa-clock');
+
+            const ref = res.booking_ref || res.id || '—';
+            const guestName = escapeHtml(res.client_name || 'Unknown');
+            const guestBadge = res.other_names && Number(res.other_names) > 1
+                ? ` <span class="group-badge" style="font-size: 10px; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: var(--surface-2, #F1F5F9); color: var(--text-muted, #475569); font-weight: 500;">${Number(res.other_names)} clients</span>`
+                : '';
+
+            const bookingDateStr = formatDateToDMMMY(res.booking_date || res.checkin);
+            const checkinStr = formatDateToDMMMY(res.checkin);
+            const checkoutStr = formatDateToDMMMY(res.checkout);
+            const stayDatesStr = checkinStr && checkoutStr ? `${checkinStr} → ${checkoutStr}` : (checkinStr || checkoutStr || '—');
+
+            const baseCost = Number(res.base_fare) || 0;
+            const comm = Number(res.commission) || 0;
+            const total = Number(res.net_amount) || (baseCost + comm);
 
             rowsHtml += `
                 <tr data-id="${res.id}">
-                    <td style="padding: 8px 10px; vertical-align: middle;">${bookingDateHtml}</td>
-                    <td style="padding: 8px 10px; vertical-align: middle;">${guestCell}</td>
-                    <td style="padding: 8px 10px; vertical-align: middle;">${hotelCell}</td>
-                    <td style="padding: 8px 10px; vertical-align: middle; text-align: center;">${dateCell}</td>
-                    <td style="padding: 8px 10px; vertical-align: middle;">${costCell}</td>
-                    <td class="hotel-commission-cell" style="padding: 8px 10px; vertical-align: middle; text-align: right;">${(res.commission || 0).toLocaleString()} MMK</td>
-                    <td style="padding: 8px 10px; vertical-align: middle; text-align: center;">${statusBadge}</td>
-                    <td style="padding: 8px 10px; vertical-align: middle; text-align: center;" class="search-row-actions">
-                        <div style="display: flex; gap: 0.25rem; justify-content: center; flex-wrap: nowrap;">
-                            <button class="icon-btn" title="Download Voucher" onclick="window.exportHotelVoucher('${res.id}', false)"><i class="fa-solid fa-file-arrow-down"></i></button>
-                            <button class="icon-btn" title="Share Voucher" onclick="window.exportHotelVoucher('${res.id}', true)"><i class="fa-solid fa-share-nodes"></i></button>
-                            <button class="icon-btn" title="View Details" onclick="window.showHotelDetailsAction('${res.id}')"><i class="fa-solid fa-eye"></i></button>
-                            <button class="icon-btn" title="Edit Reservation" onclick="window.editHotelReservation('${res.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="icon-btn btn-danger" title="Delete" onclick="window.deleteHotelReservationAction('${res.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                    <td class="col-issued-date">${bookingDateStr || '—'}</td>
+                    <td class="col-name" title="${guestName}">${guestName}${guestBadge}</td>
+                    <td class="col-pnr"><span class="clickable-pnr clickable-hotel-ref" title="Booking Ref: ${escapeHtml(ref)}">${escapeHtml(ref)}</span></td>
+                    <td class="route-cell col-route" title="${escapeHtml(res.hotel_name || '')}${res.city ? ` (${escapeHtml(res.city)}, ${escapeHtml(res.country)})` : ''}"><i class="fa-solid fa-hotel" style="color: #0F7781; margin-right: 5px; font-size: 11px;"></i>${escapeHtml(res.hotel_name || '—')}${res.city ? ` <span style="color: var(--text-muted); font-size: 10.5px;">(${escapeHtml(res.city)})</span>` : ''}</td>
+                    <td class="col-stay-dates" title="${stayDatesStr}">${stayDatesStr}</td>
+                    <td class="num-cell col-net-amount">${baseCost.toLocaleString()}</td>
+                    <td class="num-cell commission-td col-commission">${comm.toLocaleString()}</td>
+                    <td class="num-cell col-total">${total.toLocaleString()}</td>
+                    <td class="col-status"><span class="records-status-badge ${statusClass}"><i class="fa-solid ${statusIcon}"></i> ${statusLabel}</span></td>
+                    <td class="actions-cell col-actions">
+                        <button class="icon-btn icon-btn-table" title="View Details" onclick="window.showHotelDetailsAction('${res.id}')"><i class="fa-solid fa-eye"></i></button>
+                        <button class="icon-btn icon-btn-table" title="Download Voucher" onclick="window.exportHotelVoucher('${res.id}', false)"><i class="fa-solid fa-file-arrow-down"></i></button>
+                        <button class="icon-btn icon-btn-table" title="Edit Reservation" onclick="window.editHotelReservation('${res.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="icon-btn icon-btn-table btn-danger" title="Delete" onclick="window.deleteHotelReservationAction('${res.id}')"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
                 </tr>
             `;
@@ -1380,17 +1375,19 @@ export function renderHotelReservations() {
     }
 
     tbody.innerHTML = `
-        <table class="sell-table" style="width: 100%; border-collapse: collapse;">
+        <table class="hotel-results-table sell-table" id="hotelResultsTable">
             <thead>
                 <tr>
-                    <th style="width: 10%; text-align: left; padding: 8px 10px;">Booking Date</th>
-                    <th style="width: 15%; text-align: left; padding: 8px 10px;">Guest</th>
-                    <th style="width: 18%; text-align: left; padding: 8px 10px;">Hotel</th>
-                    <th style="width: 11%; text-align: center; padding: 8px 10px;">Stay Dates</th>
-                    <th style="width: 11%; text-align: left; padding: 8px 10px;">Cost Breakdown</th>
-                    <th style="width: 10%; text-align: right; padding: 8px 10px;">Commission</th>
-                    <th style="width: 9%; min-width: 85px; text-align: center; padding: 8px 10px;">Payment</th>
-                    <th style="width: 16%; min-width: 170px; text-align: center; padding: 8px 10px;">Actions</th>
+                    <th class="col-issued-date">Booking Date</th>
+                    <th class="col-name">Guest</th>
+                    <th class="col-pnr">Ref</th>
+                    <th class="route-cell col-route">Hotel</th>
+                    <th class="col-stay-dates">Stay Dates</th>
+                    <th class="num-header col-net-amount">Base Fare</th>
+                    <th class="num-header col-commission">Commission</th>
+                    <th class="num-header col-total">Total</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-actions">Actions</th>
                 </tr>
             </thead>
             <tbody>

@@ -387,175 +387,276 @@ html body section#hotel-view #hotelResClearBtn:hover {
 }
 
 /* ==========================================================================
-   7. HOTEL RESERVATIONS TABLE
+   7. HOTEL RESERVATIONS TABLE (EXACT 1:1 RECORDS STYLE)
    ========================================================================== */
 html body #hotel-view #hotelResTableContainer,
 html body #hotel-view .table-container {
-    border: 1px solid #E2EAEC !important;
-    border-radius: 10px !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-sm) !important;
     overflow-x: auto !important;
-    background: #FFFFFF !important;
+    overflow-y: auto !important;
+    max-height: none !important;
     margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
 }
 
+html body #hotel-view .hotel-results-table,
 html body #hotel-view .sell-table {
     width: 100% !important;
-    border-collapse: collapse !important;
-    background: #FFFFFF !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    table-layout: auto !important;
+    background: var(--surface) !important;
+    font-size: 11.5px !important;
+    color: var(--text) !important;
     margin: 0 !important;
 }
 
+html body #hotel-view .hotel-results-table thead th,
+html body #hotel-view .sell-table thead th,
 html body #hotel-view .sell-table th {
-    background: #F8FBFB !important;
-    color: #8299A1 !important;
-    font-size: 9.5px !important;
+    background: var(--surface-soft, #F8FAFC) !important;
+    color: var(--text-muted, #475569) !important;
+    font-size: 9px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1.25 !important;
     padding: 8px 10px !important;
-    border-bottom: 1px solid #E2EAEC !important;
+    border-bottom: 1px solid var(--border-soft, #E2E8F0) !important;
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
     white-space: nowrap !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
 }
 
+html body #hotel-view .hotel-results-table tbody tr,
+html body #hotel-view .sell-table tbody tr {
+    height: 46px !important;
+    background: var(--surface, #FFFFFF) !important;
+    transition: background-color 120ms ease !important;
+}
+
+html body #hotel-view .hotel-results-table tbody td,
+html body #hotel-view .sell-table tbody td,
 html body #hotel-view .sell-table td {
-    padding: 8px 10px !important;
-    font-size: 11.5px !important;
-    color: #46626B !important;
-    border-bottom: 1px solid #EEF4F5 !important;
+    padding: 0 10px !important;
+    height: 46px !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid var(--border-soft, #E2E8F0) !important;
     border-top: none !important;
     border-left: none !important;
     border-right: none !important;
+    background: var(--surface, #FFFFFF) !important;
+    color: var(--text, #0F172A) !important;
+    font-size: 11.5px !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
     vertical-align: middle !important;
-    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
 }
 
+html body #hotel-view .hotel-results-table tbody tr:hover td,
+html body #hotel-view .hotel-results-table tbody tr:hover td.col-actions,
+html body #hotel-view .sell-table tbody tr:hover td,
+html body #hotel-view .sell-table tbody tr:hover td.col-actions,
 html body #hotel-view .sell-table tr:hover td {
-    background: #F8FBFB !important;
+    background: var(--teal-050, rgba(13, 110, 119, 0.05)) !important;
 }
 
+html body #hotel-view .hotel-results-table tbody tr:last-child td,
+html body #hotel-view .sell-table tbody tr:last-child td,
 html body #hotel-view .sell-table tr:last-child td {
     border-bottom: none !important;
 }
 
-html body #hotel-view .sell-table [style*="color: var(--ink)"],
-html body #hotel-view .sell-table [style*="color: #0D6E77"] {
-    color: #0D2B33 !important;
-}
-
-html body #hotel-view .sell-table td div[style*="font-weight: 700"],
-html body #hotel-view .sell-table td div[style*="font-weight: 600"],
-html body #hotel-view .hotel-cell-primary {
-    font-weight: 600 !important;
+/* Column specific rules matching Records */
+html body #hotel-view .hotel-results-table td.col-issued-date,
+html body #hotel-view .sell-table td.col-issued-date {
+    min-width: 84px !important;
     font-size: 11.5px !important;
-    color: #0D2B33 !important;
-    line-height: 1.35 !important;
-}
-
-html body #hotel-view .hotel-cell-sub {
-    font-size: 10.5px !important;
-    color: #8299A1 !important;
-    margin-top: 1px !important;
-    line-height: 1.3 !important;
-}
-
-html body #hotel-view .hotel-date-cell {
-    font-size: 11.5px !important;
-    font-weight: 500 !important;
-    color: #0D2B33 !important;
+    font-weight: 400 !important;
+    color: var(--text, #0F172A) !important;
     font-variant-numeric: tabular-nums !important;
-    line-height: 1.3 !important;
 }
 
-html body #hotel-view .hotel-date-sep {
-    font-size: 9px !important;
-    color: #8299A1 !important;
-    margin: 1px 0 !important;
+html body #hotel-view .hotel-results-table td.col-name,
+html body #hotel-view .sell-table td.col-name {
+    min-width: 120px !important;
+    max-width: 170px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-strong, #0F172A) !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
-    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
-html body #hotel-view .hotel-cost-row {
-    font-size: 10.5px !important;
-    color: #6E878E !important;
-    font-variant-numeric: tabular-nums !important;
-    line-height: 1.35 !important;
+html body #hotel-view .hotel-results-table .col-pnr,
+html body #hotel-view .sell-table .col-pnr {
+    min-width: 72px !important;
+    text-align: center !important;
 }
 
-html body #hotel-view .hotel-cost-row strong {
-    color: #0D2B33 !important;
-    font-weight: 600 !important;
-}
-
-html body #hotel-view .hotel-commission-cell {
-    font-size: 11.5px !important;
-    font-weight: 600 !important;
-    color: #0C6B7A !important;
-    font-variant-numeric: tabular-nums !important;
-}
-
-html body #hotel-view .sell-table td [style*="color: #0D6E77"] {
-    color: #0C6B7A !important;
-}
-
-html body #hotel-view .sell-table i.fa-hotel {
-    color: #0C6B7A !important;
-}
-
-/* ==========================================================================
-   8. STATUS BADGES & ACTION BUTTONS
-   ========================================================================== */
-html body #hotel-view .payment-badge {
+html body #hotel-view .clickable-pnr,
+html body #hotel-view .clickable-hotel-ref {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 2px 7px !important;
+    padding: 2px 8px !important;
+    border-radius: 8px !important;
+    background: var(--teal-100, #EBF5F6) !important;
+    color: var(--teal-700, #0D6E77) !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    font-variant-numeric: tabular-nums !important;
+    text-decoration: none !important;
+    border: none !important;
+    transition: background-color 140ms ease, color 140ms ease !important;
+}
+
+html body #hotel-view .clickable-pnr:hover,
+html body #hotel-view .clickable-hotel-ref:hover {
+    background: var(--teal-600, #0D6E77) !important;
+    color: #FFFFFF !important;
+    text-decoration: none !important;
+}
+
+html body #hotel-view .hotel-results-table td.col-route,
+html body #hotel-view .sell-table td.col-route {
+    min-width: 140px !important;
+    max-width: 220px !important;
+    font-size: 11.5px !important;
+    font-weight: 400 !important;
+    color: var(--text, #0F172A) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+html body #hotel-view .hotel-results-table td.col-stay-dates,
+html body #hotel-view .sell-table td.col-stay-dates {
+    min-width: 150px !important;
+    font-size: 11.5px !important;
+    font-weight: 400 !important;
+    color: var(--text, #0F172A) !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+html body #hotel-view .hotel-results-table th.num-header,
+html body #hotel-view .hotel-results-table td.num-cell,
+html body #hotel-view .sell-table th.num-header,
+html body #hotel-view .sell-table td.num-cell {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums !important;
+    font-size: 11.5px !important;
+    font-weight: 400 !important;
+    color: var(--text, #0F172A) !important;
+}
+
+html body #hotel-view .hotel-results-table td.col-total,
+html body #hotel-view .sell-table td.col-total {
+    min-width: 80px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: var(--text-strong, #0F172A) !important;
+    font-variant-numeric: tabular-nums !important;
+    text-align: right !important;
+}
+
+/* ==========================================================================
+   8. STATUS BADGES & ACTION BUTTONS (EXACT 1:1 RECORDS STYLE)
+   ========================================================================== */
+html body #hotel-view .col-status {
+    min-width: 72px !important;
+    text-align: center !important;
+}
+
+html body #hotel-view .records-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 2px 8px !important;
     border-radius: 999px !important;
     font-size: 10px !important;
     font-weight: 600 !important;
-    text-transform: capitalize !important;
-    letter-spacing: 0.02em !important;
-    min-width: 48px !important;
-    line-height: 1.3 !important;
+    line-height: 1.4 !important;
+    border: none !important;
+    white-space: nowrap !important;
 }
 
-html body #hotel-view .payment-badge.payment-paid {
-    background: #E9F4EC !important;
-    color: #5F9E7D !important;
-    border: 1px solid rgba(95, 158, 125, 0.22) !important;
+html body #hotel-view .records-status-badge i {
+    font-size: 9px !important;
 }
 
-html body #hotel-view .payment-badge.payment-unpaid {
-    background: #FDEEE7 !important;
-    color: #E4572E !important;
-    border: 1px solid rgba(228, 87, 46, 0.22) !important;
+html body #hotel-view .records-status-badge.status-paid {
+    background: var(--mint-soft, #DCFCE7) !important;
+    color: var(--mint, #16A34A) !important;
 }
 
-html body #hotel-view .payment-badge.payment-partial {
-    background: #FDF3E0 !important;
-    color: #DD9426 !important;
-    border: 1px solid rgba(221, 148, 38, 0.25) !important;
+html body #hotel-view .records-status-badge.status-unpaid {
+    background: var(--amber-soft, #FEF3C7) !important;
+    color: var(--amber, #D97706) !important;
 }
 
-html body.material-theme section#hotel-view .search-row-actions .icon-btn,
-html body section#hotel-view .search-row-actions .icon-btn {
-    width: 26px !important;
-    height: 26px !important;
-    border-radius: 6px !important;
-    border: 1px solid #E2EAEC !important;
-    background: #FFFFFF !important;
-    color: #8299A1 !important;
+html body #hotel-view .records-status-badge.status-partial {
+    background: var(--sky-soft, #E0F2FE) !important;
+    color: var(--sky, #0284C7) !important;
+}
+
+html body #hotel-view th.col-actions,
+html body #hotel-view td.col-actions {
+    min-width: 110px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+html body #hotel-view td.actions-cell .icon-btn.icon-btn-table,
+html body.material-theme section#hotel-view .actions-cell .icon-btn,
+html body section#hotel-view .actions-cell .icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    margin: -3px 0 -3px 6px !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    border: 1px solid var(--border-soft, #E2E8F0) !important;
+    color: var(--text-muted, #475569) !important;
+    font-size: 12px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    font-size: 10.5px !important;
-    padding: 0 !important;
-    flex-shrink: 0 !important;
-    transition: all 0.15s ease !important;
+    box-shadow: none !important;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease !important;
+}
+
+html body #hotel-view td.actions-cell .icon-btn.icon-btn-table:first-child {
+    margin-left: 0 !important;
+}
+
+html body #hotel-view td.actions-cell .icon-btn.icon-btn-table:hover {
+    background: var(--teal-100, #EBF5F6) !important;
+    border-color: var(--teal-100, #EBF5F6) !important;
+    color: var(--teal-700, #0D6E77) !important;
+}
+
+html body #hotel-view td.actions-cell .icon-btn.icon-btn-table.btn-danger:hover {
+    background: var(--coral-soft, #FEE2E2) !important;
+    border-color: var(--coral-soft, #FEE2E2) !important;
+    color: var(--coral, #DC2626) !important;
 }
 
 html body #hotel-view .search-row-actions {
