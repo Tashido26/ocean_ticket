@@ -47,6 +47,7 @@ import {
 import {
     showToast,
     parseSheetDate,
+    getValidDateObject,
     formatDateToDDMMMYYYY,
     formatDateToDMMMY,
     formatPaymentMethod,
@@ -309,10 +310,13 @@ export function getSettlementSummary(customRange = null) {
     });
 
     const selfVisas = (state.allVisas || []).filter(v => {
-        if (v.source !== 'self') return false;
         if (v.status === 'withdrawn') return false;
-        const d = parseSheetDate(v.submission_date) || parseSheetDate(v.application_date);
-        return d && d.getTime && inRange(d, start, end);
+        if (v.source && v.source !== 'self') return false;
+        const d = getValidDateObject(v.application_date) ||
+                  getValidDateObject(v.submission_date) ||
+                  getValidDateObject(v.payment_date) ||
+                  getValidDateObject(v.created_at);
+        return d && inRange(d, start, end);
     });
 
     let selfProfit = 0;
@@ -368,11 +372,12 @@ export function getSettlementSummary(customRange = null) {
         const cost = visaFeeMmk + otherCostsMmk;
         const profit = serviceFeeMmk - otherCostsMmk - serviceRefundMmk;
         selfProfit += profit;
-        const dStr = v.submission_date || v.application_date;
+        const dStr = v.application_date || v.submission_date || v.payment_date || '';
+        const dObj = getValidDateObject(dStr) || new Date(0);
         selfItems.push({
             id: v.id,
             kind: 'visa',
-            date: parseSheetDate(dStr),
+            date: dObj,
             dateStr: dStr,
             pnr: `VSA-${String(v.id || '').slice(0, 6).toUpperCase()}`,
             client: v.applicant_name || '—',

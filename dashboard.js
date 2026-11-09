@@ -9,6 +9,7 @@ import { addDashboardTask, updateDashboardTask, deleteDashboardTask, batchUpdate
 import {
     showToast,
     parseSheetDate,
+    getValidDateObject,
     parseDateInput,
     parseDeadline,
     setButtonLoading,
@@ -262,10 +263,19 @@ function activeHotelRowsInRange(range) {
     });
 }
 
+export function getVisaDate(v) {
+    if (!v) return null;
+    return getValidDateObject(v.application_date) ||
+           getValidDateObject(v.submission_date) ||
+           getValidDateObject(v.payment_date) ||
+           getValidDateObject(v.created_at);
+}
+
 function activeVisaRowsInRange(range) {
     return (state.allVisas || []).filter(v => {
-        if (v.source !== 'self' || v.status === 'withdrawn') return false;
-        const d = parseSheetDate(v.submission_date) || parseSheetDate(v.application_date);
+        if (v.status === 'withdrawn') return false;
+        if (v.source && v.source !== 'self') return false;
+        const d = getVisaDate(v);
         return inDashboardRange(d, range);
     });
 }
@@ -715,6 +725,10 @@ function renderDashboardData() {
 
     setText('total-profit-value', formatDashboardAmount(curProfit));
     setHtml('profit-trend-wrapper', getTrendBadgeHtml(curProfit, prevProfit));
+    const totalProfitBox = document.getElementById('total-profit-box');
+    if (totalProfitBox) {
+        totalProfitBox.title = `Commission: ${formatDashboardAmount(curCommission)} MMK | Extra Fare: ${formatDashboardAmount(curExtraFare)} MMK | Self-Purchased: ${formatDashboardAmount(curSelfProfit)} MMK`;
+    }
 
     setText('owner-payable-value', formatDashboardAmount(curRemainingDue));
     setHtml('owner-payable-trend-wrapper', curRemainingDue > 0
@@ -723,6 +737,14 @@ function renderDashboardData() {
         
     setText('self-profit-value', formatDashboardAmount(curSelfProfit));
     setHtml('self-profit-trend-wrapper', getTrendBadgeHtml(curSelfProfit, prevSelfProfit));
+    const selfBox = document.getElementById('self-purchased-box');
+    if (selfBox) {
+        selfBox.title = `Flight: ${formatDashboardAmount(curSelfTicketProfit)} MMK | Hotel: ${formatDashboardAmount(curSelfHotelProfit)} MMK | Visa: ${formatDashboardAmount(curSelfVisaProfit)} MMK`;
+    }
+    const selfBreakdownEl = document.getElementById('self-profit-breakdown');
+    if (selfBreakdownEl) {
+        selfBreakdownEl.textContent = `Flight: ${formatDashboardAmount(curSelfTicketProfit)} · Hotel: ${formatDashboardAmount(curSelfHotelProfit)} · Visa: ${formatDashboardAmount(curSelfVisaProfit)}`;
+    }
 
     setText('bookingRevenuePeriodHint', range.label || 'This Month');
     setText('dashboardUnpaidHint', `${formatDashboardAmount(curUnpaid)} MMK`);
@@ -3506,6 +3528,17 @@ export function updateComparisonChart() {
         bucket.revenue += Number(h.base_fare || 0);
         // Hotel profit is the agent commission
         bucket.profit += Number(h.commission || 0);
+    });
+
+    (state.allVisas || []).forEach(v => {
+        if (v.status === 'withdrawn') return;
+        if (v.source && v.source !== 'self') return;
+        const vDate = getVisaDate(v);
+        if (!vDate || !inDashboardRange(vDate, range)) return;
+        const bucket = bucketMap.get(bucketKey(vDate));
+        if (!bucket) return;
+        bucket.revenue += Number(v.service_fee_mmk || 0);
+        bucket.profit += visaProfitAmount(v);
     });
 
     const computed = getComputedStyle(document.body);

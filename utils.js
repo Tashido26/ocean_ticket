@@ -263,6 +263,22 @@ export function isPlaceholderDate(dateStr) {
 }
 
 /**
+ * Safely parses and validates a date value (string or Date), rejecting empty, placeholder, or invalid 1970 epoch dates.
+ * @param {string|Date} dateVal
+ * @returns {Date|null}
+ */
+export function getValidDateObject(dateVal) {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) {
+        return (!isNaN(dateVal.getTime()) && dateVal.getTime() > 0) ? dateVal : null;
+    }
+    const str = String(dateVal).trim();
+    if (!str || isPlaceholderDate(str)) return null;
+    const d = parseSheetDate(str);
+    return (d && !isNaN(d.getTime()) && d.getTime() > 0) ? d : null;
+}
+
+/**
  * Attaches auto-formatting to a date input so typing 11021987 produces 11/02/1987.
  * @param {HTMLInputElement} input The input element to attach to.
  */

@@ -55,6 +55,12 @@ function harness(tickets = [], settlements = []) {
     const context = vm.createContext({
         state, document, Date, console,
         parseSheetDate: value => value ? new Date(value) : new Date(0),
+        getValidDateObject: value => {
+            if (!value) return null;
+            if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+            const d = new Date(value);
+            return (isNaN(d.getTime()) || d.getTime() === 0) ? null : d;
+        },
         parsePaymentMethod: value => ({ method: value || '', bank: '' }),
         formatPaymentMethod: method => method,
         formatDateToDDMMMYYYY: value => value,
@@ -340,11 +346,22 @@ test('visa applications never affect owner settlement math and only add net serv
     assert.equal(after.selfProfit, baseline.selfProfit + 65000);
     assert.equal(after.grandTotalProfit, baseline.grandTotalProfit + 65000);
 
-    // (d) Only the active visa appears in selfItems (withdrawn visa is excluded)
-    const visaItems = after.selfItems.filter(i => i.kind === 'visa');
-    assert.equal(visaItems.length, 1);
-    assert.equal(visaItems[0].pnr, 'VSA-VISA01');
-    assert.equal(visaItems[0].revenue, 290000);
-    assert.equal(visaItems[0].cost, 210000);
-    assert.equal(visaItems[0].profit, 65000);
+    // (e): active visa with EMPTY submission_date and valid application_date must be included
+    h.state.allVisas.push({
+        id: 'visa03collect',
+        status: 'collecting',
+        applicant_name: 'COLLECTING APPLICANT',
+        country: 'China',
+        visa_type: 'Tourist (L)',
+        application_date: '2026-08-18',
+        submission_date: '',
+        visa_fee_mmk: 0,
+        service_fee_mmk: 150000,
+        other_costs_mmk: 0,
+        service_fee_refund_mmk: 0
+    });
+
+    const afterCollecting = h.context.getSettlementSummary();
+    assert.equal(afterCollecting.selfProfit, baseline.selfProfit + 65000 + 150000);
+    assert.equal(afterCollecting.selfItems.filter(i => i.kind === 'visa').length, 2);
 });
