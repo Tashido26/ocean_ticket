@@ -1687,6 +1687,21 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
     color: #E4572E !important;
 }
 
+#home-view .dashboard-auto-task.visa-reminder .task-auto-icon {
+    background: #E8F5F5 !important;
+    color: #0D6E77 !important;
+}
+
+#home-view .dashboard-auto-task.visa-reminder.danger .task-auto-icon {
+    background: #FDEEE7 !important;
+    color: #E4572E !important;
+}
+
+#home-view .dashboard-auto-task.visa-reminder.warning .task-auto-icon {
+    background: rgba(221, 148, 38, 0.18) !important;
+    color: #DD9426 !important;
+}
+
 #home-view .task-auto-body,
 #home-view .auto-task-body {
     min-width: 0 !important;
@@ -1731,6 +1746,10 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
 #home-view .dashboard-auto-task.danger .dashboard-status,
 #home-view .dashboard-auto-task.expired .auto-task-countdown {
     color: #E4572E !important;
+}
+
+#home-view .dashboard-auto-task .dashboard-status.neutral {
+    color: #64748B !important;
 }
 
 #home-view .passport-filter-pills {

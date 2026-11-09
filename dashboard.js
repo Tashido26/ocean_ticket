@@ -2747,6 +2747,65 @@ function getBookingDeadlineReminderRows(activeBookings) {
     }).sort((a, b) => a.deadline - b.deadline);
 }
 
+export function getVisaCollectionReminderRows(visas = (state.allVisas || []), referenceDate = new Date()) {
+    const todayStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
+    const rows = [];
+
+    (visas || []).forEach(v => {
+        if (!v) return;
+        const st = String(v.status || '').toLowerCase().trim();
+        // Skip applications already collected or closed/withdrawn/refused
+        if (st === 'collected' || st === 'withdrawn' || st === 'refused') return;
+        if (!v.expected_collection_date) return;
+
+        const targetDate = parseSheetDate(v.expected_collection_date);
+        if (!targetDate || isNaN(targetDate.getTime()) || targetDate.getTime() === 0) return;
+
+        const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).getTime();
+        const diffDays = Math.round((dateStart - todayStart) / (24 * 60 * 60 * 1000));
+
+        let tone = 'neutral';
+        let label = '';
+        if (diffDays < 0) {
+            tone = 'danger';
+            label = `Overdue ${Math.abs(diffDays)}d`;
+        } else if (diffDays === 0) {
+            tone = 'danger';
+            label = 'Due today';
+        } else if (diffDays === 1) {
+            tone = 'warning';
+            label = 'Due tomorrow';
+        } else if (diffDays <= 7) {
+            tone = 'warning';
+            label = `In ${diffDays}d`;
+        } else {
+            tone = 'neutral';
+            label = `In ${diffDays}d`;
+        }
+
+        const rawRef = v.id || '';
+        const ref = rawRef ? (String(rawRef).startsWith('VSA-') ? rawRef : `VSA-${String(rawRef).slice(0, 6).toUpperCase()}`) : 'VSA';
+        const formattedDate = formatDateForSheet(targetDate) || v.expected_collection_date;
+
+        rows.push({
+            id: v.id,
+            applicant: v.applicant_name || 'Applicant',
+            country: v.country || 'Visa',
+            passportNo: v.passport_no ? String(v.passport_no).toUpperCase() : '',
+            status: v.status || 'processing',
+            expectedDate: formattedDate,
+            diffDays,
+            dateStart,
+            tone,
+            label,
+            ref
+        });
+    });
+
+    rows.sort((a, b) => a.dateStart - b.dateStart);
+    return rows;
+}
+
 function formatTaskDueLabel(dateValue, timeValue = '') {
     if (!dateValue) return 'No due date';
     const date = new Date(`${dateValue}T${timeValue || '00:00'}`);
@@ -2886,6 +2945,23 @@ function openTaskModal() {
 
 let dashboardPassportFilter = 'all';
 let dashboardPassportShowAll = false;
+let dashboardVisaShowAll = false;
+
+async function openVisaFromReminder(visaId) {
+    if (!visaId) return;
+    try {
+        if (typeof window !== 'undefined' && typeof window.showVisaDetailsAction === 'function') {
+            window.showVisaDetailsAction(visaId);
+            return;
+        }
+        const visaMod = await import('./visa.js');
+        if (typeof visaMod.showVisaDetailsAction === 'function') {
+            visaMod.showVisaDetailsAction(visaId);
+        }
+    } catch (err) {
+        console.error('Failed to open visa details modal from reminder:', err);
+    }
+}
 
 function wireDashboardTaskInteractions(container) {
     const addBtn = container.querySelector('#openTaskModalBtn');
@@ -2910,6 +2986,20 @@ function wireDashboardTaskInteractions(container) {
             openBookingFromReminder(button.dataset.bookingReminder);
         });
     });
+
+    container.querySelectorAll('[data-visa-reminder]').forEach(button => {
+        button.addEventListener('click', () => {
+            openVisaFromReminder(button.dataset.visaReminder);
+        });
+    });
+
+    const toggleVisaBtn = container.querySelector('#toggleAllVisaRemindersBtn');
+    if (toggleVisaBtn) {
+        toggleVisaBtn.addEventListener('click', () => {
+            dashboardVisaShowAll = !dashboardVisaShowAll;
+            updateDashboardData();
+        });
+    }
 
     container.querySelectorAll('[data-passport-client]').forEach(button => {
         button.addEventListener('click', () => {
@@ -2941,6 +3031,7 @@ function renderDashboardTasksReminders({ activeBookings, dueToday, unpaidGroups,
     if (!container) return;
 
     const bookingReminders = getBookingDeadlineReminderRows(activeBookings);
+    const visaReminders = getVisaCollectionReminderRows();
     const expiringPassports = getExpiringPassportClients();
     const vipExpiringCount = expiringPassports.filter(item => item.isVip).length;
     const filteredPassports = dashboardPassportFilter === 'vip'
@@ -2953,11 +3044,14 @@ function renderDashboardTasksReminders({ activeBookings, dueToday, unpaidGroups,
         .sort((a, b) => Number(a.done) - Number(b.done) || getManualTaskSortValue(a) - getManualTaskSortValue(b) || taskTimestampValue(b.createdAt) - taskTimestampValue(a.createdAt));
     const openManualCount = manualTasks.filter(task => !task.done).length;
     const urgentBookingCount = bookingReminders.filter(item => ['danger', 'warning'].includes(item.tone)).length;
+    const urgentVisaCount = visaReminders.filter(item => ['danger', 'warning'].includes(item.tone)).length;
+
     if (hint) {
-        const totalOpen = openManualCount + urgentBookingCount + expiringPassports.length;
-        hint.textContent = expiringPassports.length > 0
-            ? `${totalOpen} open · ${expiringPassports.length} passport${expiringPassports.length === 1 ? '' : 's'}`
-            : `${totalOpen} open`;
+        const totalOpen = openManualCount + urgentBookingCount + expiringPassports.length + urgentVisaCount;
+        const hints = [`${totalOpen} open`];
+        if (urgentVisaCount > 0) hints.push(`${urgentVisaCount} visa due`);
+        if (expiringPassports.length > 0) hints.push(`${expiringPassports.length} passport${expiringPassports.length === 1 ? '' : 's'}`);
+        hint.textContent = hints.join(' · ');
     }
 
     const bookingHtml = bookingReminders.length
@@ -2972,6 +3066,24 @@ function renderDashboardTasksReminders({ activeBookings, dueToday, unpaidGroups,
             </button>
         `).join('')
         : `<div class="task-empty-line">No active booking deadlines.</div>`;
+
+    const visibleVisas = dashboardVisaShowAll ? visaReminders : visaReminders.slice(0, 8);
+    const visaHtml = visibleVisas.length
+        ? visibleVisas.map(item => `
+            <button type="button" class="dashboard-auto-task visa-reminder ${item.tone}" data-visa-reminder="${dashboardEscapeHtml(item.id)}" title="Click to view visa details">
+                <span class="task-auto-icon"><i class="fa-solid fa-passport"></i></span>
+                <span class="task-auto-body">
+                    <strong>${dashboardEscapeHtml(item.applicant)} · ${dashboardEscapeHtml(item.country)}</strong>
+                    <small>${dashboardEscapeHtml(item.ref)}${item.passportNo ? ` · ${dashboardEscapeHtml(item.passportNo)}` : ''} · Expected: <b>${dashboardEscapeHtml(item.expectedDate)}</b></small>
+                </span>
+                <span class="dashboard-status ${item.tone === 'danger' ? 'danger' : item.tone === 'warning' ? 'warning' : 'neutral'}">${dashboardEscapeHtml(item.label)}</span>
+            </button>
+        `).join('') + (visaReminders.length > 8 ? `
+            <button type="button" class="passport-show-more-btn" id="toggleAllVisaRemindersBtn">
+                ${dashboardVisaShowAll ? 'Show fewer' : `Show all ${visaReminders.length} visa collections`}
+            </button>
+        ` : '')
+        : `<div class="task-empty-line">No visa collections pending.</div>`;
 
     const visiblePassports = dashboardPassportShowAll ? filteredPassports : filteredPassports.slice(0, 8);
     const passportHtml = visiblePassports.length
@@ -3024,6 +3136,13 @@ function renderDashboardTasksReminders({ activeBookings, dueToday, unpaidGroups,
         <div class="task-mini-section">
             <div class="task-mini-title"><span>Booking deadlines</span><small>${bookingReminders.length}</small></div>
             <div class="task-mini-list">${bookingHtml}</div>
+        </div>
+        <div class="task-mini-section visa-collection-mini-section">
+            <div class="task-mini-title">
+                <span><i class="fa-solid fa-passport" style="color:var(--brand-teal, #0D6E77); margin-right:4px;"></i> Visa collections</span>
+                <small>${visaReminders.length}</small>
+            </div>
+            <div class="task-mini-list">${visaHtml}</div>
         </div>
         <div class="task-mini-section passport-expiry-mini-section">
             <div class="task-mini-title">

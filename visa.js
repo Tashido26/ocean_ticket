@@ -2475,3 +2475,7 @@ export function showVisaDetailsAction(id) {
         }
     });
 }
+
+if (typeof window !== 'undefined') {
+    window.showVisaDetailsAction = showVisaDetailsAction;
+}
