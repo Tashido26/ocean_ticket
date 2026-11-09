@@ -317,7 +317,7 @@ function updateSidebarBookingBadge(count) {
     }
 }
 
-export function getVisaAttentionItems(visas = (state.allVisas || []), referenceDate = new Date()) {
+function getVisaAttentionItems(visas = (state.allVisas || []), referenceDate = new Date()) {
     const todayStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
     const attentionItems = [];
 
@@ -383,7 +383,7 @@ export function getVisaAttentionItems(visas = (state.allVisas || []), referenceD
     return attentionItems;
 }
 
-export function updateSidebarVisaBadge(count) {
+function updateSidebarVisaBadge(count) {
     const badge = document.getElementById('sidebarVisaBadge');
     if (!badge) return;
     const num = typeof count === 'number' ? count : getVisaAttentionItems(state.allVisas || []).length;
