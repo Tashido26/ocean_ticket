@@ -317,6 +317,84 @@ function updateSidebarBookingBadge(count) {
     }
 }
 
+export function getVisaAttentionItems(visas = (state.allVisas || []), referenceDate = new Date()) {
+    const todayStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
+    const attentionItems = [];
+
+    (visas || []).forEach(v => {
+        if (!v) return;
+        const st = String(v.status || '').toLowerCase().trim();
+        if (st === 'collected' || st === 'withdrawn' || st === 'refused') return;
+
+        let needsAttention = false;
+        const reasons = [];
+        let urgency = 'normal';
+
+        // 1. Submission due today, tomorrow, or overdue (physical passport drop-off needed)
+        if (v.submission_date && (st === 'draft' || st === 'collecting')) {
+            const subDate = parseSheetDate(v.submission_date);
+            if (subDate && !isNaN(subDate.getTime()) && subDate.getTime() > 0) {
+                const subStart = new Date(subDate.getFullYear(), subDate.getMonth(), subDate.getDate()).getTime();
+                const diffDays = Math.round((subStart - todayStart) / (24 * 60 * 60 * 1000));
+                if (diffDays <= 1) {
+                    needsAttention = true;
+                    urgency = diffDays <= 0 ? 'high' : 'medium';
+                    reasons.push(diffDays < 0 ? `Submission overdue ${Math.abs(diffDays)}d` : diffDays === 0 ? 'Submit to embassy today' : 'Submit to embassy tomorrow');
+                }
+            }
+        }
+
+        // 2. Submitted / Processing but Missing Expected Collection Date
+        if ((st === 'submitted' || st === 'processing') && !v.expected_collection_date) {
+            needsAttention = true;
+            urgency = 'high';
+            reasons.push('Return date missing (Set collection date)');
+        }
+
+        // 3. Expected Collection Date reached (today, tomorrow, or overdue)
+        if (v.expected_collection_date && st !== 'collected') {
+            const colDate = parseSheetDate(v.expected_collection_date);
+            if (colDate && !isNaN(colDate.getTime()) && colDate.getTime() > 0) {
+                const colStart = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate()).getTime();
+                const diffDays = Math.round((colStart - todayStart) / (24 * 60 * 60 * 1000));
+                if (diffDays <= 1) {
+                    needsAttention = true;
+                    urgency = diffDays <= 0 ? 'high' : 'medium';
+                    reasons.push(diffDays < 0 ? `Collection overdue ${Math.abs(diffDays)}d` : diffDays === 0 ? 'Collection due today' : 'Collection due tomorrow');
+                }
+            }
+        }
+
+        // 4. Approved but not yet collected / handed to client
+        if (st === 'approved') {
+            needsAttention = true;
+            reasons.push('Passport ready for client collection');
+        }
+
+        if (needsAttention) {
+            attentionItems.push({
+                visa: v,
+                reasons,
+                urgency
+            });
+        }
+    });
+
+    return attentionItems;
+}
+
+export function updateSidebarVisaBadge(count) {
+    const badge = document.getElementById('sidebarVisaBadge');
+    if (!badge) return;
+    const num = typeof count === 'number' ? count : getVisaAttentionItems(state.allVisas || []).length;
+    if (num > 0) {
+        badge.textContent = String(num);
+        badge.style.display = 'inline-flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
 function getActiveBookings() {
     return (state.allBookings || []).filter(b => {
         const status = String(b.status || '').toLowerCase().trim();
@@ -713,6 +791,7 @@ function renderDashboardData() {
         return diff <= 24 * 60 * 60 * 1000;
     });
     updateSidebarBookingBadge(activeBookings.length);
+    updateSidebarVisaBadge();
 
     // Populate Cards
     setText('monthly-revenue-value', formatDashboardAmount(curSales));
@@ -3859,6 +3938,8 @@ export {
     dashboardEscapeHtml,
     initializeDashboardSelectors,
     renderDashboardData,
-    updateSidebarBookingBadge
+    updateSidebarBookingBadge,
+    updateSidebarVisaBadge,
+    getVisaAttentionItems
 };
 

@@ -60,9 +60,10 @@ import {
     renderDashboardData,
     showTripPlanDetail,
     updateComparisonChart,
-    updateSidebarBookingBadge
+    updateSidebarBookingBadge,
+    updateSidebarVisaBadge
 } from "./dashboard.js";
-export { updateDashboardData, renderDashboardData, showTripPlanDetail, updateSidebarBookingBadge };
+export { updateDashboardData, renderDashboardData, showTripPlanDetail, updateSidebarBookingBadge, updateSidebarVisaBadge };
 
 // Global PNR Click Handler — opens trip plan detail modal
 document.addEventListener('click', (e) => {
@@ -569,6 +570,7 @@ export async function initializeApp() {
                     updateSettlementDashboard();
                 }
                 updateDashboardData();
+                updateSidebarVisaBadge();
             })
         );
 

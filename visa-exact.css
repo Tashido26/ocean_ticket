@@ -1161,6 +1161,148 @@
     color: var(--coral);
 }
 
+.visa-header-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    padding: 0 6px !important;
+    border-radius: 999px !important;
+    background: #E4572E !important;
+    color: #FFFFFF !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    margin-left: 8px !important;
+    vertical-align: middle !important;
+    line-height: 1 !important;
+    box-shadow: 0 1px 3px rgba(228, 87, 46, 0.35) !important;
+}
+
+.sidebar-badge.visa-badge {
+    margin-left: auto !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: #E4572E !important;
+    color: #FFFFFF !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.visa-status-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+}
+
+.visa-status-sub {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.visa-status-sub.is-submission {
+    color: #0D6E77;
+}
+
+.visa-status-sub.is-submission.warning {
+    color: #D97706;
+}
+
+.visa-status-sub.is-submission.danger {
+    color: #DC2626;
+}
+
+.visa-status-sub.is-expected {
+    color: #2563EB;
+}
+
+.visa-status-sub.is-expected.warning {
+    color: #D97706;
+}
+
+.visa-status-sub.is-expected.danger {
+    color: #DC2626;
+}
+
+.visa-status-sub.is-collected {
+    color: #059669;
+}
+
+.btn-visa-pill-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-visa-pill-action.is-warning {
+    background: #FEF3C7;
+    border-color: #FCD34D;
+    color: #B45309;
+}
+
+.btn-visa-pill-action.is-warning:hover {
+    background: #FDE68A;
+    color: #92400E;
+}
+
+.btn-visa-pill-action.is-success {
+    background: #DCFCE7;
+    border-color: #86EFAC;
+    color: #15803D;
+}
+
+.btn-visa-pill-action.is-success:hover {
+    background: #BBF7D0;
+    color: #166534;
+}
+
+.action-btn.workflow-btn {
+    color: #0D6E77;
+}
+
+.action-btn.workflow-btn:hover {
+    background: #E8F5F5;
+    color: #094F56;
+}
+
+.action-btn.workflow-btn.warning-btn {
+    color: #D97706;
+}
+
+.action-btn.workflow-btn.warning-btn:hover {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.action-btn.workflow-btn.success-btn {
+    color: #059669;
+}
+
+.action-btn.workflow-btn.success-btn:hover {
+    background: #DCFCE7;
+    color: #047857;
+}
+
 #visa-view .status-badge {
     display: inline-flex !important;
     align-items: center !important;

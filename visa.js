@@ -299,6 +299,7 @@ export function initVisaSystem() {
     wireChecklistAddRow();
     wireFeeAndPaymentControls();
     initVisaDatepickers();
+    updateVisaBadges();
 }
 
 function initVisaDatepickers() {
@@ -2067,6 +2068,297 @@ export async function deleteVisaApplicationAction(id) {
     }
 }
 
+export function getVisaAttentionItems(visas = (state.allVisas || []), referenceDate = new Date()) {
+    const todayStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
+    const attentionItems = [];
+
+    (visas || []).forEach(v => {
+        if (!v) return;
+        const st = String(v.status || '').toLowerCase().trim();
+        if (st === 'collected' || st === 'withdrawn' || st === 'refused') return;
+
+        let needsAttention = false;
+        const reasons = [];
+        let urgency = 'normal';
+
+        // 1. Submission due today, tomorrow, or overdue (physical passport drop-off needed)
+        if (v.submission_date && (st === 'draft' || st === 'collecting')) {
+            const subDate = parseSheetDate(v.submission_date);
+            if (subDate && !isNaN(subDate.getTime()) && subDate.getTime() > 0) {
+                const subStart = new Date(subDate.getFullYear(), subDate.getMonth(), subDate.getDate()).getTime();
+                const diffDays = Math.round((subStart - todayStart) / (24 * 60 * 60 * 1000));
+                if (diffDays <= 1) {
+                    needsAttention = true;
+                    urgency = diffDays <= 0 ? 'high' : 'medium';
+                    reasons.push(diffDays < 0 ? `Submission overdue ${Math.abs(diffDays)}d` : diffDays === 0 ? 'Submit to embassy today' : 'Submit to embassy tomorrow');
+                }
+            }
+        }
+
+        // 2. Submitted / Processing but Missing Expected Collection Date
+        if ((st === 'submitted' || st === 'processing') && !v.expected_collection_date) {
+            needsAttention = true;
+            urgency = 'high';
+            reasons.push('Return date missing (Set collection date)');
+        }
+
+        // 3. Expected Collection Date reached (today, tomorrow, or overdue)
+        if (v.expected_collection_date && st !== 'collected') {
+            const colDate = parseSheetDate(v.expected_collection_date);
+            if (colDate && !isNaN(colDate.getTime()) && colDate.getTime() > 0) {
+                const colStart = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate()).getTime();
+                const diffDays = Math.round((colStart - todayStart) / (24 * 60 * 60 * 1000));
+                if (diffDays <= 1) {
+                    needsAttention = true;
+                    urgency = diffDays <= 0 ? 'high' : 'medium';
+                    reasons.push(diffDays < 0 ? `Collection overdue ${Math.abs(diffDays)}d` : diffDays === 0 ? 'Collection due today' : 'Collection due tomorrow');
+                }
+            }
+        }
+
+        // 4. Approved but not yet collected / handed to client
+        if (st === 'approved') {
+            needsAttention = true;
+            reasons.push('Passport ready for client collection');
+        }
+
+        if (needsAttention) {
+            attentionItems.push({
+                visa: v,
+                reasons,
+                urgency
+            });
+        }
+    });
+
+    return attentionItems;
+}
+
+export function updateVisaBadges() {
+    const attentionItems = getVisaAttentionItems(state.allVisas || []);
+    const count = attentionItems.length;
+
+    // 1. Sidebar badge
+    const sidebarBadge = document.getElementById('sidebarVisaBadge');
+    if (sidebarBadge) {
+        if (count > 0) {
+            sidebarBadge.textContent = String(count);
+            sidebarBadge.style.display = 'inline-flex';
+        } else {
+            sidebarBadge.style.display = 'none';
+        }
+    }
+
+    // 2. Visa page header title badge (only circular red badge with number)
+    const headerBadge = document.getElementById('visaHeaderBadge');
+    if (headerBadge) {
+        if (count > 0) {
+            headerBadge.textContent = String(count);
+            headerBadge.style.display = 'inline-flex';
+            headerBadge.title = `${count} visa application${count === 1 ? '' : 's'} require operational action`;
+        } else {
+            headerBadge.style.display = 'none';
+        }
+    }
+}
+
+export function openQuickSetCollectionDateModal(id) {
+    const v = (state.allVisas || []).find(item => item.id === id);
+    if (!v) return;
+    const ref = formatVisaRef(v.id);
+    const content = `
+        <div class="form-container" style="background:var(--bg-color); max-width:440px; margin:0 auto; padding:20px;">
+            <h3 style="margin-top:0; font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-calendar-plus" style="color:var(--brand, #0D6E77);"></i> Set Return Date
+            </h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">
+                <strong>${escapeHtml(v.applicant_name)}</strong> (${escapeHtml(ref)}) · ${escapeHtml(v.country || 'Visa')}
+            </p>
+            <form id="quickSetReturnDateForm" onsubmit="return false;">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Expected Collection Date *</label>
+                    <input type="text" id="quickExpectedCollectionDate" class="datepicker-input" placeholder="DD/MM/YYYY" value="${escapeHtml(v.expected_collection_date || '')}" required autocomplete="off" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border); padding:0 12px; font-size:13px;">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Workflow Status</label>
+                    <select id="quickVisaStatus" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border); padding:0 10px; font-size:13px;">
+                        <option value="submitted" ${v.status === 'submitted' || v.status === 'collecting' ? 'selected' : ''}>Submitted to Embassy</option>
+                        <option value="processing" ${v.status === 'processing' ? 'selected' : ''}>Processing</option>
+                        <option value="approved" ${v.status === 'approved' ? 'selected' : ''}>Approved</option>
+                    </select>
+                </div>
+                <div class="form-actions" style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary" id="cancelQuickDateBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveQuickDateBtn"><i class="fa-solid fa-check"></i> Save Date</button>
+                </div>
+            </form>
+        </div>
+    `;
+    openModal(content, 'small-modal');
+
+    const dateInput = document.getElementById('quickExpectedCollectionDate');
+    if (dateInput && typeof window.Datepicker !== 'undefined') {
+        try {
+            new window.Datepicker(dateInput, { format: 'dd/mm/yyyy', autohide: true, todayHighlight: true });
+        } catch (_) {}
+    }
+
+    document.getElementById('cancelQuickDateBtn')?.addEventListener('click', closeModal);
+    document.getElementById('quickSetReturnDateForm')?.addEventListener('submit', async () => {
+        const newDate = document.getElementById('quickExpectedCollectionDate')?.value?.trim();
+        const newStatus = document.getElementById('quickVisaStatus')?.value || v.status;
+        if (!newDate) {
+            showToast('Please enter expected collection date.', 'warning');
+            return;
+        }
+        const updates = {
+            expected_collection_date: newDate,
+            status: newStatus
+        };
+        try {
+            await updateVisaApplication(v.id, updates);
+            const diffs = computeVisaDiffs(v, { ...v, ...updates });
+            saveHistory({ ...v, ...updates, id: v.id, name: v.applicant_name, booking_reference: ref }, `Updated expected collection date to ${newDate} for ${v.applicant_name}`, {
+                action: 'VISA_MODIFIED',
+                financial: true,
+                changes: diffs.length > 0 ? diffs : [{ field: 'expected collection', from: v.expected_collection_date || 'None', to: newDate }]
+            }).catch(() => {});
+            showToast(`Collection date saved: ${newDate}`, 'success');
+            closeModal();
+            renderVisaApplications();
+            updateVisaBadges();
+        } catch (err) {
+            console.error('Failed to update visa return date:', err);
+            showToast('Failed to save return date.', 'error');
+        }
+    });
+}
+
+export function openQuickMarkSubmittedModal(id) {
+    const v = (state.allVisas || []).find(item => item.id === id);
+    if (!v) return;
+    const ref = formatVisaRef(v.id);
+    const todayStr = formatDate(new Date());
+    const content = `
+        <div class="form-container" style="background:var(--bg-color); max-width:440px; margin:0 auto; padding:20px;">
+            <h3 style="margin-top:0; font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-paper-plane" style="color:var(--brand, #0D6E77);"></i> Mark Submitted to Embassy
+            </h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">
+                <strong>${escapeHtml(v.applicant_name)}</strong> (${escapeHtml(ref)}) · ${escapeHtml(v.country || 'Visa')}
+            </p>
+            <form id="quickMarkSubmittedForm" onsubmit="return false;">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Embassy Submission Date *</label>
+                    <input type="text" id="quickSubmissionDate" class="datepicker-input" placeholder="DD/MM/YYYY" value="${escapeHtml(v.submission_date || todayStr)}" required autocomplete="off" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border); padding:0 12px; font-size:13px;">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Expected Collection Date</label>
+                    <input type="text" id="quickSubExpectedDate" class="datepicker-input" placeholder="DD/MM/YYYY (leave blank if unknown)" value="${escapeHtml(v.expected_collection_date || '')}" autocomplete="off" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border); padding:0 12px; font-size:13px;">
+                    <small style="color:var(--text-muted); font-size:11px; margin-top:3px; display:block;">If unknown yet, leave blank. System will remind you to set it once receipt slip is issued.</small>
+                </div>
+                <div class="form-actions" style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary" id="cancelQuickSubBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveQuickSubBtn"><i class="fa-solid fa-check"></i> Mark Submitted</button>
+                </div>
+            </form>
+        </div>
+    `;
+    openModal(content, 'small-modal');
+
+    ['quickSubmissionDate', 'quickSubExpectedDate'].forEach(fid => {
+        const el = document.getElementById(fid);
+        if (el && typeof window.Datepicker !== 'undefined') {
+            try { new window.Datepicker(el, { format: 'dd/mm/yyyy', autohide: true, todayHighlight: true }); } catch (_) {}
+        }
+    });
+
+    document.getElementById('cancelQuickSubBtn')?.addEventListener('click', closeModal);
+    document.getElementById('quickMarkSubmittedForm')?.addEventListener('submit', async () => {
+        const subDate = document.getElementById('quickSubmissionDate')?.value?.trim() || todayStr;
+        const expDate = document.getElementById('quickSubExpectedDate')?.value?.trim() || '';
+        const updates = {
+            submission_date: subDate,
+            expected_collection_date: expDate,
+            status: 'submitted'
+        };
+        try {
+            await updateVisaApplication(v.id, updates);
+            const diffs = computeVisaDiffs(v, { ...v, ...updates });
+            saveHistory({ ...v, ...updates, id: v.id, name: v.applicant_name, booking_reference: ref }, `Marked visa application submitted to embassy for ${v.applicant_name}`, {
+                action: 'VISA_MODIFIED',
+                financial: true,
+                changes: diffs.length > 0 ? diffs : [{ field: 'status', from: v.status, to: 'submitted' }]
+            }).catch(() => {});
+            showToast(`Marked as Submitted to Embassy.`, 'success');
+            closeModal();
+            renderVisaApplications();
+            updateVisaBadges();
+        } catch (err) {
+            console.error('Failed to mark submitted:', err);
+            showToast('Failed to mark submitted.', 'error');
+        }
+    });
+}
+
+export function openQuickMarkCollectedModal(id) {
+    const v = (state.allVisas || []).find(item => item.id === id);
+    if (!v) return;
+    const ref = formatVisaRef(v.id);
+    const todayStr = formatDate(new Date());
+    const content = `
+        <div class="form-container" style="background:var(--bg-color); max-width:440px; margin:0 auto; padding:20px;">
+            <h3 style="margin-top:0; font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-handshake" style="color:#097A66;"></i> Mark Visa as Collected
+            </h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">
+                Confirm handover of passport and visa to <strong>${escapeHtml(v.applicant_name)}</strong> (${escapeHtml(ref)}).
+            </p>
+            <form id="quickMarkCollectedForm" onsubmit="return false;">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Passport Collected Date *</label>
+                    <input type="text" id="quickCollectedDate" class="datepicker-input" placeholder="DD/MM/YYYY" value="${escapeHtml(v.collection_date || todayStr)}" required autocomplete="off" style="width:100%; height:38px; border-radius:8px; border:1px solid var(--border); padding:0 12px; font-size:13px;">
+                </div>
+                <div class="form-actions" style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary" id="cancelQuickCollectBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveQuickCollectBtn" style="background:#097A66; border-color:#097A66;"><i class="fa-solid fa-check"></i> Confirm Collected</button>
+                </div>
+            </form>
+        </div>
+    `;
+    openModal(content, 'small-modal');
+
+    const colInput = document.getElementById('quickCollectedDate');
+    if (colInput && typeof window.Datepicker !== 'undefined') {
+        try { new window.Datepicker(colInput, { format: 'dd/mm/yyyy', autohide: true, todayHighlight: true }); } catch (_) {}
+    }
+
+    document.getElementById('cancelQuickCollectBtn')?.addEventListener('click', closeModal);
+    document.getElementById('quickMarkCollectedForm')?.addEventListener('submit', async () => {
+        const colDate = document.getElementById('quickCollectedDate')?.value?.trim() || todayStr;
+        const updates = {
+            collection_date: colDate,
+            status: 'collected'
+        };
+        try {
+            await updateVisaApplication(v.id, updates);
+            const diffs = computeVisaDiffs(v, { ...v, ...updates });
+            saveHistory({ ...v, ...updates, id: v.id, name: v.applicant_name, booking_reference: ref }, `Marked visa and passport collected for ${v.applicant_name}`, {
+                action: 'VISA_MODIFIED',
+                financial: true,
+                changes: diffs.length > 0 ? diffs : [{ field: 'status', from: v.status, to: 'collected' }]
+            }).catch(() => {});
+            showToast(`Marked as Collected (${colDate}).`, 'success');
+            closeModal();
+            renderVisaApplications();
+            updateVisaBadges();
+        } catch (err) {
+            console.error('Failed to mark collected:', err);
+            showToast('Failed to mark collected.', 'error');
+        }
+    });
+}
+
 export function renderVisaKpis() {
     const grid = document.getElementById('visaKpiGrid');
     if (!grid) return;
@@ -2076,6 +2368,10 @@ export function renderVisaKpis() {
     const inProgress = all.filter(v => ['collecting', 'submitted', 'processing'].includes(v.status)).length;
     const approvedCount = all.filter(v => ['approved', 'collected'].includes(v.status)).length;
     const totalProfit = active.reduce((sum, v) => sum + computeVisaProfit(v), 0);
+    const attentionItems = getVisaAttentionItems(all);
+    const attentionCount = attentionItems.length;
+
+    updateVisaBadges();
 
     grid.innerHTML = `
         <div class="booking-kpi-card">
@@ -2083,10 +2379,10 @@ export function renderVisaKpis() {
             <div class="kpi-value">${active.length}</div>
             <div class="kpi-sub">${all.length} total recorded</div>
         </div>
-        <div class="booking-kpi-card due-soon">
+        <div class="booking-kpi-card ${attentionCount > 0 ? 'due-soon' : ''}">
             <div class="kpi-label">In Progress</div>
             <div class="kpi-value">${inProgress}</div>
-            <div class="kpi-sub">Collecting · Submitted · Processing</div>
+            <div class="kpi-sub">${attentionCount > 0 ? `Collecting · Submitted · <b style="color:#E4572E;">${attentionCount} need action</b>` : 'Collecting · Submitted · Processing'}</div>
         </div>
         <div class="booking-kpi-card">
             <div class="kpi-label">Approved / Collected</div>
@@ -2110,9 +2406,14 @@ export function renderVisaApplications() {
     const searchText = (document.getElementById('visaSearchText')?.value || '').toLowerCase().trim();
     const statusFilter = document.getElementById('visaStatusFilter')?.value || 'all';
     const countryFilter = document.getElementById('visaCountryFilter')?.value || 'all';
+    const attentionMap = new Map(getVisaAttentionItems(state.allVisas || []).map(item => [item.visa.id, item]));
 
     const filtered = (state.allVisas || []).filter(v => {
-        if (statusFilter !== 'all' && v.status !== statusFilter) return false;
+        if (statusFilter === 'attention') {
+            if (!attentionMap.has(v.id)) return false;
+        } else if (statusFilter !== 'all' && v.status !== statusFilter) {
+            return false;
+        }
         if (countryFilter !== 'all') {
             const cKey = VISA_COUNTRIES[v.country] ? v.country : 'Other';
             if (countryFilter === 'Other' ? cKey !== 'Other' : v.country !== countryFilter) return false;
@@ -2175,6 +2476,9 @@ export function renderVisaApplications() {
             <tbody>
     `;
 
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
     pageRows.forEach(v => {
         const ref = formatVisaRef(v.id);
         const docSummary = computeChecklistSummary(v.documents);
@@ -2184,6 +2488,58 @@ export function renderVisaApplications() {
         const payBadgeClass = payStatus === 'paid' ? 'status-paid' : payStatus === 'partial' ? 'status-partial' : 'status-unpaid';
         const payLabel = payStatus === 'paid' ? 'Paid' : payStatus === 'partial' ? 'Partial' : 'Unpaid';
         const docCompleteClass = docSummary.complete ? 'is-complete' : docSummary.received > 0 ? 'is-partial' : 'is-empty';
+
+        let statusSubHtml = '';
+        const st = String(v.status || '').toLowerCase().trim();
+
+        if (st === 'collected') {
+            statusSubHtml = `<div class="visa-status-sub is-collected"><i class="fa-solid fa-circle-check"></i> ${escapeHtml(v.collection_date ? `Collected (${v.collection_date})` : 'Collected')}</div>`;
+        } else if (st === 'submitted' || st === 'processing') {
+            if (v.expected_collection_date) {
+                const colDate = parseSheetDate(v.expected_collection_date);
+                let colTone = 'neutral';
+                let colText = `Return: ${v.expected_collection_date}`;
+                if (colDate && !isNaN(colDate.getTime())) {
+                    const diffDays = Math.round((new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate()).getTime() - todayStart) / 86400000);
+                    if (diffDays < 0) { colTone = 'danger'; colText = `Return Overdue ${Math.abs(diffDays)}d`; }
+                    else if (diffDays === 0) { colTone = 'danger'; colText = `Return Today`; }
+                    else if (diffDays === 1) { colTone = 'warning'; colText = `Return Tomorrow`; }
+                    else { colText = `Return in ${diffDays}d (${v.expected_collection_date})`; }
+                }
+                statusSubHtml = `<div class="visa-status-sub is-expected ${colTone}"><i class="fa-solid fa-clock"></i> ${escapeHtml(colText)}</div>`;
+            } else {
+                statusSubHtml = `<button type="button" class="btn-visa-pill-action is-warning" data-quick-action="set-return-date" data-id="${escapeHtml(v.id)}" title="Set Expected Collection Date"><i class="fa-solid fa-calendar-plus"></i> Set Return Date</button>`;
+            }
+        } else if (st === 'approved') {
+            statusSubHtml = `<button type="button" class="btn-visa-pill-action is-success" data-quick-action="quick-collect" data-id="${escapeHtml(v.id)}" title="Mark as collected by client"><i class="fa-solid fa-handshake"></i> Mark Collected</button>`;
+        } else {
+            // draft or collecting
+            if (v.submission_date) {
+                const subDate = parseSheetDate(v.submission_date);
+                let subText = `Submit: ${v.submission_date}`;
+                let subTone = 'is-submission';
+                if (subDate && !isNaN(subDate.getTime())) {
+                    const diffDays = Math.round((new Date(subDate.getFullYear(), subDate.getMonth(), subDate.getDate()).getTime() - todayStart) / 86400000);
+                    if (diffDays < 0) { subTone = 'danger'; subText = `Submit Overdue ${Math.abs(diffDays)}d`; }
+                    else if (diffDays === 0) { subTone = 'danger'; subText = `Submit Today`; }
+                    else if (diffDays === 1) { subTone = 'warning'; subText = `Submit Tomorrow`; }
+                }
+                statusSubHtml = `<div class="visa-status-sub ${subTone}"><i class="fa-solid fa-paper-plane"></i> ${escapeHtml(subText)}</div>`;
+            } else {
+                statusSubHtml = `<div class="visa-status-sub is-muted">Collecting docs</div>`;
+            }
+        }
+
+        let quickActionBtn = '';
+        if (st !== 'collected' && st !== 'withdrawn' && st !== 'refused') {
+            if (st === 'draft' || st === 'collecting') {
+                quickActionBtn = `<button class="action-btn workflow-btn" data-quick-action="mark-submitted" data-id="${escapeHtml(v.id)}" title="Mark Submitted to Embassy"><i class="fa-solid fa-paper-plane"></i></button>`;
+            } else if (!v.expected_collection_date) {
+                quickActionBtn = `<button class="action-btn workflow-btn warning-btn" data-quick-action="set-return-date" data-id="${escapeHtml(v.id)}" title="Set Expected Collection Date"><i class="fa-solid fa-calendar-plus"></i></button>`;
+            } else {
+                quickActionBtn = `<button class="action-btn workflow-btn success-btn" data-quick-action="quick-collect" data-id="${escapeHtml(v.id)}" title="Mark as Collected"><i class="fa-solid fa-check-double"></i></button>`;
+            }
+        }
 
         html += `
             <tr class="visa-table-row" data-visa-id="${escapeHtml(v.id)}">
@@ -2209,9 +2565,13 @@ export function renderVisaApplications() {
                 </td>
                 <td style="font-weight: 700;">${(Number(v.customer_total_mmk) || 0).toLocaleString()} MMK</td>
                 <td style="font-weight: 700; color: var(--teal);">${profit >= 0 ? '+' : ''}${profit.toLocaleString()} MMK</td>
-                <td><span class="visa-status-badge tone-${stMeta.tone}">${escapeHtml(stMeta.label)}</span></td>
+                <td class="visa-status-cell">
+                    <span class="visa-status-badge tone-${stMeta.tone}">${escapeHtml(stMeta.label)}</span>
+                    ${statusSubHtml}
+                </td>
                 <td><span class="status-badge ${payBadgeClass}">${payLabel}</span></td>
                 <td class="actions-cell">
+                    ${quickActionBtn}
                     <button class="action-btn view-btn" data-visa-action="view" data-id="${escapeHtml(v.id)}" title="View Details"><i class="fa-solid fa-eye"></i></button>
                     <button class="action-btn edit-btn" data-visa-action="edit" data-id="${escapeHtml(v.id)}" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="action-btn delete-btn" data-visa-action="delete" data-id="${escapeHtml(v.id)}" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -2231,6 +2591,17 @@ export function renderVisaApplications() {
             if (action === 'view') showVisaDetailsAction(id);
             else if (action === 'edit') editVisaApplication(id);
             else if (action === 'delete') deleteVisaApplicationAction(id);
+        });
+    });
+
+    container.querySelectorAll('[data-quick-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            const action = btn.dataset.quickAction;
+            if (action === 'set-return-date') openQuickSetCollectionDateModal(id);
+            else if (action === 'mark-submitted') openQuickMarkSubmittedModal(id);
+            else if (action === 'quick-collect') openQuickMarkCollectedModal(id);
         });
     });
 
@@ -2405,7 +2776,15 @@ export function showVisaDetailsAction(id) {
             </div>
 
             <div class="visa-modal-footer">
-                <button type="button" class="btn btn-secondary" id="visaModalCloseBtn">Cancel</button>
+                <button type="button" class="btn btn-secondary" id="visaModalCloseBtn">Close</button>
+                ${v.status !== 'collected' ? `
+                    <button type="button" class="btn btn-secondary" id="visaModalQuickSetDateBtn" style="color:var(--brand, #0D6E77); border-color:var(--brand, #0D6E77);">
+                        <i class="fa-solid fa-calendar-days"></i> ${v.expected_collection_date ? 'Change Return Date' : 'Set Return Date'}
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="visaModalQuickCollectBtn" style="color:#097A66; border-color:#097A66; background:#EBF7F4;">
+                        <i class="fa-solid fa-handshake"></i> Mark Collected
+                    </button>
+                ` : ''}
                 <button type="button" class="btn btn-secondary" id="visaModalCopySummaryBtn">
                     <i class="fa-solid fa-share-nodes"></i> Copy Summary
                 </button>
@@ -2419,6 +2798,12 @@ export function showVisaDetailsAction(id) {
     openModal(content, 'large-modal');
 
     document.getElementById('visaModalCloseBtn')?.addEventListener('click', closeModal);
+    document.getElementById('visaModalQuickSetDateBtn')?.addEventListener('click', () => {
+        openQuickSetCollectionDateModal(v.id);
+    });
+    document.getElementById('visaModalQuickCollectBtn')?.addEventListener('click', () => {
+        openQuickMarkCollectedModal(v.id);
+    });
     document.getElementById('visaModalCopyRefBtn')?.addEventListener('click', () => {
         navigator.clipboard?.writeText(ref);
         showToast(`Copied ${ref}`, 'success');
@@ -2478,4 +2863,8 @@ export function showVisaDetailsAction(id) {
 
 if (typeof window !== 'undefined') {
     window.showVisaDetailsAction = showVisaDetailsAction;
+    window.updateVisaBadges = updateVisaBadges;
+    window.openQuickSetCollectionDateModal = openQuickSetCollectionDateModal;
+    window.openQuickMarkSubmittedModal = openQuickMarkSubmittedModal;
+    window.openQuickMarkCollectedModal = openQuickMarkCollectedModal;
 }
