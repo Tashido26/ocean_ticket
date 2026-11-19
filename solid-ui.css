@@ -118,7 +118,7 @@ body.dark-theme .btn-clear {
 }
 
 /* 4. Unified Inputs, Selects & Textareas (15px desktop, 16px mobile, comfortable height) */
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *),
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *):not(.nrc-input input),
 select:not(#records-view *),
 textarea:not(#records-view *) {
     font-size: 15px !important;
@@ -132,7 +132,7 @@ textarea:not(#records-view *) {
     transition: border-color 140ms ease, box-shadow 140ms ease !important;
 }
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *):not(.nrc-input input):focus,
 select:not(#records-view *):focus,
 textarea:not(#records-view *):focus {
     border-color: var(--primary-accent);
@@ -140,7 +140,7 @@ textarea:not(#records-view *):focus {
     outline-offset: 1px;
 }
 
-body.dark-theme input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *),
+body.dark-theme input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#globalSearchInput):not(#records-view *):not(.nrc-input input),
 body.dark-theme select:not(#records-view *),
 body.dark-theme textarea:not(#records-view *) {
     background-color: var(--surface) !important;

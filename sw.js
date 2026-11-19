@@ -1,10 +1,10 @@
-const CACHE_NAME = 'ocean-travel-d5a9d200';
+const CACHE_NAME = 'ocean-travel-4b36929c';
 const CORE_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './ocean-travel-logo.png',
-    './app-styles.min.css?v=0a737b52',
+    './app-styles.min.css?v=cc34a307',
     './dashboard-exact.css?v=11',
     './settle-exact.css?v=2',
     './hotel-exact.css?v=1',
@@ -21,7 +21,7 @@ const CORE_ASSETS = [
     './utils.js?v=0764af0c',
     './state.js?v=7bc2f9f5',
     './db.js?v=584fb002',
-    './ui.js?v=f533f308',
+    './ui.js?v=00d4f697',
     './tickets.js?v=5262d317',
     './booking.js?v=86547b27',
     './settlement.js?v=48020146',
@@ -42,7 +42,7 @@ const CORE_ASSETS = [
     './passport-parser.mjs?v=318d5b2e',
     './china-airlines-converter.js?v=80f8de58',
     './china-airlines-parser.mjs?v=569d8f51',
-    './nrc-data.js?v=8bd6ad81',
+    './nrc-data.js?v=2888bd6f',
     './visa.js?v=a70d7b1d'
 ];
 

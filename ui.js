@@ -2969,6 +2969,33 @@ function _attachPaxBehaviour(formEl, opts = {}) {
         });
     }
 
+    if (regionInput) {
+        regionInput.addEventListener('keydown', (e) => {
+            if (e.key === '/' && regionInput.value) {
+                e.preventDefault();
+                if (townshipInput) townshipInput.focus();
+                return;
+            }
+            if (/^[a-zA-Z]$/.test(e.key) && regionInput.value && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                if (townshipInput) {
+                    townshipInput.focus();
+                    townshipInput.value = e.key.toUpperCase();
+                    renderTownshipSuggestions();
+                    validateNrc(formEl);
+                    updatePaxStatus(formEl);
+                }
+            }
+        });
+        regionInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (document.activeElement !== townshipInput && sugContainer) {
+                    sugContainer.style.display = 'none';
+                }
+            }, 200);
+        });
+    }
+
     nrcInputs.forEach((input, i) => {
         input.addEventListener('input', () => {
             if (input.classList.contains('nrc-township')) {
@@ -2980,6 +3007,9 @@ function _attachPaxBehaviour(formEl, opts = {}) {
                 const pos = input.selectionStart;
                 input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
                 input.setSelectionRange(pos, pos);
+            } else if (input.classList.contains('nrc-region')) {
+                input.value = input.value.replace(/[^0-9]/g, '');
+                renderTownshipSuggestions();
             } else {
                 input.value = input.value.replace(/[^0-9]/g, '');
             }

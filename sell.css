@@ -646,8 +646,9 @@ body.dark-theme .passenger-passport-expiry.input-passport-danger {
 .nrc-input input {
     border: none !important;
     background: transparent !important;
-    padding: 0 0.5rem !important;
+    padding: 0 4px !important;
     margin: 0 !important;
+    min-height: 0 !important;
     height: 100% !important;
     font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace !important;
     font-size: 0.92rem !important;
@@ -662,10 +663,10 @@ body.dark-theme .passenger-passport-expiry.input-passport-danger {
     transform: none !important;
 }
 
-.nrc-input .nrc-region { width: 36px; }
-.nrc-input .nrc-township { width: 80px; text-transform: uppercase; }
-.nrc-input .nrc-type { width: 36px; text-transform: uppercase; }
-.nrc-input .nrc-serial { width: 90px; }
+.nrc-input .nrc-region { width: 46px !important; }
+.nrc-input .nrc-township { width: 98px !important; text-transform: uppercase; }
+.nrc-input .nrc-type { width: 42px !important; text-transform: uppercase; }
+.nrc-input .nrc-serial { width: 96px !important; }
 
 .nrc-input .nrc-sep {
     color: var(--text-secondary);
