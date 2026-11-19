@@ -43,3 +43,14 @@ test('findTownshipSuggestions supports Myanmar script queries and prefix sorting
     assert.equal(bhamoMm.length, 1);
     assert.equal(bhamoMm[0].shortEn, 'BAMANA');
 });
+
+test('findTownshipSuggestions without query sorts A to Z by English code', () => {
+    const state5 = findTownshipSuggestions('5', '');
+    assert.ok(state5.length > 30);
+    assert.equal(state5[0].shortEn, 'AHTANA');
+    assert.equal(state5[1].shortEn, 'AHYATA');
+    for (let i = 1; i < state5.length; i++) {
+        assert.ok(state5[i - 1].shortEn.localeCompare(state5[i].shortEn) <= 0);
+    }
+});
+

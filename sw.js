@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ocean-travel-2d63878c';
+const CACHE_NAME = 'ocean-travel-d5a9d200';
 const CORE_ASSETS = [
     './',
     './index.html',
@@ -42,7 +42,7 @@ const CORE_ASSETS = [
     './passport-parser.mjs?v=318d5b2e',
     './china-airlines-converter.js?v=80f8de58',
     './china-airlines-parser.mjs?v=569d8f51',
-    './nrc-data.js?v=ac35c249',
+    './nrc-data.js?v=8bd6ad81',
     './visa.js?v=a70d7b1d'
 ];
 

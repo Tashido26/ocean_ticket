@@ -3402,17 +3402,17 @@ export function normalizeStateCode(code) {
 export function getTownshipsByState(stateCode) {
     const norm = normalizeStateCode(stateCode);
     const list = !norm ? [...NRC_TOWNSHIPS] : NRC_TOWNSHIPS.filter(t => t.stateCode === norm);
-    return list.sort((a, b) => a.shortEn.localeCompare(b.shortEn));
+    return list.sort((a, b) => a.shortEn.localeCompare(b.shortEn) || a.nameEn.localeCompare(b.nameEn));
 }
 
-export function findTownshipSuggestions(stateCode, query, limit = 20) {
+export function findTownshipSuggestions(stateCode, query, limit = 100) {
     const normState = normalizeStateCode(stateCode);
     const q = String(query || '').trim().toUpperCase();
     const qRaw = String(query || '').trim();
     
     let pool = normState ? NRC_TOWNSHIPS.filter(t => t.stateCode === normState) : [...NRC_TOWNSHIPS];
     if (!q) {
-        pool.sort((a, b) => a.shortEn.localeCompare(b.shortEn));
+        pool.sort((a, b) => a.shortEn.localeCompare(b.shortEn) || a.nameEn.localeCompare(b.nameEn));
         return limit ? pool.slice(0, limit) : pool;
     }
 
@@ -3431,7 +3431,7 @@ export function findTownshipSuggestions(stateCode, query, limit = 20) {
         const aMm = a.nameMm.startsWith(qRaw) ? 0 : 1;
         const bMm = b.nameMm.startsWith(qRaw) ? 0 : 1;
         if (aMm !== bMm) return aMm - bMm;
-        return a.shortEn.localeCompare(b.shortEn);
+        return a.shortEn.localeCompare(b.shortEn) || a.nameEn.localeCompare(b.nameEn);
     });
 
     return limit ? results.slice(0, limit) : results;
