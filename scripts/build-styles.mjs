@@ -39,6 +39,7 @@ export const jsModules = [
     'invoice.js',
     'main.js',
     'manage.js',
+    'nrc-data.js',
     'passport-ocr.js',
     'passport-parser.mjs',
     'passport.js',
@@ -82,6 +83,7 @@ const corePrecacheModules = [
     'passport-parser.mjs',
     'china-airlines-converter.js',
     'china-airlines-parser.mjs',
+    'nrc-data.js',
     'visa.js'
 ];
 

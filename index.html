@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Ocean Travel">
-    <link rel="stylesheet" href="app-styles.min.css?v=a6d4288d">
+    <link rel="stylesheet" href="app-styles.min.css?v=c1ceca51">
     <link rel="stylesheet" href="dashboard-exact.css?v=11">
     <link rel="stylesheet" href="settle-exact.css?v=2">
     <link rel="stylesheet" href="hotel-exact.css?v=1">
@@ -2130,6 +2130,58 @@
                         </div>
 
 
+                        <!-- MYANMAR NRC DIRECTORY & LOOKUP -->
+                        <div class="service-panel service-panel-wide" id="nrcLookupPanel">
+                            <div class="service-panel-header">
+                                <span class="service-panel-icon"><i class="fa-solid fa-address-card"></i></span>
+                                <div>
+                                    <h2>Myanmar NRC Lookup & Directory</h2>
+                                    <p class="service-panel-desc">ပြည်နယ်/တိုင်း အလိုက် မြို့နယ်ကုဒ်၊ မြန်မာ/အင်္ဂလိပ် အမည်များနှင့် မှတ်ပုံတင် Format များကို လွယ်ကူစွာ ကြည့်ရှုရှာဖွေနိုင်ပါသည်</p>
+                                </div>
+                            </div>
+
+                            <div class="nrc-lookup-toolbar">
+                                <div class="form-group nrc-lookup-select-group">
+                                    <label for="nrcLookupStateSelect">State / Region (တိုင်းဒေသကြီး / ပြည်နယ်)</label>
+                                    <select id="nrcLookupStateSelect" class="form-select">
+                                        <option value="6" selected>6/ Tanintharyi (တနင်္သာရီတိုင်း - ထားဝယ်၊ မြိတ်၊ ကော့သောင်း...)</option>
+                                        <option value="all">All States & Regions (အားလုံး)</option>
+                                        <option value="1">1/ Kachin State (ကချင်ပြည်နယ်)</option>
+                                        <option value="2">2/ Kayah State (ကယားပြည်နယ်)</option>
+                                        <option value="3">3/ Kayin State (ကရင်ပြည်နယ်)</option>
+                                        <option value="4">4/ Chin State (ချင်းပြည်နယ်)</option>
+                                        <option value="5">5/ Sagaing Region (စစ်ကိုင်းတိုင်း)</option>
+                                        <option value="7">7/ Bago Region (ပဲခူးတိုင်း)</option>
+                                        <option value="8">8/ Magway Region (မကွေးတိုင်း)</option>
+                                        <option value="9">9/ Mandalay Region (မန္တလေးတိုင်း)</option>
+                                        <option value="10">10/ Mon State (မွန်ပြည်နယ်)</option>
+                                        <option value="11">11/ Rakhine State (ရခိုင်ပြည်နယ်)</option>
+                                        <option value="12">12/ Yangon Region (ရန်ကုန်တိုင်း)</option>
+                                        <option value="13">13/ Shan State (ရှမ်းပြည်နယ်)</option>
+                                        <option value="14">14/ Ayeyarwady Region (ဧရာဝတီတိုင်း)</option>
+                                        <option value="9*">9*/ Naypyitaw (နေပြည်တော်)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group nrc-lookup-search-group">
+                                    <label for="nrcLookupSearchInput">Search Township (မြို့နယ် ရှာဖွေရန် - မြန်မာ သို့မဟုတ် English)</label>
+                                    <div class="input-with-clear">
+                                        <input type="text" id="nrcLookupSearchInput" placeholder="ဥပမာ ထားဝယ်, မြိတ်, ဗန်းမော် သို့မဟုတ် BAMANA, MAMANA, HTAWANA..." autocomplete="off">
+                                        <button type="button" class="input-clear-btn" id="nrcLookupClearBtn" title="Clear search" aria-label="Clear search" style="display:none;">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="nrc-lookup-count" id="nrcLookupCountBadge">
+                                    20 မြို့နယ်
+                                </div>
+                            </div>
+
+                            <div id="nrcLookupResultsContainer" class="nrc-results-grid"></div>
+                        </div>
+
+
                         <!-- DOWNLOAD DOCUMENTS -->
                         <div class="service-panel service-panel-wide" id="documentsPanel">
                             <div class="service-panel-header">
@@ -2735,8 +2787,9 @@
     "./hotel.js": "./hotel.js?v=5036b396",
     "./invoice-selection.mjs": "./invoice-selection.mjs?v=103d4c95",
     "./invoice.js": "./invoice.js?v=cff528c0",
-    "./main.js": "./main.js?v=010e107e",
+    "./main.js": "./main.js?v=16674d2f",
     "./manage.js": "./manage.js?v=2424fc3e",
+    "./nrc-data.js": "./nrc-data.js?v=3198b5c6",
     "./passport-ocr.js": "./passport-ocr.js?v=a2735b46",
     "./passport-parser.mjs": "./passport-parser.mjs?v=318d5b2e",
     "./passport.js": "./passport.js?v=fdb568f2",
@@ -2745,12 +2798,12 @@
     "./settlement.js": "./settlement.js?v=48020146",
     "./state.js": "./state.js?v=7bc2f9f5",
     "./tickets.js": "./tickets.js?v=5262d317",
-    "./ui.js": "./ui.js?v=774de552",
+    "./ui.js": "./ui.js?v=f533f308",
     "./utils.js": "./utils.js?v=0764af0c",
     "./visa.js": "./visa.js?v=a70d7b1d"
   }
 }
     </script>
-    <script src="main.js?v=010e107e" type="module"></script>
+    <script src="main.js?v=16674d2f" type="module"></script>
 </body>
 </html>

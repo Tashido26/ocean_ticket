@@ -15,6 +15,7 @@ import { renderClientsView } from './clients.js';
 import { renderBookingPage } from './booking.js';
 import { uploadPassportPhoto, deletePassportPhoto, openPhotoLightbox } from './passport.js';
 import { ocrPassport } from './passport-ocr.js';
+import { findTownshipSuggestions } from './nrc-data.js';
 
 
 /**
@@ -2515,18 +2516,19 @@ function _buildPassengerCardHtml(idx, opts) {
 
                 <!-- NRC panel -->
                 <div class="doc-panel ${!intl ? 'is-active' : ''}" data-panel="nrc">
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-group" style="margin-bottom:0; position:relative;">
                         <label>NRC Number</label>
                         <div class="nrc-input" data-role="nrc">
                             <input type="text" class="nrc-region" maxlength="2" inputmode="numeric" placeholder="12" value="${nrc?.region || ''}">
                             <span class="nrc-sep">/</span>
-                            <input type="text" class="nrc-township" maxlength="10" placeholder="ABCDEF" value="${nrc?.township || ''}">
+                            <input type="text" class="nrc-township" maxlength="10" placeholder="ABCDEF" value="${nrc?.township || ''}" autocomplete="off">
                             <span class="nrc-sep">(</span>
                             <input type="text" class="nrc-type" maxlength="5" placeholder="N" value="${nrc?.type || ''}">
                             <span class="nrc-sep">)</span>
                             <input type="text" class="nrc-serial" maxlength="7" inputmode="numeric" placeholder="123456" value="${nrc?.serial || ''}">
                         </div>
                         <div class="nrc-helper" data-role="nrc-helper">Format: 12/ABCDEF(N)123456</div>
+                        <div class="nrc-suggestions" data-role="nrc-suggestions" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -2854,11 +2856,127 @@ function _attachPaxBehaviour(formEl, opts = {}) {
     }
 
 
-    // ----- NRC structured input: auto-advance & uppercase -----
+    // ----- NRC structured input: auto-advance, autocomplete & uppercase -----
     const nrcInputs = formEl.querySelectorAll('.nrc-input input');
+    const regionInput = formEl.querySelector('.nrc-region');
+    const townshipInput = formEl.querySelector('.nrc-township');
+    const typeInput = formEl.querySelector('.nrc-type');
+    const serialInput = formEl.querySelector('.nrc-serial');
+    const sugContainer = formEl.querySelector('[data-role="nrc-suggestions"]');
+    let selectedSugIndex = -1;
+
+    function selectTownship(code, stateCode) {
+        if (!code || !townshipInput) return;
+        townshipInput.value = code;
+        if (regionInput && !regionInput.value && stateCode) {
+            regionInput.value = stateCode;
+        }
+        if (typeInput && !typeInput.value) {
+            typeInput.value = 'N';
+        }
+        if (sugContainer) {
+            sugContainer.style.display = 'none';
+        }
+        if (serialInput) {
+            serialInput.focus();
+        }
+        validateNrc(formEl);
+        updatePaxStatus(formEl);
+    }
+
+    function renderTownshipSuggestions() {
+        if (!sugContainer || !townshipInput) return;
+        const region = regionInput ? regionInput.value.trim() : '';
+        const query = townshipInput.value.trim();
+
+        if (!region && !query) {
+            sugContainer.style.display = 'none';
+            return;
+        }
+
+        const matches = findTownshipSuggestions(region, query);
+        if (!matches || matches.length === 0) {
+            sugContainer.style.display = 'none';
+            return;
+        }
+
+        selectedSugIndex = 0;
+        sugContainer.innerHTML = matches.map((m, idx) => `
+            <div class="nrc-sug-item ${idx === 0 ? 'is-selected' : ''}" data-code="${m.shortEn}" data-state="${m.stateCode}">
+                <span class="nrc-sug-code">${region || m.stateCode}/${m.shortEn}(N)</span>
+                <span class="nrc-sug-name">${m.nameMm} (${m.nameEn})</span>
+            </div>
+        `).join('');
+
+        sugContainer.style.display = 'block';
+
+        sugContainer.querySelectorAll('.nrc-sug-item').forEach((item) => {
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                selectTownship(item.dataset.code, item.dataset.state);
+            });
+        });
+    }
+
+    if (townshipInput) {
+        townshipInput.addEventListener('focus', () => {
+            if (regionInput && regionInput.value) {
+                renderTownshipSuggestions();
+            }
+        });
+
+        townshipInput.addEventListener('keydown', (e) => {
+            if (sugContainer && sugContainer.style.display !== 'none') {
+                const items = sugContainer.querySelectorAll('.nrc-sug-item');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedSugIndex = (selectedSugIndex + 1) % items.length;
+                        items.forEach((it, idx) => it.classList.toggle('is-selected', idx === selectedSugIndex));
+                        items[selectedSugIndex]?.scrollIntoView({ block: 'nearest' });
+                    }
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedSugIndex = (selectedSugIndex - 1 + items.length) % items.length;
+                        items.forEach((it, idx) => it.classList.toggle('is-selected', idx === selectedSugIndex));
+                        items[selectedSugIndex]?.scrollIntoView({ block: 'nearest' });
+                    }
+                    return;
+                }
+                if (e.key === 'Enter' || (e.key === 'Tab' && items.length > 0)) {
+                    if (selectedSugIndex >= 0 && items[selectedSugIndex]) {
+                        e.preventDefault();
+                        const it = items[selectedSugIndex];
+                        selectTownship(it.dataset.code, it.dataset.state);
+                        return;
+                    }
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    sugContainer.style.display = 'none';
+                    return;
+                }
+            }
+        });
+
+        townshipInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (sugContainer) sugContainer.style.display = 'none';
+            }, 200);
+        });
+    }
+
     nrcInputs.forEach((input, i) => {
         input.addEventListener('input', () => {
-            if (input.classList.contains('nrc-township') || input.classList.contains('nrc-type')) {
+            if (input.classList.contains('nrc-township')) {
+                const pos = input.selectionStart;
+                input.value = input.value.toUpperCase().replace(/[^A-Z\u1000-\u109F]/g, '');
+                input.setSelectionRange(pos, pos);
+                renderTownshipSuggestions();
+            } else if (input.classList.contains('nrc-type')) {
                 const pos = input.selectionStart;
                 input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
                 input.setSelectionRange(pos, pos);
@@ -2874,7 +2992,28 @@ function _attachPaxBehaviour(formEl, opts = {}) {
         });
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !input.value && i > 0) {
+                if (sugContainer) sugContainer.style.display = 'none';
                 nrcInputs[i - 1].focus();
+            }
+        });
+        input.addEventListener('paste', (e) => {
+            const text = e.clipboardData?.getData('text');
+            if (text) {
+                const parsed = parseLegacyNrc(text.trim());
+                if (parsed.region && parsed.township) {
+                    e.preventDefault();
+                    if (regionInput) regionInput.value = parsed.region;
+                    if (townshipInput) townshipInput.value = parsed.township;
+                    if (typeInput) typeInput.value = parsed.type || 'N';
+                    if (serialInput) serialInput.value = parsed.serial || '';
+                    if (sugContainer) sugContainer.style.display = 'none';
+                    if (serialInput) {
+                        if (!parsed.serial) serialInput.focus();
+                        else serialInput.blur();
+                    }
+                    validateNrc(formEl);
+                    updatePaxStatus(formEl);
+                }
             }
         });
     });

@@ -17,11 +17,17 @@
     --service-tint: #FFF5EA;
     --service-edge: #F1D3B4;
 }
-body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel) {
+#services-view #nrcLookupPanel {
+    --service-accent: #0284C7;
+    --service-hover: #0369A1;
+    --service-tint: #F0F9FF;
+    --service-edge: #BAE6FD;
+}
+body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel, #nrcLookupPanel) {
     border-top: 3px solid var(--service-accent) !important;
     border-radius: 14px !important;
 }
-body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel) .service-panel-icon {
+body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel, #nrcLookupPanel) .service-panel-icon {
     background: var(--service-tint) !important;
     color: var(--service-accent) !important;
     border: 1px solid var(--service-edge) !important;
@@ -44,7 +50,7 @@ body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPa
     background: var(--service-hover);
     border-color: var(--service-hover);
 }
-body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel) :is(input, select, button):focus-visible {
+body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPanel, #nrcLookupPanel) :is(input, select, button):focus-visible {
     outline: 2px solid var(--service-accent);
     outline-offset: 3px;
 }
@@ -54,9 +60,11 @@ body #services-view :is(#invoicePanel, #chinaHotelPanel, #hotelPanel, #airAsiaPa
 body.dark-theme #services-view #invoicePanel { --service-tint: #163536; --service-edge: #2E6465; }
 body.dark-theme #services-view :is(#chinaHotelPanel, #hotelPanel) { --service-tint: #30263F; --service-edge: #655080; }
 body.dark-theme #services-view #airAsiaPanel { --service-tint: #392C22; --service-edge: #875A39; }
+body.dark-theme #services-view #nrcLookupPanel { --service-tint: #142F43; --service-edge: #235A80; }
 body.dark-theme #services-view #invoicePanel :is(.service-panel-icon, .service-dropzone-icon, .service-quick-hint i) { color: #6DD6CD; }
 body.dark-theme #services-view :is(#chinaHotelPanel, #hotelPanel) :is(.service-panel-icon, .service-dropzone-icon, .service-quick-hint i) { color: #C6ADFA; }
 body.dark-theme #services-view #airAsiaPanel :is(.service-panel-icon, .service-dropzone-icon, .service-quick-hint i) { color: #F9B778; }
+body.dark-theme #services-view #nrcLookupPanel .service-panel-icon { color: #38BDF8 !important; }
 
 /* Clear (X) button inside PNR Code(s) input */
 .input-with-clear {
@@ -112,4 +120,176 @@ body.dark-theme .input-with-clear > .input-clear-btn {
 body.dark-theme .input-with-clear > .input-clear-btn:hover {
     background: rgba(109, 214, 205, 0.22) !important;
     color: #6DD6CD !important;
+}
+
+/* ----- Myanmar NRC Lookup & Directory Panel ----- */
+.nrc-lookup-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1rem;
+    align-items: flex-end;
+}
+
+.nrc-lookup-select-group {
+    margin-bottom: 0 !important;
+    flex: 1 1 260px;
+}
+
+.nrc-lookup-search-group {
+    margin-bottom: 0 !important;
+    flex: 2 1 300px;
+}
+
+.nrc-lookup-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0284C7;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    padding: 0 14px;
+    border-radius: 8px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.nrc-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    max-height: 440px;
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+
+.nrc-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    user-select: none;
+}
+
+.nrc-card:hover {
+    border-color: #0284C7;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+    transform: translateY(-1px);
+}
+
+.nrc-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.nrc-card-code {
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #0284C7;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.nrc-card-mmcode {
+    font-size: 0.84rem;
+    color: var(--text-secondary, #64748b);
+    font-weight: 600;
+}
+
+.nrc-card-name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.nrc-card-name strong {
+    font-size: 0.98rem;
+    color: var(--text, #0f172a);
+    font-weight: 700;
+}
+
+.nrc-card-enname {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #64748b);
+    letter-spacing: 0.02em;
+}
+
+.nrc-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--line, #e2e8f0);
+}
+
+.nrc-card-state {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #64748b);
+    font-weight: 600;
+}
+
+.nrc-card-copy-btn {
+    border: none;
+    background: transparent;
+    color: #0284C7;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    transition: background 0.14s ease;
+}
+
+.nrc-card-copy-btn:hover {
+    background: #F0F9FF;
+}
+
+body.dark-theme .nrc-lookup-count {
+    color: #38BDF8;
+    background: #142F43;
+    border-color: #235A80;
+}
+
+body.dark-theme .nrc-card {
+    background: var(--surface, #1e293b);
+    border-color: var(--border, #334155);
+}
+
+body.dark-theme .nrc-card:hover {
+    border-color: #38BDF8;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.18);
+}
+
+body.dark-theme .nrc-card-code {
+    color: #38BDF8;
+    background: rgba(56, 189, 248, 0.14);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+body.dark-theme .nrc-card-name strong {
+    color: #f1f5f9;
+}
+
+body.dark-theme .nrc-card-copy-btn {
+    color: #38BDF8;
+}
+
+body.dark-theme .nrc-card-copy-btn:hover {
+    background: rgba(56, 189, 248, 0.15);
 }

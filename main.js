@@ -21,6 +21,7 @@ import { findTicketForManage, clearManageResults } from './manage.js';
 import { exportToPdf, exportPrivateReportToPdf, togglePrivateReportButton, exportSelectedToExcel } from './reports.js';
 import { generateInvoice, generateInvoiceImage, analyzeInvoiceScenario } from './invoice.js';
 import { selectPassengerTickets } from './invoice-selection.mjs';
+import { initNrcLookupService } from './nrc-data.js';
 let hotelModule;
 const renderHotelReservations = () => hotelModule?.renderHotelReservations();
 const hideHotelReservationForm = () => hotelModule?.hideHotelReservationForm();
@@ -3212,6 +3213,7 @@ async function loadPageFeatures(viewName) {
             ({ renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf } = agoda);
             initializeAirAsiaGenerator();
             initializeChinaHotelGenerator();
+            if (typeof initNrcLookupService === 'function') initNrcLookupService();
             servicesPageReady = true;
         }
     })().catch(error => {

@@ -1,10 +1,10 @@
-const CACHE_NAME = 'ocean-travel-f3b3e115';
+const CACHE_NAME = 'ocean-travel-cf75bc7e';
 const CORE_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './ocean-travel-logo.png',
-    './app-styles.min.css?v=a6d4288d',
+    './app-styles.min.css?v=c1ceca51',
     './dashboard-exact.css?v=11',
     './settle-exact.css?v=2',
     './hotel-exact.css?v=1',
@@ -14,14 +14,14 @@ const CORE_ASSETS = [
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',
     './document-libraries.js?v=7c5a726d',
-    './main.js?v=010e107e',
+    './main.js?v=16674d2f',
     './dashboard.js?v=6e4cf59c',
     './auth.js?v=625c50ce',
     './firebase-config.js?v=aab230c1',
     './utils.js?v=0764af0c',
     './state.js?v=7bc2f9f5',
     './db.js?v=584fb002',
-    './ui.js?v=774de552',
+    './ui.js?v=f533f308',
     './tickets.js?v=5262d317',
     './booking.js?v=86547b27',
     './settlement.js?v=48020146',
@@ -42,6 +42,7 @@ const CORE_ASSETS = [
     './passport-parser.mjs?v=318d5b2e',
     './china-airlines-converter.js?v=80f8de58',
     './china-airlines-parser.mjs?v=569d8f51',
+    './nrc-data.js?v=3198b5c6',
     './visa.js?v=a70d7b1d'
 ];
 

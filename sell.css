@@ -688,6 +688,79 @@ body.dark-theme .passenger-passport-expiry.input-passport-danger {
     color: var(--danger-accent, #cf2d56);
 }
 
+/* ----- NRC Township Autocomplete Suggestions ----- */
+.nrc-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px -5px rgba(15, 23, 42, 0.16), 0 8px 12px -6px rgba(15, 23, 42, 0.08);
+    z-index: 100;
+}
+
+.nrc-sug-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--line, rgba(15, 23, 42, 0.05));
+    transition: background 0.12s ease;
+}
+
+.nrc-sug-item:last-child {
+    border-bottom: none;
+}
+
+.nrc-sug-item:hover,
+.nrc-sug-item.is-selected {
+    background: var(--brand-soft, #ebf5f6);
+}
+
+.nrc-sug-code {
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--primary, #0d6e77);
+    font-size: 0.88rem;
+    white-space: nowrap;
+}
+
+.nrc-sug-name {
+    color: var(--text-secondary, #475569);
+    font-size: 0.82rem;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.dark-theme .nrc-suggestions {
+    background: var(--surface, #1e293b);
+    border-color: var(--border, #334155);
+    box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.55);
+}
+
+body.dark-theme .nrc-sug-item:hover,
+body.dark-theme .nrc-sug-item.is-selected {
+    background: rgba(13, 110, 119, 0.28);
+}
+
+body.dark-theme .nrc-sug-code {
+    color: #38bdf8;
+}
+
+body.dark-theme .nrc-sug-name {
+    color: #cbd5e1;
+}
+
 /* ----- Passport photo drop zone ----- */
 .passport-photo-zone {
     position: relative;
