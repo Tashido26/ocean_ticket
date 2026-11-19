@@ -1,7 +1,7 @@
 export function selectPassengerTickets(allTickets, pnrs, selection, type, isPaid) {
     const wanted = new Set(pnrs.map(p => p.trim().toUpperCase()).filter(Boolean));
-    const candidates = allTickets.filter(t => wanted.has(String(t.booking_reference || '').trim().toUpperCase()));
-    const found = new Set(candidates.map(t => String(t.booking_reference).trim().toUpperCase()));
+    const candidates = allTickets.filter(t => wanted.has(String(t.booking_reference || t.pnr || '').trim().toUpperCase()));
+    const found = new Set(candidates.map(t => String(t.booking_reference || t.pnr || '').trim().toUpperCase()));
     const missing = [...wanted].filter(p => !found.has(p));
     if (missing.length) throw new Error(`PNRs not found: ${missing.join(', ')}`);
     if (!selection?.ids?.length) throw new Error('Select at least one passenger ticket.');

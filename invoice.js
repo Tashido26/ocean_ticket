@@ -717,9 +717,18 @@ function getInvoiceCSS(theme = INVOICE_THEME) {
 
 
 
+export function normalizePnr(value) {
+    return String(value || '').trim().toUpperCase();
+}
+
+export function getTicketPnr(ticket) {
+    return normalizePnr(ticket?.booking_reference || ticket?.pnr);
+}
+
 function getOriginalTravelDate(pnr) {
     if (!state.history || !Array.isArray(state.history)) return null;
-    const modifications = state.history.filter(h => h.pnr === pnr && h.details.includes('Travel Date:'));
+    const targetPnr = normalizePnr(pnr);
+    const modifications = state.history.filter(h => normalizePnr(h.pnr) === targetPnr && h.details.includes('Travel Date:'));
     if (modifications.length > 0) {
         // Find the oldest record affecting Travel Date
         const oldestMod = modifications[modifications.length - 1]; 
@@ -748,7 +757,7 @@ function buildInvoiceGroups(tickets, mode) {
         return Object.keys(ticketsByName).map((name) => ({
             clientName: name,
             tickets: ticketsByName[name],
-            pnrs: [...new Set(ticketsByName[name].map((ticket) => ticket.booking_reference))]
+            pnrs: [...new Set(ticketsByName[name].map((ticket) => getTicketPnr(ticket)))]
         }));
     }
 
@@ -756,7 +765,7 @@ function buildInvoiceGroups(tickets, mode) {
     return [{
         clientName: uniqueNames.join(', '),
         tickets,
-        pnrs: [...new Set(tickets.map((ticket) => ticket.booking_reference))]
+        pnrs: [...new Set(tickets.map((ticket) => getTicketPnr(ticket)))]
     }];
 }
 
@@ -774,9 +783,10 @@ function buildInvoiceLineItems(groupTickets, mode) {
         if (isFee) {
             prefix = 'Date Change Fee: ';
         } else {
-            const hasFeeInGroup = groupTickets.some(t => t.booking_reference === ticket.booking_reference && isFeeEntryRow(t));
+            const currentPnr = getTicketPnr(ticket);
+            const hasFeeInGroup = groupTickets.some(t => getTicketPnr(t) === currentPnr && isFeeEntryRow(t));
             if (hasFeeInGroup) {
-                const oldDate = getOriginalTravelDate(ticket.booking_reference);
+                const oldDate = getOriginalTravelDate(currentPnr);
                 if (oldDate) displayDate = oldDate;
             }
         }
@@ -785,7 +795,7 @@ function buildInvoiceLineItems(groupTickets, mode) {
         const parts = [route, dateStr];
         if (airline) parts.push(airline);
         return {
-            description: `${prefix}${parts.join(' · ')}${ticket.invoicePassengerSelection ? ` — PNR: ${ticket.booking_reference}` : ''}`,
+            description: `${prefix}${parts.join(' · ')}${ticket.invoicePassengerSelection ? ` — PNR: ${getTicketPnr(ticket)}` : ''}`,
             qty: 1,
             rate: price,
             amount: price,
@@ -1607,14 +1617,14 @@ export function analyzeInvoiceScenario(pnrList) {
         return { type: 'ERROR', message: 'No PNRs provided.' };
     }
 
-    const cleanPnrs = pnrList.map((pnr) => pnr.trim().toUpperCase()).filter(Boolean);
-    const tickets = state.allTickets.filter((ticket) => cleanPnrs.includes(ticket.booking_reference));
+    const cleanPnrs = new Set(pnrList.map((pnr) => normalizePnr(pnr)).filter(Boolean));
+    const tickets = state.allTickets.filter((ticket) => cleanPnrs.has(getTicketPnr(ticket)));
 
     if (tickets.length === 0) {
         return { type: 'ERROR', message: 'No matching tickets found.' };
     }
 
-    const uniquePnrs = [...new Set(tickets.map((ticket) => ticket.booking_reference))];
+    const uniquePnrs = [...new Set(tickets.map((ticket) => getTicketPnr(ticket)))];
     const uniqueClients = [...new Set(tickets.map((ticket) => normalizeClientName(ticket.name)))];
 
     const clientRouteSets = {};
@@ -1669,8 +1679,8 @@ export function analyzeInvoiceScenario(pnrList) {
 
 export async function generateInvoice(pnrList, type = 'Invoice', dateStr = null, forcedMode = 'auto', brandKey = 'ocean', adjustments = null, selection = null) {
     await loadDocumentLibraries('pdf', 'table');
-    const cleanPnrs = pnrList.map((pnr) => pnr.trim().toUpperCase()).filter(Boolean);
-    let tickets = state.allTickets.filter((ticket) => cleanPnrs.includes(ticket.booking_reference));
+    const cleanPnrs = new Set(pnrList.map((pnr) => normalizePnr(pnr)).filter(Boolean));
+    let tickets = state.allTickets.filter((ticket) => cleanPnrs.has(getTicketPnr(ticket)));
     if (selection) {
         tickets = selectPassengerTickets(state.allTickets, pnrList, selection, type, isTicketPaid);
         forcedMode = 'separate';
@@ -1685,7 +1695,8 @@ export async function generateInvoice(pnrList, type = 'Invoice', dateStr = null,
     // Apply optional adjustments
     if (adjustments) {
         tickets = tickets.map(ticket => {
-            const key = `${ticket.name}_${ticket.booking_reference}_${ticket.leg || 'outbound'}`;
+            const pnr = getTicketPnr(ticket);
+            const key = `${ticket.name}_${pnr}_${ticket.leg || 'outbound'}`;
             if (adjustments[key] !== undefined && adjustments[key] !== '') {
                 return {
                     ...ticket,
@@ -1734,8 +1745,8 @@ export async function generateInvoiceImage(pnrList, type = 'Invoice', dateStr = 
         return;
     }
 
-    const cleanPnrs = pnrList.map((pnr) => pnr.trim().toUpperCase()).filter(Boolean);
-    let tickets = state.allTickets.filter((ticket) => cleanPnrs.includes(ticket.booking_reference));
+    const cleanPnrs = new Set(pnrList.map((pnr) => normalizePnr(pnr)).filter(Boolean));
+    let tickets = state.allTickets.filter((ticket) => cleanPnrs.has(getTicketPnr(ticket)));
     if (selection) {
         tickets = selectPassengerTickets(state.allTickets, pnrList, selection, type, isTicketPaid);
         forcedMode = 'separate';
@@ -1750,7 +1761,8 @@ export async function generateInvoiceImage(pnrList, type = 'Invoice', dateStr = 
     // Apply optional adjustments
     if (adjustments) {
         tickets = tickets.map(ticket => {
-            const key = `${ticket.name}_${ticket.booking_reference}_${ticket.leg || 'outbound'}`;
+            const pnr = getTicketPnr(ticket);
+            const key = `${ticket.name}_${pnr}_${ticket.leg || 'outbound'}`;
             if (adjustments[key] !== undefined && adjustments[key] !== '') {
                 return {
                     ...ticket,

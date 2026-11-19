@@ -1099,7 +1099,7 @@ function setupEventListeners() {
         }
         
         // Find tickets matching PNRs
-        const tickets = state.allTickets.filter(t => pnrList.includes((t.booking_reference || '').toUpperCase()));
+        const tickets = state.allTickets.filter(t => pnrList.includes(String(t.booking_reference || t.pnr || '').trim().toUpperCase()));
         
         if (tickets.length === 0) {
             wrapper.style.display = 'none';
@@ -1113,11 +1113,12 @@ function setupEventListeners() {
         // Group tickets by passenger name + booking_reference
         const grouped = {};
         tickets.forEach(ticket => {
-            const key = `${ticket.name}_${ticket.booking_reference}`;
+            const pnr = String(ticket.booking_reference || ticket.pnr || '').trim().toUpperCase();
+            const key = `${ticket.name}_${pnr}`;
             if (!grouped[key]) {
                 grouped[key] = {
                     name: ticket.name,
-                    pnr: ticket.booking_reference,
+                    pnr: pnr,
                     outbound: null,
                     return: null,
                     others: []
@@ -1269,7 +1270,7 @@ function setupEventListeners() {
     passengerTools.querySelector('#invoice_load_passengers').addEventListener('click', () => {
         resetPassengerSelection();
         const pnrs = new Set(invoicePnrs().map(p => p.toUpperCase()));
-        state.allTickets.filter(t => pnrs.has(String(t.booking_reference || '').trim().toUpperCase())).forEach(t => {
+        state.allTickets.filter(t => pnrs.has(String(t.booking_reference || t.pnr || '').trim().toUpperCase())).forEach(t => {
             const item = document.createElement('div');
             item.style.cssText = 'padding:12px;border:1px solid var(--border-color);border-radius:10px;overflow-wrap:anywhere';
             const label = document.createElement('label');
@@ -1334,7 +1335,7 @@ function setupEventListeners() {
         document.querySelectorAll('.invoice-adjust-input').forEach(input => {
             const val = input.value;
             if (val !== '' && !isNaN(val)) {
-                const key = `${input.dataset.name}_${input.dataset.pnr}_${input.dataset.leg}`;
+                const key = `${input.dataset.name}_${String(input.dataset.pnr || '').trim().toUpperCase()}_${input.dataset.leg}`;
                 adjustments[key] = Number(val);
             }
         });

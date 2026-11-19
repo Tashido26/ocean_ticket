@@ -92,3 +92,32 @@ test('date change fees calculate correct rate, amount and total on invoice line 
     const data = context.buildInvoiceDocumentData({ pnrs: ['245442EA'], tickets: [mainTicket, feeTicket] }, 'Invoice', { key: 'magical_land', displayName: 'Magical Land', logoUrl: '' }, '2026-10-09', 0, 1, 'separate');
     assert.equal(data.totalAmount, 590000);
 });
+
+test('analyzeInvoiceScenario normalizes PNR whitespace, casing and ticket.pnr variations (user LSKSJB scenario)', () => {
+    const lsksjbPassengers = [
+        { id: '1', name: 'THET HTOO ZIN', booking_reference: 'LSKSJB ', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' },
+        { id: '2', name: 'HNIN HNIN KHAING', booking_reference: ' LSKSJB', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' },
+        { id: '3', name: 'CHIT NAING WIN', booking_reference: 'lsksjb', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' },
+        { id: '4', name: 'HTWE HTWE ZAW', pnr: 'LSKSJB', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' },
+        { id: '5', name: 'LIN HTET OO', booking_reference: 'LSKSJB', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' },
+        { id: '6', name: 'SAN NWAY', booking_reference: 'LSKSJB\t', departure: 'Dawei', destination: 'Myeik', departing_on: '2026-11-19', net_amount: 450000, paid: false, airline: 'MNA' }
+    ];
+
+    context.state.allTickets = lsksjbPassengers;
+
+    // Test with lowercase and whitespace in input
+    const scenario = context.analyzeInvoiceScenario(['  lsksjb  ']);
+    assert.equal(scenario.type, 'CHOICE');
+    assert.equal(scenario.code, 'SCENARIO_1');
+    assert.equal(scenario.canChoose, true);
+
+    // Test invoice groups generation
+    const groups = context.buildInvoiceGroups(lsksjbPassengers, 'combined');
+    assert.equal(groups.length, 1);
+    assert.equal(groups[0].pnrs.length, 1);
+    assert.equal(groups[0].pnrs[0], 'LSKSJB');
+
+    // Restore state.allTickets
+    context.state.allTickets = tickets;
+});
+
