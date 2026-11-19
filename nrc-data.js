@@ -3401,17 +3401,20 @@ export function normalizeStateCode(code) {
 
 export function getTownshipsByState(stateCode) {
     const norm = normalizeStateCode(stateCode);
-    if (!norm) return NRC_TOWNSHIPS;
-    return NRC_TOWNSHIPS.filter(t => t.stateCode === norm);
+    const list = !norm ? [...NRC_TOWNSHIPS] : NRC_TOWNSHIPS.filter(t => t.stateCode === norm);
+    return list.sort((a, b) => a.shortEn.localeCompare(b.shortEn));
 }
 
-export function findTownshipSuggestions(stateCode, query) {
+export function findTownshipSuggestions(stateCode, query, limit = 20) {
     const normState = normalizeStateCode(stateCode);
     const q = String(query || '').trim().toUpperCase();
     const qRaw = String(query || '').trim();
     
-    let pool = normState ? NRC_TOWNSHIPS.filter(t => t.stateCode === normState) : NRC_TOWNSHIPS;
-    if (!q) return pool.slice(0, 30);
+    let pool = normState ? NRC_TOWNSHIPS.filter(t => t.stateCode === normState) : [...NRC_TOWNSHIPS];
+    if (!q) {
+        pool.sort((a, b) => a.shortEn.localeCompare(b.shortEn));
+        return limit ? pool.slice(0, limit) : pool;
+    }
 
     const results = pool.filter(t => {
         return t.shortEn.startsWith(q) ||
@@ -3431,7 +3434,7 @@ export function findTownshipSuggestions(stateCode, query) {
         return a.shortEn.localeCompare(b.shortEn);
     });
 
-    return results.slice(0, 20);
+    return limit ? results.slice(0, limit) : results;
 }
 
 function escapeHtmlAttr(str) {
@@ -3463,9 +3466,9 @@ export function initNrcLookupService() {
 
         let results = [];
         if (stateVal === 'all') {
-            results = query ? findTownshipSuggestions(null, query) : NRC_TOWNSHIPS;
+            results = query ? findTownshipSuggestions(null, query, 0) : getTownshipsByState(null);
         } else {
-            results = query ? findTownshipSuggestions(stateVal, query) : getTownshipsByState(stateVal);
+            results = query ? findTownshipSuggestions(stateVal, query, 0) : getTownshipsByState(stateVal);
         }
 
         if (countBadge) {
@@ -3474,9 +3477,9 @@ export function initNrcLookupService() {
 
         if (!results || results.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem 1rem; color: var(--text-secondary); background: var(--surface-soft); border-radius: 10px; border: 1px dashed var(--border-color);">
-                    <i class="fa-solid fa-magnifying-glass" style="font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                    <p style="margin: 0; font-size: 0.9rem;">ကိုက်ညီသော မြို့နယ် ရှာမတွေ့ပါ။ အခြားစာလုံး သို့မဟုတ် တိုင်း/ပြည်နယ် အားလုံးကို ရွေးချယ်ရှာဖွေကြည့်ပါ။</p>
+                <div style="text-align: center; padding: 2rem 1rem; color: var(--text-secondary); background: var(--surface-soft); border-radius: 10px; border: 1px dashed var(--border-color);">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size: 1.25rem; margin-bottom: 0.4rem; opacity: 0.5;"></i>
+                    <p style="margin: 0; font-size: 0.88rem;">ကိုက်ညီသော မြို့နယ် ရှာမတွေ့ပါ။ အခြားစာလုံး သို့မဟုတ် တိုင်း/ပြည်နယ် အားလုံးကို ရွေးချယ်ရှာဖွေကြည့်ပါ။</p>
                 </div>
             `;
             return;
@@ -3485,38 +3488,54 @@ export function initNrcLookupService() {
         const statesMap = {};
         NRC_STATES.forEach(s => { statesMap[s.number] = s; });
 
-        container.innerHTML = results.map(t => {
-            const stateObj = statesMap[t.stateCode] || { nameMm: '', numberMm: t.stateCode };
-            const fullNrcEn = `${t.stateCode}/${t.shortEn}(N)`;
-            const fullNrcMm = `${stateObj.numberMm}/${t.shortMm}(နိုင်)`;
-            return `
-                <div class="nrc-card" data-copy="${escapeHtmlAttr(fullNrcEn)}" title="Click to copy ${fullNrcEn}">
-                    <div class="nrc-card-top">
-                        <span class="nrc-card-code">${fullNrcEn}</span>
-                        <span class="nrc-card-mmcode">${fullNrcMm}</span>
-                    </div>
-                    <div class="nrc-card-name">
-                        <strong>${escapeHtmlAttr(t.nameMm)}</strong>
-                        <span class="nrc-card-enname">${escapeHtmlAttr(t.nameEn)}</span>
-                    </div>
-                    <div class="nrc-card-footer">
-                        <span class="nrc-card-state">${escapeHtmlAttr(stateObj.nameMm || ('State ' + t.stateCode))}</span>
-                        <button type="button" class="nrc-card-copy-btn" data-copy="${escapeHtmlAttr(fullNrcEn)}">
-                            <i class="fa-regular fa-copy"></i> <span>Copy</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = `
+            <div class="nrc-table-scroll">
+                <table class="nrc-list-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 44px; text-align: center;">#</th>
+                            <th>NRC Code (EN)</th>
+                            <th>မြန်မာကုဒ်</th>
+                            <th>မြို့နယ်အမည် (Myanmar)</th>
+                            <th>Township (English)</th>
+                            <th>ပြည်နယ်/တိုင်း</th>
+                            <th style="width: 84px; text-align: right;">Copy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map((t, index) => {
+                            const stateObj = statesMap[t.stateCode] || { nameMm: '', numberMm: t.stateCode };
+                            const fullNrcEn = `${t.stateCode}/${t.shortEn}(N)`;
+                            const fullNrcMm = `${stateObj.numberMm}/${t.shortMm}(နိုင်)`;
+                            return `
+                                <tr class="nrc-list-row" data-copy="${escapeHtmlAttr(fullNrcEn)}" title="Click to copy ${escapeHtmlAttr(fullNrcEn)}">
+                                    <td class="nrc-col-idx">${index + 1}</td>
+                                    <td><span class="nrc-list-code">${escapeHtmlAttr(fullNrcEn)}</span></td>
+                                    <td class="nrc-col-mmcode">${escapeHtmlAttr(fullNrcMm)}</td>
+                                    <td class="nrc-col-mmname"><strong>${escapeHtmlAttr(t.nameMm)}</strong></td>
+                                    <td class="nrc-col-enname">${escapeHtmlAttr(t.nameEn)}</td>
+                                    <td class="nrc-col-state">${escapeHtmlAttr(stateObj.nameMm || ('State ' + t.stateCode))}</td>
+                                    <td style="text-align: right;">
+                                        <button type="button" class="nrc-card-copy-btn" data-copy="${escapeHtmlAttr(fullNrcEn)}">
+                                            <i class="fa-regular fa-copy"></i> <span>Copy</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
 
-        container.querySelectorAll('.nrc-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const textToCopy = card.dataset.copy;
+        container.querySelectorAll('.nrc-list-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const textToCopy = row.dataset.copy;
                 if (!textToCopy) return;
 
                 const copySuccess = () => {
-                    const btn = card.querySelector('.nrc-card-copy-btn span');
-                    const icon = card.querySelector('.nrc-card-copy-btn i');
+                    const btn = row.querySelector('.nrc-card-copy-btn span');
+                    const icon = row.querySelector('.nrc-card-copy-btn i');
                     if (btn && icon) {
                         btn.textContent = 'Copied!';
                         icon.className = 'fa-solid fa-check';
