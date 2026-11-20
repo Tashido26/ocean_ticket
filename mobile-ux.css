@@ -420,3 +420,73 @@ body.dark-theme .visa-camera-scan-btn {
         border-color: rgba(56, 189, 248, 0.3);
     }
 }
+
+/* 5. Polished Soft-Tinted Sidebar Navigation Icons (Light & Dark Mode) */
+body.material-theme .sidebar-nav .nav-btn {
+    gap: 10px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 10px !important;
+    border-radius: 10px !important;
+}
+
+body.material-theme .sidebar-nav .nav-btn i {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease !important;
+}
+
+body.material-theme .sidebar-nav .nav-btn:hover i {
+    transform: scale(1.06);
+}
+
+/* Distinct refined icon tints per menu item */
+body.material-theme .sidebar-nav .nav-btn[data-view="home"] i { color: #0D6E77 !important; background: #E6F4F5 !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="records"] i { color: #4F46E5 !important; background: #EEF2FF !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="sell"] i { color: #059669 !important; background: #ECFDF5 !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="booking"] i { color: #0284C7 !important; background: #F0F9FF !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="services"] i { color: #D97706 !important; background: #FFFBEB !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="visa"] i { color: #E11D48 !important; background: #FFF1F2 !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="hotel"] i { color: #7C3AED !important; background: #F5F3FF !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="manage"] i { color: #0891B2 !important; background: #ECFEFF !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="settle"] i { color: #EA580C !important; background: #FFF7ED !important; }
+body.material-theme .sidebar-nav .nav-btn[data-view="logs"] i { color: #475569 !important; background: #F1F5F9 !important; }
+
+/* Footer utility icons */
+body.material-theme .sidebar-nav-footer #sidebarRefreshBtn i { color: #0284C7 !important; background: #F0F9FF !important; }
+body.material-theme .sidebar-nav-footer #sidebarSettingsBtn i { color: #475569 !important; background: #F1F5F9 !important; }
+body.material-theme .sidebar-nav-footer #sidebarSignoutBtn i { color: #DC2626 !important; background: #FEF2F2 !important; }
+
+/* Active item: crisp filled icon tile */
+body.material-theme .sidebar-nav .nav-btn.active[data-view="home"] i { background: #0D6E77 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(13, 110, 119, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="records"] i { background: #4F46E5 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(79, 70, 229, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="sell"] i { background: #059669 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(5, 150, 105, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="booking"] i { background: #0284C7 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(2, 132, 199, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="services"] i { background: #D97706 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(217, 119, 6, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="visa"] i { background: #E11D48 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(225, 29, 72, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="hotel"] i { background: #7C3AED !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(124, 58, 237, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="manage"] i { background: #0891B2 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(8, 145, 178, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="settle"] i { background: #EA580C !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(234, 88, 12, 0.28); }
+body.material-theme .sidebar-nav .nav-btn.active[data-view="logs"] i { background: #475569 !important; color: #FFFFFF !important; box-shadow: 0 3px 8px rgba(71, 85, 105, 0.28); }
+body.material-theme .sidebar-nav-footer .nav-btn.active#sidebarSettingsBtn i { background: #0D6E77 !important; color: #FFFFFF !important; }
+
+/* Dark Mode Icon Tints */
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="home"] i { color: #5EEAD4 !important; background: rgba(20, 184, 166, 0.16) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="records"] i { color: #A5B4FC !important; background: rgba(99, 102, 241, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="sell"] i { color: #6EE7B7 !important; background: rgba(16, 185, 129, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="booking"] i { color: #7DD3FC !important; background: rgba(14, 165, 233, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="services"] i { color: #FCD34D !important; background: rgba(245, 158, 11, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="visa"] i { color: #FDA4AF !important; background: rgba(244, 63, 94, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="hotel"] i { color: #C4B5FD !important; background: rgba(139, 92, 246, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="manage"] i { color: #67E8F9 !important; background: rgba(6, 182, 212, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="settle"] i { color: #FDBA74 !important; background: rgba(249, 115, 22, 0.18) !important; }
+body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="logs"] i { color: #CBD5E1 !important; background: rgba(148, 163, 184, 0.16) !important; }
+body.dark-theme.material-theme .sidebar-nav-footer #sidebarRefreshBtn i { color: #7DD3FC !important; background: rgba(14, 165, 233, 0.16) !important; }
+body.dark-theme.material-theme .sidebar-nav-footer #sidebarSettingsBtn i { color: #CBD5E1 !important; background: rgba(148, 163, 184, 0.16) !important; }
+body.dark-theme.material-theme .sidebar-nav-footer #sidebarSignoutBtn i { color: #FCA5A5 !important; background: rgba(239, 68, 68, 0.18) !important; }
