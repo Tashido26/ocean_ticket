@@ -1,9 +1,71 @@
 /* Reserve a right-hand column; do not overlay the booking form. */
+#sell-view .sell-section {
+    min-width: 0;
+    overflow-x: clip;
+}
+
+#sell-view .sell-section-header {
+    flex-wrap: wrap !important;
+    row-gap: 10px !important;
+    column-gap: 10px !important;
+}
+
+#sell-view .sell-section-header .section-titles {
+    flex: 1 1 200px;
+    min-width: 170px;
+}
+
+#sell-view .sell-section-header .pnr-parser-btn,
+#sell-view .sell-section-header .trip-type-segment,
+#sell-view .sell-section-header .flight-type-toggle {
+    margin-right: 0 !important;
+    flex-shrink: 0;
+    max-width: 100%;
+}
+
+#sell-view .sell-section-header .flight-type-toggle {
+    white-space: nowrap;
+}
+
+#sell-view .form-grid > .form-group {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Keep Title segmented control (MR / MS / MSTR / MISS) strictly inside its grid column */
+#sell-view .gender-segment {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    max-width: 240px;
+    box-sizing: border-box;
+}
+
+#sell-view .gender-segment label {
+    padding: 0.42rem 0.25rem !important;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Prevent NRC multi-part input from overflowing narrow desktop columns */
+#sell-view .nrc-input {
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+}
+
+#sell-view .nrc-input input {
+    min-width: 0;
+}
+
 @media (min-width: 1100px) {
     #sell-view #sellForm {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 300px;
-        gap: 24px;
+        grid-template-columns: minmax(0, 1fr) 268px;
+        gap: 18px;
         align-items: start;
         max-width: none;
         width: 100%;
@@ -20,7 +82,7 @@
         max-height: calc(100dvh - 108px);
         overflow-y: auto;
         margin: 0;
-        padding: 20px;
+        padding: 18px;
     }
     #sell-view #sellForm #stickySummaryBar {
         position: static;
@@ -47,5 +109,15 @@
     #sell-view #sellForm #section-payment .summary-actions .btn {
         width: 100%;
         flex: 0 0 auto;
+    }
+}
+
+@media (min-width: 1340px) {
+    #sell-view #sellForm {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 24px;
+    }
+    #sell-view #sellForm > #section-payment {
+        padding: 20px;
     }
 }
