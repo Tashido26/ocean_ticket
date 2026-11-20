@@ -837,6 +837,7 @@ function renderDashboardData() {
         financialPendingCount: ticketsInPeriod.filter(isFinancialPendingTicket).length,
         upcomingTrips
     });
+    renderDashboardDailyDigest();
     updateComparisonChart();
     updatePaymentStatusChart();
     updateRoutePerformanceChart();
@@ -3926,6 +3927,272 @@ export function updateComparisonChart() {
     };
 
     state.charts.comparisonChart = new Chart(ctx, chartConfig);
+}
+
+let latestDailyDigestPlainText = '';
+let dailyDigestButtonsWired = false;
+
+function formatDigestDateDmy(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return '';
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+}
+
+function renderDashboardDailyDigest() {
+    const flightsEl = document.getElementById('digestUpcomingFlightsList');
+    const passportEl = document.getElementById('digestPassportWarningsList');
+    const visaEl = document.getElementById('digestVisaRemindersList');
+    if (!flightsEl || !passportEl || !visaEl) return;
+
+    const MS_DAY = 24 * 60 * 60 * 1000;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const tomorrowStart = todayStart + MS_DAY;
+    const dayAfterStart = todayStart + 2 * MS_DAY;
+    const window60d = todayStart + 60 * MS_DAY;
+
+    const cleanName = (n) => String(n || '').trim().replace(/^(MR|MS|MRS|MSTR|MISS)\s+/i, '');
+
+    // 1. Tomorrow & Day After Flights + 2. Passport < 6m Warnings
+    const flightGroups = new Map();
+    const passportWarnings = [];
+    const seenPassports = new Set();
+
+    (state.allTickets || []).forEach(t => {
+        if (!t || isCanceledTicket(t) || isFeeEntryRow(t)) return;
+        const depDate = parseSheetDate(t.departing_on);
+        if (!depDate || isNaN(depDate.getTime()) || depDate.getTime() <= 0) return;
+        const depStart = new Date(depDate.getFullYear(), depDate.getMonth(), depDate.getDate()).getTime();
+
+        const pnr = String(t.booking_reference || '').trim().toUpperCase() || 'NO PNR';
+        const dep = String(t.departure || '').trim() || 'N/A';
+        const dest = String(t.destination || '').trim() || 'N/A';
+        const pax = cleanName(t.name) || 'Unknown';
+        const airline = String(t.airline || '').trim();
+        const phone = String(t.phone || '').trim();
+
+        if (depStart === tomorrowStart || depStart === dayAfterStart) {
+            const dayTag = depStart === tomorrowStart ? 'Tomorrow' : 'Day After';
+            const key = pnr !== 'NO PNR' ? `${dayTag}|${pnr}|${dep}|${dest}` : `${dayTag}|${t.id || pax}|${dep}|${dest}`;
+            if (!flightGroups.has(key)) {
+                flightGroups.set(key, {
+                    dayTag,
+                    dayStart: depStart,
+                    dateStr: formatDigestDateDmy(new Date(depStart)),
+                    pnr,
+                    route: `${compactPlace(dep)} ➔ ${compactPlace(dest)}`,
+                    airline,
+                    phone,
+                    passengers: []
+                });
+            }
+            const grp = flightGroups.get(key);
+            if (!grp.passengers.includes(pax)) grp.passengers.push(pax);
+        }
+
+        if (depStart >= todayStart && depStart <= window60d && t.passport_expiry) {
+            const expDate = parseSheetDate(t.passport_expiry);
+            if (expDate && !isNaN(expDate.getTime()) && expDate.getTime() > 0) {
+                const expStart = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate()).getTime();
+                const daysLeft = Math.round((expStart - depStart) / MS_DAY);
+                if (daysLeft < 180) {
+                    const expStr = formatDigestDateDmy(expDate);
+                    const dedupeKey = `${pax.toUpperCase()}|${expStr}`;
+                    if (!seenPassports.has(dedupeKey)) {
+                        seenPassports.add(dedupeKey);
+                        const isIntl = t.is_international === true || String(t.flight_type || '').toLowerCase() === 'international' || isInternationalFlightRoute(dep, dest);
+                        passportWarnings.push({
+                            name: pax,
+                            source: isIntl ? 'Intl Flight' : 'Flight',
+                            pnr,
+                            route: `${compactPlace(dep)} ➔ ${compactPlace(dest)}`,
+                            passportExpiry: expStr,
+                            daysLeft
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Visa Reminders + Active Visa Passport Warnings
+    const visaReminders = [];
+    (state.allVisas || []).forEach(v => {
+        if (!v) return;
+        const st = String(v.status || '').toLowerCase().trim();
+        if (st === 'collected' || st === 'withdrawn' || st === 'refused') return;
+
+        const applicant = cleanName(v.applicant_name || v.name) || 'Unknown';
+        const country = String(v.country || '').trim() || 'Visa';
+        const visaRef = String(v.visa_ref || '').trim();
+        const reasons = [];
+        let urgency = 'normal';
+
+        if (v.submission_date && (st === 'draft' || st === 'collecting')) {
+            const subDate = parseSheetDate(v.submission_date);
+            if (subDate && !isNaN(subDate.getTime()) && subDate.getTime() > 0) {
+                const subStart = new Date(subDate.getFullYear(), subDate.getMonth(), subDate.getDate()).getTime();
+                const diff = Math.round((subStart - todayStart) / MS_DAY);
+                if (diff <= 2) {
+                    urgency = diff <= 0 ? 'high' : 'medium';
+                    reasons.push(diff < 0 ? `Submit overdue ${Math.abs(diff)}d` : diff === 0 ? 'Submit today' : diff === 1 ? 'Submit tomorrow' : 'Submit in 2d');
+                }
+            }
+        }
+
+        if ((st === 'submitted' || st === 'processing') && !v.expected_collection_date) {
+            urgency = 'high';
+            reasons.push('Collection date missing');
+        }
+
+        if (v.expected_collection_date) {
+            const colDate = parseSheetDate(v.expected_collection_date);
+            if (colDate && !isNaN(colDate.getTime()) && colDate.getTime() > 0) {
+                const colStart = new Date(colDate.getFullYear(), colDate.getMonth(), colDate.getDate()).getTime();
+                const diff = Math.round((colStart - todayStart) / MS_DAY);
+                if (diff <= 2) {
+                    urgency = diff <= 0 ? 'high' : 'medium';
+                    reasons.push(diff < 0 ? `Collection overdue ${Math.abs(diff)}d` : diff === 0 ? 'Collect today' : diff === 1 ? 'Collect tomorrow' : 'Collect in 2d');
+                }
+            }
+        }
+
+        if (reasons.length > 0) {
+            visaReminders.push({ applicant, country, visaRef, urgency, reasons });
+        }
+
+        if (v.passport_expiry) {
+            const expDate = parseSheetDate(v.passport_expiry);
+            const refDate = parseSheetDate(v.travel_from);
+            const refStart = (refDate && !isNaN(refDate.getTime()) && refDate.getTime() > 0)
+                ? new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate()).getTime()
+                : todayStart;
+            if (expDate && !isNaN(expDate.getTime()) && expDate.getTime() > 0) {
+                const expStart = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate()).getTime();
+                const daysLeft = Math.round((expStart - refStart) / MS_DAY);
+                if (daysLeft < 180) {
+                    const expStr = formatDigestDateDmy(expDate);
+                    const dedupeKey = `${applicant.toUpperCase()}|${expStr}`;
+                    if (!seenPassports.has(dedupeKey)) {
+                        seenPassports.add(dedupeKey);
+                        passportWarnings.push({
+                            name: applicant,
+                            source: `Visa (${country})`,
+                            pnr: visaRef || 'VISA',
+                            route: country,
+                            passportExpiry: expStr,
+                            daysLeft
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    const flightsList = Array.from(flightGroups.values()).sort((a, b) => a.dayStart - b.dayStart);
+    passportWarnings.sort((a, b) => a.daysLeft - b.daysLeft);
+    const urgencyRank = { high: 0, medium: 1, normal: 2 };
+    visaReminders.sort((a, b) => (urgencyRank[a.urgency] ?? 2) - (urgencyRank[b.urgency] ?? 2));
+
+    setText('digestFlightsCount', String(flightsList.length));
+    setText('digestPassportCount', String(passportWarnings.length));
+    setText('digestVisaCount', String(visaReminders.length));
+
+    flightsEl.innerHTML = flightsList.length > 0
+        ? flightsList.map(f => `
+            <div class="daily-digest-item">
+                <div class="daily-digest-item-top">
+                    <span>${dashboardEscapeHtml(f.passengers.join(', '))}</span>
+                    <span class="daily-digest-pill digest-pill-info">${dashboardEscapeHtml(f.dayTag)}</span>
+                </div>
+                <div class="daily-digest-item-sub">
+                    <strong class="clickable-pnr" data-pnr="${dashboardEscapeHtml(f.pnr)}" style="cursor:pointer;">${dashboardEscapeHtml(f.pnr)}</strong> · ${dashboardEscapeHtml(f.route)}${f.airline ? ` · ${dashboardEscapeHtml(f.airline)}` : ''}
+                </div>
+            </div>
+        `).join('')
+        : `<div class="daily-digest-empty">မနက်ဖြန်/သဘက်ခါ ခရီးစဉ်မရှိပါ</div>`;
+
+    passportEl.innerHTML = passportWarnings.length > 0
+        ? passportWarnings.map(w => `
+            <div class="daily-digest-item">
+                <div class="daily-digest-item-top">
+                    <span>${dashboardEscapeHtml(w.name)}</span>
+                    <span class="daily-digest-pill ${w.daysLeft <= 0 ? 'digest-pill-danger' : 'digest-pill-warn'}">${w.daysLeft <= 0 ? 'EXPIRED' : `${w.daysLeft}d left`}</span>
+                </div>
+                <div class="daily-digest-item-sub">
+                    Exp: <strong>${dashboardEscapeHtml(w.passportExpiry)}</strong> · ${dashboardEscapeHtml(w.source)} · ${dashboardEscapeHtml(w.route)}
+                </div>
+            </div>
+        `).join('')
+        : `<div class="daily-digest-empty">✅ Passport အားလုံး ၆ လအထက် ကျန်ရှိပါသည်</div>`;
+
+    visaEl.innerHTML = visaReminders.length > 0
+        ? visaReminders.map(v => `
+            <div class="daily-digest-item">
+                <div class="daily-digest-item-top">
+                    <span>${dashboardEscapeHtml(v.applicant)} (${dashboardEscapeHtml(v.country)})</span>
+                    <span class="daily-digest-pill ${v.urgency === 'high' ? 'digest-pill-danger' : 'digest-pill-warn'}">${v.urgency === 'high' ? 'Urgent' : 'Soon'}</span>
+                </div>
+                <div class="daily-digest-item-sub">${dashboardEscapeHtml(v.reasons.join(' · '))}</div>
+            </div>
+        `).join('')
+        : `<div class="daily-digest-empty">✅ ရက်နီး Visa တင်/ထုတ်ရန် မရှိပါ</div>`;
+
+    // Build plain text summary for Copy button
+    const lines = [
+        `🌅 OCEAN TRAVEL — DAILY OPERATIONS DIGEST (${formatDigestDateDmy(now)})`,
+        '',
+        `✈️ UPCOMING FLIGHTS (${flightsList.length}):`,
+        ...(flightsList.length ? flightsList.map((f, i) => `  ${i + 1}. [${f.dayTag}] ${f.pnr} ${f.passengers.join(', ')} — ${f.route}${f.airline ? ` (${f.airline})` : ''}`) : ['  None']),
+        '',
+        `🛂 PASSPORT < 6 MONTHS (${passportWarnings.length}):`,
+        ...(passportWarnings.length ? passportWarnings.map((w, i) => `  ${i + 1}. ${w.name} (${w.source}) — Exp: ${w.passportExpiry} (${w.daysLeft <= 0 ? 'EXPIRED' : `${w.daysLeft}d left`}) · ${w.route}`) : ['  All clear']),
+        '',
+        `📋 VISA REMINDERS (${visaReminders.length}):`,
+        ...(visaReminders.length ? visaReminders.map((v, i) => `  ${i + 1}. ${v.applicant} (${v.country}) — ${v.reasons.join(', ')}`) : ['  All clear'])
+    ];
+    latestDailyDigestPlainText = lines.join('\n');
+
+    if (!dailyDigestButtonsWired) {
+        dailyDigestButtonsWired = true;
+        const copyBtn = document.getElementById('dailyDigestCopyBtn');
+        const tgBtn = document.getElementById('dailyDigestTelegramBtn');
+
+        copyBtn?.addEventListener('click', () => {
+            if (!latestDailyDigestPlainText) return;
+            navigator.clipboard?.writeText(latestDailyDigestPlainText)
+                .then(() => showToast('Daily digest copied to clipboard', 'success'))
+                .catch(() => showToast('Could not copy digest', 'error'));
+        });
+
+        tgBtn?.addEventListener('click', async () => {
+            if (!tgBtn || tgBtn.disabled) return;
+            const origHtml = tgBtn.innerHTML;
+            tgBtn.disabled = true;
+            tgBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Sending...</span>`;
+            try {
+                const [{ functions }, { httpsCallable }] = await Promise.all([
+                    import('./firebase-config.js'),
+                    import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js')
+                ]);
+                const callDigest = httpsCallable(functions, 'sendDailyDigestNow');
+                const res = await callDigest({});
+                if (res?.data?.ok) {
+                    showToast('Daily Digest sent to Telegram!', 'success');
+                } else {
+                    showToast('Digest ran, but Telegram delivery failed (check bot token).', 'warning');
+                }
+            } catch (err) {
+                console.error('sendDailyDigestNow failed:', err);
+                showToast(`Failed to send Telegram digest: ${err.message || 'Unknown error'}`, 'error');
+            } finally {
+                tgBtn.disabled = false;
+                tgBtn.innerHTML = origHtml;
+            }
+        });
+    }
 }
 
 export {
