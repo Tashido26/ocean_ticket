@@ -127,15 +127,15 @@ export const NRC_TOWNSHIPS = [
     "stateCode": "1",
     "shortEn": "KAMANA",
     "shortMm": "ကမန",
-    "nameEn": "KAMAING",
-    "nameMm": "ကာမိုင်း"
+    "nameEn": "KAMAING (HPAKANT)",
+    "nameMm": "ကာမိုင်း (ဖားကန့်)"
   },
   {
     "stateCode": "1",
     "shortEn": "KAMATA",
     "shortMm": "ကမတ",
-    "nameEn": "KAMAING",
-    "nameMm": "ကာမိုင်း"
+    "nameEn": "KAMAING (SUB-TOWNSHIP)",
+    "nameMm": "ကာမိုင်း (မြို့နယ်ခွဲ)"
   },
   {
     "stateCode": "1",
