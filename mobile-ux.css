@@ -139,13 +139,11 @@ body.dark-theme .visa-camera-scan-btn {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         align-items: center;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: #FFFFFF;
         border-top: 1px solid var(--border, #E2E8F0);
-        box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.06);
-        padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-        min-height: calc(62px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.08);
+        padding: 6px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+        min-height: calc(64px + env(safe-area-inset-bottom, 0px));
     }
 
     .mobile-bottom-nav[hidden],
@@ -154,47 +152,58 @@ body.dark-theme .visa-camera-scan-btn {
         display: none !important;
     }
 
-    .mobile-bottom-nav .nav-btn,
-    .mobile-bottom-nav .mobile-bottom-more-btn {
+    body.material-theme #mobileBottomNav .nav-btn,
+    body #mobileBottomNav .nav-btn,
+    #mobileBottomNav .mobile-bottom-more-btn {
         position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        padding: 5px 2px;
-        min-height: 46px;
-        border: none;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        height: auto !important;
+        min-height: 48px !important;
+        padding: 6px 2px !important;
+        border: none !important;
         background: transparent !important;
         color: var(--text-muted, #64748B) !important;
-        text-decoration: none;
-        font-size: 0.68rem;
-        font-weight: 600;
-        border-radius: 10px;
+        text-decoration: none !important;
+        font-size: 0.7rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        border-radius: 10px !important;
         cursor: pointer;
         margin: 0 !important;
         box-shadow: none !important;
+        overflow: visible !important;
         transition: color 140ms ease, background-color 140ms ease;
     }
 
-    .mobile-bottom-nav .nav-btn i,
-    .mobile-bottom-nav .mobile-bottom-more-btn i {
-        font-size: 1.08rem;
-        line-height: 1;
+    body.material-theme #mobileBottomNav .nav-btn i,
+    #mobileBottomNav .mobile-bottom-more-btn i {
+        font-size: 1.12rem !important;
+        line-height: 1 !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
     }
 
-    .mobile-bottom-nav .nav-btn span,
-    .mobile-bottom-nav .mobile-bottom-more-btn span {
+    body.material-theme #mobileBottomNav .nav-btn span,
+    #mobileBottomNav .mobile-bottom-more-btn span {
+        display: block;
+        line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
     }
 
-    .mobile-bottom-nav .nav-btn.active {
+    body.material-theme #mobileBottomNav .nav-btn.active,
+    body #mobileBottomNav .nav-btn.active {
         color: #0D6E77 !important;
-        background: rgba(13, 110, 119, 0.09) !important;
-        font-weight: 700;
+        background: rgba(13, 110, 119, 0.1) !important;
+        font-weight: 700 !important;
+        border: none !important;
     }
 
     .mobile-bottom-badge {
@@ -220,19 +229,21 @@ body.dark-theme .visa-camera-scan-btn {
         display: none !important;
     }
 
-    body.dark-theme .mobile-bottom-nav,
-    body.material-theme.dark-theme .mobile-bottom-nav {
-        background: rgba(15, 23, 42, 0.96);
+    body.dark-theme #mobileBottomNav,
+    body.material-theme.dark-theme #mobileBottomNav {
+        background: #0F172A;
         border-top-color: #334155;
         box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.45);
     }
 
-    body.dark-theme .mobile-bottom-nav .nav-btn,
-    body.dark-theme .mobile-bottom-nav .mobile-bottom-more-btn {
+    body.dark-theme #mobileBottomNav .nav-btn,
+    body.material-theme.dark-theme #mobileBottomNav .nav-btn,
+    body.dark-theme #mobileBottomNav .mobile-bottom-more-btn {
         color: #94A3B8 !important;
     }
 
-    body.dark-theme .mobile-bottom-nav .nav-btn.active {
+    body.dark-theme #mobileBottomNav .nav-btn.active,
+    body.material-theme.dark-theme #mobileBottomNav .nav-btn.active {
         color: #5EEAD4 !important;
         background: rgba(45, 212, 191, 0.14) !important;
     }
