@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ocean-travel-d9c4cc22';
+const CACHE_NAME = 'ocean-travel-116fea11';
 const CORE_ASSETS = [
     './',
     './index.html',
@@ -10,7 +10,7 @@ const CORE_ASSETS = [
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',
     './document-libraries.js?v=7c5a726d',
-    './main.js?v=25836bcc',
+    './main.js?v=08830a4b',
     './dashboard.js?v=a15517cf',
     './auth.js?v=625c50ce',
     './firebase-config.js?v=aab230c1',

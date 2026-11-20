@@ -3292,8 +3292,8 @@ async function bootstrapApp() {
         const fabSell = document.getElementById('mobileFabSell');
         const mainHeader = document.getElementById('main-header');
         const sidebar = document.getElementById('main-sidebar');
-        const sidebarVisaBadge = document.getElementById('sidebarVisaBadge');
-        const mobileVisaBadge = document.getElementById('mobileBottomVisaBadge');
+        const sidebarBookingBadge = document.getElementById('sidebarBookingBadge');
+        const mobileBookingBadge = document.getElementById('mobileBottomBookingBadge');
         const offlineBanner = document.getElementById('pwaOfflineBanner');
         const updateBanner = document.getElementById('pwaUpdateBanner');
         const updateReloadBtn = document.getElementById('pwaUpdateReloadBtn');
@@ -3331,17 +3331,17 @@ async function bootstrapApp() {
             showView('sell');
         });
 
-        // Sync Visa badge count from sidebar to mobile bottom nav
-        if (sidebarVisaBadge && mobileVisaBadge) {
-            const syncVisaBadge = () => {
-                const text = (sidebarVisaBadge.textContent || '').trim();
-                const isShown = sidebarVisaBadge.style.display !== 'none' && text.length > 0;
-                mobileVisaBadge.textContent = isShown ? text : '';
-                mobileVisaBadge.hidden = !isShown;
+        // Sync Booking badge count from sidebar to mobile bottom nav
+        if (sidebarBookingBadge && mobileBookingBadge) {
+            const syncBookingBadge = () => {
+                const text = (sidebarBookingBadge.textContent || '').trim();
+                const isShown = sidebarBookingBadge.style.display !== 'none' && text.length > 0;
+                mobileBookingBadge.textContent = isShown ? text : '';
+                mobileBookingBadge.hidden = !isShown;
             };
-            const badgeObs = new MutationObserver(syncVisaBadge);
-            badgeObs.observe(sidebarVisaBadge, { attributes: true, childList: true, characterData: true, subtree: true });
-            syncVisaBadge();
+            const badgeObs = new MutationObserver(syncBookingBadge);
+            badgeObs.observe(sidebarBookingBadge, { attributes: true, childList: true, characterData: true, subtree: true });
+            syncBookingBadge();
         }
 
         // Swipe-left to close mobile sidebar drawer
