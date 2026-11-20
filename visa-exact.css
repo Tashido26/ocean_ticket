@@ -1678,6 +1678,36 @@
     }
 }
 
+@media (max-width: 640px) {
+    #visa-view .booking-search-section {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    #visa-view #visaKpiGrid.booking-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+    #visa-view .visa-form-header,
+    #visa-view .visa-table-toolbar,
+    #visa-view .visa-header-actions {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    #visa-view .visa-table-wrap,
+    #visa-view .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .visa-modal-footer {
+        flex-wrap: wrap;
+    }
+    .visa-modal-footer > button {
+        flex: 1 1 auto;
+        min-height: 42px;
+        justify-content: center;
+    }
+}
+
 /* Dark Mode Overrides */
 body.dark-theme #visa-view {
     --bg: #0B181C;

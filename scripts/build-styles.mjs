@@ -16,7 +16,8 @@ export const files = [
     'settle-exact.css',
     'hotel-exact.css',
     'search-exact.css',
-    'visa-exact.css'
+    'visa-exact.css',
+    'mobile-ux.css'
 ];
 
 export const jsModules = [
@@ -157,10 +158,6 @@ const coreAssetsList = [
     './ocean-travel-logo.png',
     `./app-styles.min.css?v=${cssHash}`,
     './dashboard-exact.css?v=11',
-    './settle-exact.css?v=2',
-    './hotel-exact.css?v=1',
-    './search-exact.css?v=1',
-    './visa-exact.css?v=1',
     './vendor/datepicker.min.css',
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',

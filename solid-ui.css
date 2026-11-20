@@ -210,9 +210,9 @@ body.dark-theme textarea:not(#records-view *)::placeholder {
 
 /* Mobile form inputs: strictly 16px (no iOS auto-zoom, clear readability) */
 @media (max-width: 768px) {
-    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(#records-view *),
-    select:not(#records-view *),
-    textarea:not(#records-view *) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    select,
+    textarea {
         font-size: 16px;
         min-height: 42px;
     }

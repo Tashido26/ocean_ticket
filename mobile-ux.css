@@ -1,0 +1,390 @@
+/* ==========================================================================
+   MOBILE WEB APP UX & PWA POLISH (Ocean Travel)
+   Scoped strictly to mobile viewports & PWA overlays — zero desktop regressions.
+   ========================================================================== */
+
+/* 1. PWA Offline & Update Banners */
+.pwa-status-banner {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 10020;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+    max-width: calc(100vw - 24px);
+    animation: pwaBannerUp 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-status-banner[hidden] {
+    display: none !important;
+}
+
+.pwa-offline-banner {
+    background: #991B1B;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.pwa-update-banner {
+    background: #0F172A;
+    color: #F8FAFC;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.pwa-update-banner button {
+    background: #0D6E77;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.pwa-update-banner button:hover {
+    background: #094F56;
+}
+
+@keyframes pwaBannerUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 14px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* 2. Direct Camera Scan Button inside Visa Passport Dropzone */
+.visa-camera-scan-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(13, 110, 119, 0.35);
+    background: #EBF5F6;
+    color: #0D6E77;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 40px;
+}
+
+.visa-camera-scan-btn:active {
+    transform: scale(0.98);
+}
+
+body.dark-theme .visa-camera-scan-btn {
+    background: rgba(13, 110, 119, 0.22);
+    color: #6DD6CD;
+    border-color: rgba(109, 214, 205, 0.35);
+}
+
+/* 3. Mobile Bottom Navigation Bar & Floating Action Button (Hidden on Desktop) */
+.mobile-bottom-nav,
+.mobile-fab-sell {
+    display: none;
+}
+
+@media (max-width: 980px) {
+    /* Show direct camera button on mobile/tablet touch viewports */
+    .visa-camera-scan-btn {
+        display: inline-flex;
+    }
+
+    /* Safe-area support for iOS notch / Dynamic Island & Home Indicator */
+    body.material-theme .sidebar {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.material-theme .header {
+        padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        height: calc(58px + env(safe-area-inset-top, 0px)) !important;
+    }
+
+    /* Leave breathing room above the fixed Mobile Bottom Navigation Bar */
+    body.material-theme.mobile-nav-visible .app-body {
+        padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.material-theme.mobile-nav-visible .sticky-summary-bar {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    body.material-theme.mobile-nav-visible .pwa-status-banner {
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Bottom Navigation Bar */
+    .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1050;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid var(--border, #E2E8F0);
+        box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.06);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+        min-height: calc(62px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .mobile-bottom-nav[hidden],
+    body.modal-open .mobile-bottom-nav,
+    body.sidebar-open .mobile-bottom-nav {
+        display: none !important;
+    }
+
+    .mobile-bottom-nav .nav-btn,
+    .mobile-bottom-nav .mobile-bottom-more-btn {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 5px 2px;
+        min-height: 46px;
+        border: none;
+        background: transparent !important;
+        color: var(--text-muted, #64748B) !important;
+        text-decoration: none;
+        font-size: 0.68rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 0 !important;
+        box-shadow: none !important;
+        transition: color 140ms ease, background-color 140ms ease;
+    }
+
+    .mobile-bottom-nav .nav-btn i,
+    .mobile-bottom-nav .mobile-bottom-more-btn i {
+        font-size: 1.08rem;
+        line-height: 1;
+    }
+
+    .mobile-bottom-nav .nav-btn span,
+    .mobile-bottom-nav .mobile-bottom-more-btn span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .mobile-bottom-nav .nav-btn.active {
+        color: #0D6E77 !important;
+        background: rgba(13, 110, 119, 0.09) !important;
+        font-weight: 700;
+    }
+
+    .mobile-bottom-badge {
+        position: absolute;
+        top: 2px;
+        right: calc(50% - 20px);
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: #DC2626;
+        color: #FFFFFF;
+        font-size: 0.62rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .mobile-bottom-badge:empty,
+    .mobile-bottom-badge[hidden] {
+        display: none !important;
+    }
+
+    body.dark-theme .mobile-bottom-nav,
+    body.material-theme.dark-theme .mobile-bottom-nav {
+        background: rgba(15, 23, 42, 0.96);
+        border-top-color: #334155;
+        box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.45);
+    }
+
+    body.dark-theme .mobile-bottom-nav .nav-btn,
+    body.dark-theme .mobile-bottom-nav .mobile-bottom-more-btn {
+        color: #94A3B8 !important;
+    }
+
+    body.dark-theme .mobile-bottom-nav .nav-btn.active {
+        color: #5EEAD4 !important;
+        background: rgba(45, 212, 191, 0.14) !important;
+    }
+
+    /* Floating Quick Action (+ Sell Ticket) Button */
+    .mobile-fab-sell {
+        position: fixed;
+        right: 16px;
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+        z-index: 1040;
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(135deg, #0D6E77 0%, #094F56 100%);
+        color: #FFFFFF;
+        font-size: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 22px rgba(13, 110, 119, 0.38);
+        cursor: pointer;
+        transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .mobile-fab-sell:active {
+        transform: scale(0.93);
+    }
+
+    .mobile-fab-sell[hidden],
+    body.modal-open .mobile-fab-sell,
+    body.sidebar-open .mobile-fab-sell {
+        display: none !important;
+    }
+}
+
+/* 4. Mobile Card View for Myanmar NRC Lookup Directory (<= 680px) */
+@media (max-width: 680px) {
+    .nrc-lookup-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .nrc-lookup-select-group,
+    .nrc-lookup-search-group {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .nrc-lookup-count {
+        height: 36px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nrc-table-scroll {
+        max-height: 460px;
+        border: none;
+        background: transparent;
+        overflow-x: visible;
+    }
+
+    .nrc-list-table,
+    .nrc-list-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .nrc-list-table thead {
+        display: none;
+    }
+
+    .nrc-list-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4px 10px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        background: var(--surface, #FFFFFF);
+        border: 1px solid var(--border-color, #E2E8F0) !important;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .nrc-list-row:last-child {
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--border-color, #E2E8F0) !important;
+    }
+
+    .nrc-list-row td {
+        padding: 0;
+        display: block;
+    }
+
+    .nrc-list-row .nrc-col-idx {
+        display: none;
+    }
+
+    .nrc-list-row td:nth-child(2) {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .nrc-list-row td:nth-child(7) {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+        text-align: right;
+    }
+
+    .nrc-list-row .nrc-col-mmcode {
+        grid-column: 1;
+        grid-row: 2;
+        font-size: 0.82rem;
+    }
+
+    .nrc-list-row .nrc-col-mmname {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        margin-top: 2px;
+    }
+
+    .nrc-list-row .nrc-col-enname {
+        grid-column: 1;
+        grid-row: 4;
+        font-size: 0.78rem;
+    }
+
+    .nrc-list-row .nrc-col-state {
+        grid-column: 2;
+        grid-row: 4;
+        text-align: right;
+        font-size: 0.74rem;
+    }
+
+    .nrc-card-copy-btn {
+        background: #F0F9FF;
+        border: 1px solid #BAE6FD;
+        padding: 7px 12px;
+        min-height: 36px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
+
+    body.dark-theme .nrc-list-row {
+        background: var(--surface, #1E293B);
+        border-color: var(--border, #334155) !important;
+    }
+
+    body.dark-theme .nrc-card-copy-btn {
+        background: rgba(56, 189, 248, 0.14);
+        border-color: rgba(56, 189, 248, 0.3);
+    }
+}

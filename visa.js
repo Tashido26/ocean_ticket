@@ -340,12 +340,24 @@ function initVisaDatepickers() {
 function wirePassportOcrDropzone() {
     const dropzone = document.getElementById('visa_passport_dropzone');
     const fileInput = document.getElementById('visa_passport_file');
+    const cameraInput = document.getElementById('visa_passport_camera_file');
+    const cameraBtn = document.getElementById('visa_passport_camera_btn');
     const viewBtn = document.getElementById('visa_passport_view_btn');
     const downloadBtn = document.getElementById('visa_passport_download_btn');
     const removeBtn = document.getElementById('visa_passport_remove_btn');
 
     if (!dropzone || dropzone.dataset.wired) return;
     dropzone.dataset.wired = '1';
+
+    cameraBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cameraInput?.click();
+    });
+    cameraInput?.addEventListener('change', () => {
+        const file = cameraInput.files?.[0];
+        if (file) handlePassportFileSelected(file);
+        cameraInput.value = '';
+    });
 
     dropzone.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;

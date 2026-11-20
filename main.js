@@ -3285,6 +3285,111 @@ async function bootstrapApp() {
     initializeSellFormEnhancements();
     ensureServiceHotelCountryInput();
 
+    // Mobile Web App UX: Bottom Navigation, Floating +Sell FAB, Swipe-to-Close Drawer, Offline & Update Banners
+    (function initMobileWebAppEnhancements() {
+        const bottomNav = document.getElementById('mobileBottomNav');
+        const moreBtn = document.getElementById('mobileBottomMoreBtn');
+        const fabSell = document.getElementById('mobileFabSell');
+        const mainHeader = document.getElementById('main-header');
+        const sidebar = document.getElementById('main-sidebar');
+        const sidebarVisaBadge = document.getElementById('sidebarVisaBadge');
+        const mobileVisaBadge = document.getElementById('mobileBottomVisaBadge');
+        const offlineBanner = document.getElementById('pwaOfflineBanner');
+        const updateBanner = document.getElementById('pwaUpdateBanner');
+        const updateReloadBtn = document.getElementById('pwaUpdateReloadBtn');
+
+        const fabHiddenViews = new Set(['sell', 'manage', 'settings', 'logs']);
+        let currentViewName = 'home';
+
+        const isLoggedInUiVisible = () => Boolean(mainHeader && mainHeader.style.display !== 'none');
+
+        const syncMobileChrome = () => {
+            const visible = isLoggedInUiVisible();
+            if (bottomNav) bottomNav.hidden = !visible;
+            document.body.classList.toggle('mobile-nav-visible', visible);
+            if (fabSell) {
+                fabSell.hidden = !visible || fabHiddenViews.has(currentViewName);
+            }
+        };
+
+        if (mainHeader) {
+            const headerObs = new MutationObserver(syncMobileChrome);
+            headerObs.observe(mainHeader, { attributes: true, attributeFilter: ['style'] });
+        }
+
+        document.addEventListener('ocean:viewchange', (ev) => {
+            if (ev?.detail) currentViewName = ev.detail;
+            syncMobileChrome();
+        });
+
+        moreBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.body.classList.toggle('sidebar-open');
+        });
+
+        fabSell?.addEventListener('click', () => {
+            showView('sell');
+        });
+
+        // Sync Visa badge count from sidebar to mobile bottom nav
+        if (sidebarVisaBadge && mobileVisaBadge) {
+            const syncVisaBadge = () => {
+                const text = (sidebarVisaBadge.textContent || '').trim();
+                const isShown = sidebarVisaBadge.style.display !== 'none' && text.length > 0;
+                mobileVisaBadge.textContent = isShown ? text : '';
+                mobileVisaBadge.hidden = !isShown;
+            };
+            const badgeObs = new MutationObserver(syncVisaBadge);
+            badgeObs.observe(sidebarVisaBadge, { attributes: true, childList: true, characterData: true, subtree: true });
+            syncVisaBadge();
+        }
+
+        // Swipe-left to close mobile sidebar drawer
+        if (sidebar) {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            sidebar.addEventListener('touchstart', (e) => {
+                if (window.innerWidth > 980 || !document.body.classList.contains('sidebar-open')) return;
+                const t = e.touches[0];
+                touchStartX = t.clientX;
+                touchStartY = t.clientY;
+            }, { passive: true });
+            sidebar.addEventListener('touchend', (e) => {
+                if (window.innerWidth > 980 || !document.body.classList.contains('sidebar-open')) return;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - touchStartX;
+                const dy = Math.abs(t.clientY - touchStartY);
+                if (dx < -60 && dy < 70) {
+                    document.body.classList.remove('sidebar-open');
+                }
+            }, { passive: true });
+        }
+
+        // Offline / Online indicator
+        if (offlineBanner) {
+            const syncOnlineStatus = () => {
+                offlineBanner.hidden = navigator.onLine;
+            };
+            window.addEventListener('online', () => {
+                syncOnlineStatus();
+                showToast('Back online', 'success');
+            });
+            window.addEventListener('offline', syncOnlineStatus);
+            syncOnlineStatus();
+        }
+
+        // PWA Update reload button
+        updateReloadBtn?.addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        window.__showPwaUpdateBanner = () => {
+            if (updateBanner) updateBanner.hidden = false;
+        };
+
+        syncMobileChrome();
+    })();
+
     // Register PWA Service Worker with updateViaCache: 'none' so deploys take effect immediately
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
         let refreshing = false;
@@ -3292,6 +3397,9 @@ async function bootstrapApp() {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (!hadController || refreshing) return;
             refreshing = true;
+            if (typeof window.__showPwaUpdateBanner === 'function') {
+                window.__showPwaUpdateBanner();
+            }
             showToast('App updated to the latest version.', 'info');
         });
         navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
