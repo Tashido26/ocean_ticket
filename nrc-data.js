@@ -3443,9 +3443,10 @@ export function initNrcLookupService() {
                         ${results.map((t, index) => {
                             const stateObj = statesMap[t.stateCode] || { nameMm: '', numberMm: t.stateCode };
                             const fullNrcEn = `${t.stateCode}/${t.shortEn}(N)`;
+                            const copyNrcEn = `${String(t.stateCode || '').replace(/\*/g, '')}/${t.shortEn}(N)`;
                             const fullNrcMm = `${stateObj.numberMm}/${t.shortMm}(နိုင်)`;
                             return `
-                                <tr class="nrc-list-row" data-copy="${escapeHtmlAttr(fullNrcEn)}" title="Click to copy ${escapeHtmlAttr(fullNrcEn)}">
+                                <tr class="nrc-list-row" data-copy="${escapeHtmlAttr(copyNrcEn)}" title="Click to copy ${escapeHtmlAttr(copyNrcEn)}">
                                     <td class="nrc-col-idx">${index + 1}</td>
                                     <td><span class="nrc-list-code">${escapeHtmlAttr(fullNrcEn)}</span></td>
                                     <td class="nrc-col-mmcode">${escapeHtmlAttr(fullNrcMm)}</td>
@@ -3453,7 +3454,7 @@ export function initNrcLookupService() {
                                     <td class="nrc-col-enname">${escapeHtmlAttr(t.nameEn)}</td>
                                     <td class="nrc-col-state">${escapeHtmlAttr(stateObj.nameMm || ('State ' + t.stateCode))}</td>
                                     <td style="text-align: right;">
-                                        <button type="button" class="nrc-card-copy-btn" data-copy="${escapeHtmlAttr(fullNrcEn)}">
+                                        <button type="button" class="nrc-card-copy-btn" data-copy="${escapeHtmlAttr(copyNrcEn)}">
                                             <i class="fa-regular fa-copy"></i> <span>Copy</span>
                                         </button>
                                     </td>
