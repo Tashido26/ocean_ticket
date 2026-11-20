@@ -3141,9 +3141,9 @@ body.material-theme .datepicker-cell.disabled {
    ========================================================================== */
 
 #services-view {
-    max-width: 100% !important;
+    max-width: 1280px !important;
     width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 4px 0 24px !important;
     box-sizing: border-box !important;
 }

@@ -4434,9 +4434,9 @@ body.material-theme.dark-theme .notification-count {
 /* ---------- Dashboard grid ---------- */
 #services-view {
     padding: 0.25rem 0 1.5rem;
-    max-width: 100%;
+    max-width: 1280px;
     width: 100%;
-    margin: 0;
+    margin: 0 auto;
 }
 
 .services-dashboard {
