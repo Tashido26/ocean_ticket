@@ -17,6 +17,7 @@ export const files = [
     'hotel-exact.css',
     'search-exact.css',
     'visa-exact.css',
+    'dashboard-exact.css',
     'mobile-ux.css'
 ];
 
@@ -157,7 +158,6 @@ const coreAssetsList = [
     './manifest.json',
     './ocean-travel-logo.png',
     `./app-styles.min.css?v=${cssHash}`,
-    './dashboard-exact.css?v=11',
     './vendor/datepicker.min.css',
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',

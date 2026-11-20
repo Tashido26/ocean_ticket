@@ -15,7 +15,11 @@ import { renderClientsView } from './clients.js';
 import { renderBookingPage } from './booking.js';
 import { uploadPassportPhoto, deletePassportPhoto, openPhotoLightbox } from './passport.js';
 import { ocrPassport } from './passport-ocr.js';
-import { findTownshipSuggestions } from './nrc-data.js';
+let _nrcDataModPromise = null;
+function loadNrcDataLazy() {
+    if (!_nrcDataModPromise) _nrcDataModPromise = import('./nrc-data.js');
+    return _nrcDataModPromise;
+}
 
 
 /**
@@ -2884,7 +2888,8 @@ function _attachPaxBehaviour(formEl, opts = {}) {
         updatePaxStatus(formEl);
     }
 
-    function renderTownshipSuggestions() {
+    let nrcSuggestReqId = 0;
+    async function renderTownshipSuggestions() {
         if (!sugContainer || !townshipInput) return;
         const region = regionInput ? regionInput.value.trim() : '';
         const query = townshipInput.value.trim();
@@ -2893,6 +2898,10 @@ function _attachPaxBehaviour(formEl, opts = {}) {
             sugContainer.style.display = 'none';
             return;
         }
+
+        const reqId = ++nrcSuggestReqId;
+        const { findTownshipSuggestions } = await loadNrcDataLazy();
+        if (reqId !== nrcSuggestReqId) return;
 
         const matches = findTownshipSuggestions(region, query);
         if (!matches || matches.length === 0) {

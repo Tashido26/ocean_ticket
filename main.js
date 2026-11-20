@@ -21,7 +21,6 @@ import { findTicketForManage, clearManageResults } from './manage.js';
 import { exportToPdf, exportPrivateReportToPdf, togglePrivateReportButton, exportSelectedToExcel } from './reports.js';
 import { generateInvoice, generateInvoiceImage, analyzeInvoiceScenario } from './invoice.js';
 import { selectPassengerTickets } from './invoice-selection.mjs';
-import { initNrcLookupService } from './nrc-data.js';
 let hotelModule;
 const renderHotelReservations = () => hotelModule?.renderHotelReservations();
 const hideHotelReservationForm = () => hotelModule?.hideHotelReservationForm();
@@ -3205,15 +3204,16 @@ async function loadPageFeatures(viewName) {
             hotelModule.renderHotelReservations();
         }
         if (viewName === 'services' && !servicesPageReady) {
-            const [air, agoda] = await Promise.all([
+            const [air, agoda, nrcMod] = await Promise.all([
                 import('./airasia-converter.js'),
-                import('./agoda-hotel-converter.js')
+                import('./agoda-hotel-converter.js'),
+                import('./nrc-data.js')
             ]);
             ({ extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat } = air);
             ({ renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf } = agoda);
             initializeAirAsiaGenerator();
             initializeChinaHotelGenerator();
-            if (typeof initNrcLookupService === 'function') initNrcLookupService();
+            if (typeof nrcMod?.initNrcLookupService === 'function') nrcMod.initNrcLookupService();
             servicesPageReady = true;
         }
     })().catch(error => {
