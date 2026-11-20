@@ -280,12 +280,12 @@ body.dark-theme .visa-camera-scan-btn {
     }
 }
 
-/* 4. Mobile Card View for Myanmar NRC Lookup Directory (<= 680px) */
+/* 4. Compact Mobile List View for Myanmar NRC Lookup Directory (<= 680px) */
 @media (max-width: 680px) {
     .nrc-lookup-toolbar {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
+        gap: 8px;
     }
 
     .nrc-lookup-select-group,
@@ -295,106 +295,127 @@ body.dark-theme .visa-camera-scan-btn {
     }
 
     .nrc-lookup-count {
-        height: 36px;
+        height: 34px;
         justify-content: center;
         width: 100%;
     }
 
-    .nrc-table-scroll {
-        max-height: 460px;
-        border: none;
-        background: transparent;
-        overflow-x: visible;
+    #nrcLookupPanel .nrc-table-scroll {
+        max-height: 520px;
+        border: 1px solid var(--border-color, #E2E8F0) !important;
+        border-radius: 10px;
+        background: var(--surface, #FFFFFF);
+        overflow-x: hidden;
     }
 
-    .nrc-list-table,
-    .nrc-list-table tbody {
+    #nrcLookupPanel .nrc-list-table,
+    #nrcLookupPanel .nrc-list-table tbody {
         display: block;
         width: 100%;
     }
 
-    .nrc-list-table thead {
+    #nrcLookupPanel .nrc-list-table thead {
         display: none;
     }
 
-    .nrc-list-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 4px 10px;
-        padding: 12px 14px;
-        margin-bottom: 8px;
-        background: var(--surface, #FFFFFF);
-        border: 1px solid var(--border-color, #E2E8F0) !important;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    #nrcLookupPanel .nrc-list-row {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 8px;
+        row-gap: 3px;
+        padding: 9px 11px !important;
+        margin: 0 !important;
+        background: transparent;
+        border: none !important;
+        border-bottom: 1px solid var(--line, #F1F5F9) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .nrc-list-row:last-child {
-        margin-bottom: 0;
-        border-bottom: 1px solid var(--border-color, #E2E8F0) !important;
+    #nrcLookupPanel .nrc-list-row:last-child {
+        border-bottom: none !important;
     }
 
-    .nrc-list-row td {
-        padding: 0;
+    #nrcLookupPanel .nrc-list-row td {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        min-height: 0 !important;
+        height: auto !important;
         display: block;
     }
 
-    .nrc-list-row .nrc-col-idx {
-        display: none;
+    #nrcLookupPanel .nrc-list-row .nrc-col-idx,
+    #nrcLookupPanel .nrc-list-row .nrc-col-state {
+        display: none !important;
     }
 
-    .nrc-list-row td:nth-child(2) {
+    #nrcLookupPanel .nrc-list-row td:nth-child(2) {
         grid-column: 1;
         grid-row: 1;
     }
 
-    .nrc-list-row td:nth-child(7) {
+    #nrcLookupPanel .nrc-list-code {
+        font-size: 0.78rem;
+        padding: 2px 7px;
+    }
+
+    #nrcLookupPanel .nrc-list-row .nrc-col-mmcode {
         grid-column: 2;
+        grid-row: 1;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #nrcLookupPanel .nrc-list-row .nrc-col-mmname {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    #nrcLookupPanel .nrc-col-mmname strong {
+        font-size: 0.84rem;
+    }
+
+    #nrcLookupPanel .nrc-list-row .nrc-col-enname {
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 0.74rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #nrcLookupPanel .nrc-list-row td:nth-child(7) {
+        grid-column: 3;
         grid-row: 1 / span 2;
         align-self: center;
         text-align: right;
     }
 
-    .nrc-list-row .nrc-col-mmcode {
-        grid-column: 1;
-        grid-row: 2;
-        font-size: 0.82rem;
-    }
-
-    .nrc-list-row .nrc-col-mmname {
-        grid-column: 1 / -1;
-        grid-row: 3;
-        margin-top: 2px;
-    }
-
-    .nrc-list-row .nrc-col-enname {
-        grid-column: 1;
-        grid-row: 4;
-        font-size: 0.78rem;
-    }
-
-    .nrc-list-row .nrc-col-state {
-        grid-column: 2;
-        grid-row: 4;
-        text-align: right;
-        font-size: 0.74rem;
-    }
-
-    .nrc-card-copy-btn {
+    #nrcLookupPanel .nrc-card-copy-btn {
         background: #F0F9FF;
         border: 1px solid #BAE6FD;
-        padding: 7px 12px;
-        min-height: 36px;
-        border-radius: 8px;
-        font-size: 0.8rem;
+        padding: 5px 10px;
+        min-height: 32px;
+        border-radius: 7px;
+        font-size: 0.75rem;
     }
 
-    body.dark-theme .nrc-list-row {
+    body.dark-theme #nrcLookupPanel .nrc-table-scroll {
         background: var(--surface, #1E293B);
         border-color: var(--border, #334155) !important;
     }
 
-    body.dark-theme .nrc-card-copy-btn {
+    body.dark-theme #nrcLookupPanel .nrc-list-row {
+        border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+    }
+
+    body.dark-theme #nrcLookupPanel .nrc-card-copy-btn {
         background: rgba(56, 189, 248, 0.14);
         border-color: rgba(56, 189, 248, 0.3);
     }
