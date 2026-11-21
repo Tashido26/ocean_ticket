@@ -1,0 +1,542 @@
+/* ==========================================================================
+   OCEAN TRAVEL — UNIFIED PREMIUM DARK THEME
+   Loaded LAST in app-styles.min.css so it cleanly overrides light-mode rules
+   in dashboard-exact.css, settle-exact.css, hotel-exact.css, search-exact.css,
+   visa-exact.css, apple-ui.css, sell.css, and styles.css.
+   ========================================================================== */
+
+body.dark-theme,
+body.material-theme.dark-theme {
+    color-scheme: dark;
+    --bg: #0B1120;
+    --app-bg: #0B1120;
+    --bg-color: #0B1120;
+    --surface: #131C2E;
+    --surface-2: #1A253A;
+    --surface-3: #24324B;
+    --surface-soft: #101827;
+    --border: #1F2D45;
+    --border-color: #1F2D45;
+    --border-strong: #2E405E;
+    --border-color-strong: #2E405E;
+    --line: #1E293B;
+    --text: #F1F5F9;
+    --text-primary: #F1F5F9;
+    --ink: #F1F5F9;
+    --ink-2: #CBD5E1;
+    --text-muted: #94A3B8;
+    --text-secondary: #94A3B8;
+    --muted: #94A3B8;
+    --text-faint: #64748B;
+    --apple-toolbar: #0F172A;
+    --apple-separator: #1F2D45;
+    --apple-label: #F1F5F9;
+    --apple-secondary-label: #94A3B8;
+    --apple-bg: #131C2E;
+    --brand: #14B8A6;
+    --brand-soft: rgba(20, 184, 166, 0.16);
+    --primary: #14B8A6;
+    --primary-accent: #14B8A6;
+    --primary-soft: rgba(20, 184, 166, 0.16);
+    --teal: #14B8A6;
+    --teal-soft: rgba(20, 184, 166, 0.16);
+    background-color: #0B1120 !important;
+    background-image: none !important;
+    color: #F1F5F9 !important;
+}
+
+/* 1. App Shell: Main Container, App Body, Main Content, Views */
+body.dark-theme .main-container,
+body.dark-theme .app-body,
+body.dark-theme .main-content,
+body.dark-theme .view,
+body.dark-theme #home-view,
+body.dark-theme #records-view,
+body.dark-theme #sell-view,
+body.dark-theme #manage-view,
+body.dark-theme #booking-view,
+body.dark-theme #hotel-view,
+body.dark-theme #visa-view,
+body.dark-theme #settle-view,
+body.dark-theme #services-view,
+body.dark-theme #logs-view,
+body.dark-theme #search-view,
+body.dark-theme #settings-view {
+    background-color: #0B1120 !important;
+    background-image: none !important;
+    color: #F1F5F9 !important;
+}
+
+/* 2. Sidebar Navigation */
+body.dark-theme .sidebar,
+body.material-theme.dark-theme .sidebar {
+    background: #0F172A !important;
+    border-right: 1px solid #1F2D45 !important;
+    box-shadow: 2px 0 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-theme .sidebar-brand,
+body.dark-theme .sidebar-header {
+    border-bottom-color: #1F2D45 !important;
+}
+
+/* Keep Ocean Travel logo crisp & legible on dark sidebar */
+body.dark-theme .sidebar-brand .brand-logo,
+body.dark-theme .sidebar-logo {
+    background: rgba(255, 255, 255, 0.94);
+    padding: 5px 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+body.dark-theme .sidebar-brand-text {
+    color: #F8FAFC !important;
+}
+
+body.dark-theme .sidebar-section-label {
+    color: #64748B !important;
+}
+
+body.dark-theme .sidebar-nav .nav-btn,
+body.material-theme.dark-theme .sidebar-nav .nav-btn {
+    color: #CBD5E1 !important;
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+body.dark-theme .sidebar-nav .nav-btn span {
+    color: inherit !important;
+}
+
+body.dark-theme .sidebar-nav .nav-btn:hover,
+body.material-theme.dark-theme .sidebar-nav .nav-btn:hover {
+    background: #1A253A !important;
+    color: #F8FAFC !important;
+}
+
+body.dark-theme .sidebar-nav .nav-btn.active,
+body.material-theme.dark-theme .sidebar-nav .nav-btn.active {
+    background: rgba(20, 184, 166, 0.14) !important;
+    color: #5EEAD4 !important;
+    border-color: rgba(20, 184, 166, 0.28) !important;
+}
+
+body.dark-theme .sidebar-nav-footer {
+    border-top: 1px solid #1F2D45 !important;
+}
+
+body.dark-theme .sidebar-user-strip {
+    background: #131C2E !important;
+    border-top: 1px solid #1F2D45 !important;
+}
+
+body.dark-theme .sidebar-user-avatar {
+    background: #1E293B !important;
+    color: #5EEAD4 !important;
+    border: 1px solid #2E405E !important;
+}
+
+body.dark-theme .sidebar-user-name {
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme .sidebar-user-role {
+    color: #94A3B8 !important;
+}
+
+/* 3. Top Header, Global Search & Date Pill */
+body.dark-theme .header,
+body.material-theme.dark-theme .header {
+    background: #0F172A !important;
+    border-bottom: 1px solid #1F2D45 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-theme .sidebar-toggle {
+    background: #1A253A !important;
+    color: #CBD5E1 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+body.dark-theme .sidebar-toggle:hover {
+    background: #24324B !important;
+    color: #F8FAFC !important;
+}
+
+body.dark-theme .global-search-box {
+    background: #1A253A !important;
+    border: 1px solid #2B3B55 !important;
+    box-shadow: none !important;
+}
+
+body.dark-theme .global-search-box:focus-within {
+    border-color: #14B8A6 !important;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2) !important;
+}
+
+body.dark-theme #globalSearchInput {
+    background: transparent !important;
+    color: #F1F5F9 !important;
+    border: none !important;
+}
+
+body.dark-theme #globalSearchInput::placeholder {
+    color: #64748B !important;
+}
+
+body.dark-theme .global-search-box .search-icon,
+body.dark-theme .global-search-clear {
+    color: #94A3B8 !important;
+}
+
+body.dark-theme .global-search-suggestions,
+body.dark-theme .autosuggest-box {
+    background: #131C2E !important;
+    border: 1px solid #2B3B55 !important;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55) !important;
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme .global-search-suggestions > *:hover,
+body.dark-theme .autosuggest-box > *:hover {
+    background: #1E2D45 !important;
+}
+
+body.dark-theme .header-today-date {
+    background: #1A253A !important;
+    border: 1px solid #2B3B55 !important;
+    color: #E2E8F0 !important;
+}
+
+body.dark-theme .header-today-date i {
+    color: #5EEAD4 !important;
+}
+
+/* 4. Page Headers, Headings & Text */
+body.dark-theme .page-header h2,
+body.dark-theme .dashboard-compact-title,
+body.dark-theme .panel-header h3,
+body.dark-theme .results-header h2,
+body.dark-theme .service-panel-header h2,
+body.dark-theme .sell-section-header h3,
+body.dark-theme .settings-section-title,
+body.dark-theme .section-titles h3 {
+    color: #F8FAFC !important;
+}
+
+body.dark-theme .dashboard-compact-subtitle,
+body.dark-theme .section-subtitle,
+body.dark-theme .service-panel-desc,
+body.dark-theme .settings-help,
+body.dark-theme .sub-value {
+    color: #94A3B8 !important;
+}
+
+/* 5. Dashboard KPI Cards, Period Controls & Panels */
+body.dark-theme .dashboard-period-controls {
+    background: #131C2E !important;
+    border: 1px solid #24324B !important;
+}
+
+body.dark-theme .dashboard-period-btn {
+    color: #94A3B8 !important;
+    background: transparent !important;
+}
+
+body.dark-theme .dashboard-period-btn:hover {
+    color: #F1F5F9 !important;
+    background: #1A253A !important;
+}
+
+body.dark-theme .dashboard-period-btn.active {
+    background: rgba(20, 184, 166, 0.18) !important;
+    color: #5EEAD4 !important;
+    border-color: rgba(20, 184, 166, 0.35) !important;
+}
+
+body.dark-theme .info-card,
+body.dark-theme .dashboard-panel,
+body.dark-theme .glass-card,
+body.dark-theme .results-section,
+body.dark-theme .booking-kpi-card,
+body.dark-theme .settle-kpi-card,
+body.dark-theme .service-panel,
+body.dark-theme .sell-section,
+body.dark-theme .settings-card,
+body.dark-theme .form-container,
+body.dark-theme .logs-filter-card,
+body.dark-theme .logs-table-card,
+body.dark-theme .booking-search-section,
+body.dark-theme .settle-card,
+body.dark-theme .client-visa-section {
+    background: #131C2E !important;
+    border: 1px solid #1F2D45 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme .info-card .stat-head h3,
+body.dark-theme .booking-kpi-card .kpi-label,
+body.dark-theme .settle-kpi-card .kpi-label {
+    color: #94A3B8 !important;
+}
+
+body.dark-theme .info-card .main-value,
+body.dark-theme .booking-kpi-card .kpi-value,
+body.dark-theme .settle-kpi-card .kpi-value {
+    color: #F8FAFC !important;
+}
+
+body.dark-theme .info-card .currency-label {
+    color: #94A3B8 !important;
+}
+
+body.dark-theme .panel-header,
+body.dark-theme .sell-section-header,
+body.dark-theme .service-panel-header,
+body.dark-theme .results-header {
+    border-bottom-color: #1F2D45 !important;
+}
+
+body.dark-theme .panel-hint.hint-neutral {
+    background: #1A253A !important;
+    color: #CBD5E1 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+/* Dashboard inner list items */
+body.dark-theme .travel-schedule-list > *,
+body.dark-theme .dashboard-unpaid-content > *,
+body.dark-theme .dashboard-task-list > *,
+body.dark-theme .pax-card,
+body.dark-theme .pax-panel {
+    background: #182338 !important;
+    border-color: #24324B !important;
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme .pax-card-header {
+    background: #1A253A !important;
+    border-bottom-color: #24324B !important;
+}
+
+/* 6. Universal Inputs, Selects, Textareas & Custom Selects */
+body.dark-theme input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not(#globalSearchInput),
+body.dark-theme select,
+body.dark-theme textarea,
+body.dark-theme .custom-select-trigger {
+    background-color: #1A253A !important;
+    color: #F1F5F9 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+body.dark-theme input::placeholder,
+body.dark-theme textarea::placeholder {
+    color: #64748B !important;
+}
+
+body.dark-theme input:focus:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(#globalSearchInput),
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+    border-color: #14B8A6 !important;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2) !important;
+}
+
+body.dark-theme .custom-options {
+    background: #131C2E !important;
+    border: 1px solid #2B3B55 !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-theme .custom-option {
+    color: #E2E8F0 !important;
+}
+
+body.dark-theme .custom-option:hover,
+body.dark-theme .custom-option.selected {
+    background: rgba(20, 184, 166, 0.18) !important;
+    color: #5EEAD4 !important;
+}
+
+body.dark-theme label {
+    color: #CBD5E1 !important;
+}
+
+/* 7. Secondary, Clear, Outline & Icon Buttons (Fixes white-on-white buttons!) */
+body.dark-theme .btn-secondary,
+body.dark-theme .btn-clear,
+body.dark-theme .btn-outline,
+body.dark-theme .records-preset-btn,
+body.dark-theme .btn-page-nav,
+body.dark-theme .icon-btn,
+body.dark-theme .booking-action-btn,
+body.dark-theme .settle-row-btn,
+body.dark-theme .history-action-btn,
+body.dark-theme #reset-settings-btn,
+body.dark-theme .pnr-parser-btn {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
+}
+
+body.dark-theme .btn-secondary:hover,
+body.dark-theme .btn-clear:hover,
+body.dark-theme .btn-outline:hover,
+body.dark-theme .records-preset-btn:hover,
+body.dark-theme .btn-page-nav:hover,
+body.dark-theme .icon-btn:hover,
+body.dark-theme #reset-settings-btn:hover {
+    background: #24324B !important;
+    color: #FFFFFF !important;
+    border-color: #3E547A !important;
+}
+
+body.dark-theme .records-preset-btn.active {
+    background: rgba(20, 184, 166, 0.2) !important;
+    color: #5EEAD4 !important;
+    border-color: rgba(20, 184, 166, 0.45) !important;
+}
+
+/* Segmented controls (Trip Type, Ticket Source, Gender Title, Format) */
+body.dark-theme .trip-type-segment,
+body.dark-theme .gender-segment,
+body.dark-theme .format-segment,
+body.dark-theme .view-toggle {
+    background: #101827 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+body.dark-theme .trip-type-segment label,
+body.dark-theme .gender-segment label,
+body.dark-theme .format-segment label,
+body.dark-theme .view-toggle label {
+    color: #94A3B8 !important;
+}
+
+body.dark-theme .trip-type-segment input:checked + label,
+body.dark-theme .gender-segment input:checked + label,
+body.dark-theme .format-segment input:checked + label,
+body.dark-theme .view-toggle input:checked + label {
+    background: #0D6E77 !important;
+    color: #FFFFFF !important;
+}
+
+/* 8. Tables Across All Views (Records, Booking, Hotel, Visa, Settle, Logs) */
+body.dark-theme .table-container,
+body.dark-theme #records-view .table-wrapper,
+body.dark-theme #bookingTableContainer,
+body.dark-theme #hotelResTableContainer,
+body.dark-theme #visa-view .table-container,
+body.dark-theme .logs-table-card {
+    background: #131C2E !important;
+    border-color: #1F2D45 !important;
+}
+
+body.dark-theme table thead th,
+body.dark-theme #resultsTable thead th,
+body.dark-theme .booking-table thead th,
+body.dark-theme .logs-table thead th {
+    background: #172236 !important;
+    color: #94A3B8 !important;
+    border-bottom: 1px solid #24324B !important;
+    box-shadow: 0 1px 0 #24324B !important;
+}
+
+body.dark-theme table tbody tr,
+body.dark-theme #resultsTable tbody tr,
+body.dark-theme .booking-table tbody tr,
+body.dark-theme .logs-table tbody tr {
+    background: #131C2E !important;
+    border-bottom-color: #1E293B !important;
+}
+
+body.dark-theme table tbody tr:hover,
+body.dark-theme #resultsTable tbody tr:hover,
+body.dark-theme .booking-table tbody tr:hover,
+body.dark-theme .logs-table tbody tr:hover {
+    background: #1A2740 !important;
+}
+
+body.dark-theme table tbody td,
+body.dark-theme #resultsTable tbody td,
+body.dark-theme .booking-table tbody td,
+body.dark-theme .logs-table tbody td {
+    color: #E2E8F0 !important;
+    border-bottom-color: #1E293B !important;
+}
+
+/* Sticky action columns in dark mode */
+body.dark-theme table tbody td:last-child,
+body.dark-theme #resultsTable tbody td.actions-cell {
+    background: #131C2E !important;
+    border-left-color: #1F2D45 !important;
+}
+
+body.dark-theme table tbody tr:hover td:last-child,
+body.dark-theme #resultsTable tbody tr:hover td.actions-cell {
+    background: #1A2740 !important;
+}
+
+/* 9. Settings View Polish */
+body.dark-theme #settings-view .page-header h2 i {
+    color: #5EEAD4 !important;
+}
+
+body.dark-theme .settings-section {
+    border-bottom-color: #1F2D45 !important;
+}
+
+body.dark-theme #agent-cut-value {
+    background: rgba(20, 184, 166, 0.16) !important;
+    color: #5EEAD4 !important;
+}
+
+/* 10. Modals, Lightboxes & Datepickers */
+body.dark-theme .modal-content,
+body.dark-theme .modal-box,
+body.dark-theme .pnr-detail-modal-container,
+body.dark-theme .dialog-content {
+    background: #131C2E !important;
+    border: 1px solid #2B3B55 !important;
+    color: #F1F5F9 !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65) !important;
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+    border-color: #1F2D45 !important;
+    background: #131C2E !important;
+}
+
+body.dark-theme .datepicker-picker {
+    background: #131C2E !important;
+    border: 1px solid #2B3B55 !important;
+    color: #F1F5F9 !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.dark-theme .datepicker-header .datepicker-controls .button,
+body.dark-theme .datepicker-cell {
+    background: transparent !important;
+    color: #E2E8F0 !important;
+}
+
+body.dark-theme .datepicker-cell:hover:not(.disabled),
+body.dark-theme .datepicker-header .datepicker-controls .button:hover {
+    background: #1F2D45 !important;
+}
+
+body.dark-theme .datepicker-cell.selected,
+body.dark-theme .datepicker-cell.selected:hover {
+    background: #0D6E77 !important;
+    color: #FFFFFF !important;
+}
+
+/* 11. Preserve White Paper Previews for PDF/Image Generation */
+body.dark-theme #airAsiaPreviewContainer,
+body.dark-theme #agodaPreviewContainer,
+body.dark-theme #invoicePreview,
+body.dark-theme .voucher-preview,
+body.dark-theme .ticket-preview {
+    color-scheme: light;
+}

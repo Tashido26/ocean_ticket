@@ -18,7 +18,8 @@ export const files = [
     'search-exact.css',
     'visa-exact.css',
     'dashboard-exact.css',
-    'mobile-ux.css'
+    'mobile-ux.css',
+    'dark-theme.css'
 ];
 
 export const jsModules = [
