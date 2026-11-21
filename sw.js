@@ -1,10 +1,10 @@
-const CACHE_NAME = 'ocean-travel-962b2b27';
+const CACHE_NAME = 'ocean-travel-8458a392';
 const CORE_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './ocean-travel-logo.png',
-    './app-styles.min.css?v=45aadd8a',
+    './app-styles.min.css?v=5f93d4ff',
     './vendor/datepicker.min.css',
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',

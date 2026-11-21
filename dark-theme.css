@@ -742,7 +742,14 @@ html body.dark-theme:has(#settle-view:not([style*="display: none"])) .app-contai
 html body.dark-theme:has(#settle-view:not([style*="display: none"])) .app-body,
 html body.dark-theme:has(#settle-view:not([style*="display: none"])) .main-content,
 html body.dark-theme #settle-view,
-html body.dark-theme #settle-view.view {
+html body.dark-theme #settle-view.view,
+html body.dark-theme:has(#records-view.active),
+html body.material-theme.dark-theme:has(#records-view.active),
+html body.dark-theme:has(#records-view.active) .main-container,
+html body.dark-theme:has(#records-view.active) .app-container,
+html body.dark-theme:has(#records-view.active) .app-body,
+html body.dark-theme:has(#records-view.active) .main-content,
+html body.material-theme.dark-theme:has(#records-view.active) .main-content {
     background: #0B1120 !important;
     background-color: #0B1120 !important;
     background-image: none !important;
