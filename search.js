@@ -118,7 +118,28 @@ function normalizeName(name) {
 function clientKeyFromTicket(ticket) {
     if (!ticket) return '';
     if (ticket.client_key) return ticket.client_key;
-    const baseName = String(ticket.name || '').replace(/\([^)]+\)\s*$/i, '').trim();
+
+    const rawName = String(ticket.name || '');
+    const baseName = rawName.replace(/\([^)]+\)\s*$/i, '').trim();
+
+    // If this is a legacy "(Fees)" entry without passport_no/client_key, inherit identity
+    // from the parent non-fee ticket sharing the same PNR and passenger base name.
+    let parentTicket = null;
+    if (/\(fees\)\s*$/i.test(rawName) && !ticket.passport_no) {
+        const normPnr = String(ticket.booking_reference || '').trim().toUpperCase();
+        const normBase = baseName.toUpperCase();
+        if (normPnr && normBase) {
+            parentTicket = (state.allTickets || []).find(t =>
+                t && t !== ticket &&
+                !/\(fees\)\s*$/i.test(String(t.name || '')) &&
+                String(t.booking_reference || '').trim().toUpperCase() === normPnr &&
+                String(t.name || '').replace(/\([^)]+\)\s*$/i, '').trim().toUpperCase() === normBase &&
+                (t.client_key || t.passport_no)
+            ) || null;
+        }
+    }
+    if (parentTicket) return clientKeyFromTicket(parentTicket);
+
     const phone = ticket.phone && ticket.phone !== 'undefined' ? ticket.phone.trim() : '';
     const accountName = ticket.account_name && ticket.account_name !== 'undefined' ? ticket.account_name.trim().toUpperCase() : '';
     const docIdentifier = String(ticket.passport_no || ticket.nrc_no || ticket.id_no || '').trim().toUpperCase();

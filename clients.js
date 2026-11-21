@@ -62,22 +62,58 @@ export function normalizeClientKey(rawName, rawDocId, rawPhone, rawAccountName =
  */
 export function buildClientList() {
     const clients = {};
+
+    // Pre-index non-fee tickets by (PNR + baseName) so legacy "(Fees)" entries
+    // created without passport_no / client_key automatically attach to the original client profile.
+    const parentTicketByPnrName = new Map();
+    state.allTickets.forEach(t => {
+        if (!t) return;
+        const rawName = String(t.name || '');
+        if (/\(fees\)\s*$/i.test(rawName)) return;
+        const normPnr = String(t.booking_reference || '').trim().toUpperCase();
+        const baseName = rawName.replace(/\([^)]+\)\s*$/i, '').trim().toUpperCase();
+        if (!normPnr || !baseName) return;
+        const mapKey = `${normPnr}|${baseName}`;
+        const existing = parentTicketByPnrName.get(mapKey);
+        // Prefer the parent ticket that carries a passport_no or client_key
+        if (!existing || (!existing.passport_no && t.passport_no) || (!existing.client_key && t.client_key)) {
+            parentTicketByPnrName.set(mapKey, t);
+        }
+    });
+
     state.allTickets.forEach(ticket => {
-        const baseName = String(ticket.name || '').replace(/\([^)]+\)\s*$/i, '').trim();
-        const phone = ticket.phone && ticket.phone !== 'undefined' ? ticket.phone : '';
-        const rawAccountName = ticket.account_name && ticket.account_name !== 'undefined' ? ticket.account_name.trim() : '';
+        const rawName = String(ticket.name || '');
+        const isFeeRow = /\(fees\)\s*$/i.test(rawName);
+        const baseName = rawName.replace(/\([^)]+\)\s*$/i, '').trim();
+        const normPnr = String(ticket.booking_reference || '').trim().toUpperCase();
+        const parentTicket = (isFeeRow && normPnr && baseName)
+            ? parentTicketByPnrName.get(`${normPnr}|${baseName.toUpperCase()}`)
+            : null;
+
+        const phone = (ticket.phone && ticket.phone !== 'undefined' ? ticket.phone : '')
+            || (parentTicket?.phone && parentTicket.phone !== 'undefined' ? parentTicket.phone : '');
+        const rawAccountName = (ticket.account_name && ticket.account_name !== 'undefined' ? ticket.account_name.trim() : '')
+            || (parentTicket?.account_name && parentTicket.account_name !== 'undefined' ? parentTicket.account_name.trim() : '');
         const accountName = rawAccountName.toUpperCase();
-        const accountType = ticket.account_type && ticket.account_type !== 'undefined' ? ticket.account_type : '';
-        const accountLink = ticket.account_link && ticket.account_link !== 'undefined' ? ticket.account_link : '';
+        const accountType = (ticket.account_type && ticket.account_type !== 'undefined' ? ticket.account_type : '')
+            || (parentTicket?.account_type && parentTicket.account_type !== 'undefined' ? parentTicket.account_type : '');
+        const accountLink = (ticket.account_link && ticket.account_link !== 'undefined' ? ticket.account_link : '')
+            || (parentTicket?.account_link && parentTicket.account_link !== 'undefined' ? parentTicket.account_link : '');
         
-        const ticketNrc = looksLikeNrc(ticket.nrc_no) ? ticket.nrc_no : (looksLikeNrc(ticket.id_no) ? ticket.id_no : '');
+        const ticketNrc = looksLikeNrc(ticket.nrc_no) ? ticket.nrc_no
+            : (looksLikeNrc(ticket.id_no) ? ticket.id_no
+            : (parentTicket && looksLikeNrc(parentTicket.nrc_no) ? parentTicket.nrc_no
+            : (parentTicket && looksLikeNrc(parentTicket.id_no) ? parentTicket.id_no : '')));
         const ticketPassport = ticket.passport_no
             || (looksLikePassport(ticket.nrc_no) ? ticket.nrc_no : '')
-            || (looksLikePassport(ticket.id_no) ? ticket.id_no : '');
+            || (looksLikePassport(ticket.id_no) ? ticket.id_no : '')
+            || (parentTicket?.passport_no || '')
+            || (parentTicket && looksLikePassport(parentTicket.nrc_no) ? parentTicket.nrc_no : '')
+            || (parentTicket && looksLikePassport(parentTicket.id_no) ? parentTicket.id_no : '');
         const docIdentifier = (ticketPassport || ticketNrc || '').toUpperCase().trim();
 
         // Never rely on name alone as unique identifier
-        let clientKey = ticket.client_key || '';
+        let clientKey = ticket.client_key || parentTicket?.client_key || '';
         if (!clientKey) {
             if (docIdentifier) {
                 clientKey = `${baseName}|${docIdentifier}|${phone}`;

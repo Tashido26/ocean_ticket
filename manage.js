@@ -819,6 +819,19 @@ function openFinancialModal(docId) {
                         account_link: t.account_link || '',
                         phone: t.phone || '',
                         id_no: t.id_no || '',
+                        nrc_no: t.nrc_no || '',
+                        nrc: t.nrc || {},
+                        document_type: t.document_type || '',
+                        passport_no: t.passport_no || '',
+                        passport_expiry: t.passport_expiry || '',
+                        passport_photo_url: t.passport_photo_url || '',
+                        passport_photo_path: t.passport_photo_path || '',
+                        dob: t.dob || '',
+                        nationality: t.nationality || '',
+                        passenger_id: t.passenger_id || '',
+                        client_key: t.client_key || '',
+                        flight_type: t.flight_type || '',
+                        is_international: Boolean(t.is_international),
                         gender: t.gender || ''
                     };
                     await addTicket(feeData);
