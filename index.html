@@ -4,6 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' data: blob: https: https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://api.telegram.org https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com wss://*.firebaseio.com; worker-src 'self' blob: data: https://cdn.jsdelivr.net https://unpkg.com; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+    <script>
+    (function () {
+      'use strict';
+      const css = `
+        netlify-badge, #netlify-badge, #netlify-badge-container, .netlify-badge,
+        [data-netlify-badge], iframe#netlify-badge, iframe[title*="Netlify" i] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `;
+
+      function injectStyle(root) {
+        if (!root || root.querySelector?.('#saryay-netlify-hide-style')) return;
+        const style = document.createElement('style');
+        style.id = 'saryay-netlify-hide-style';
+        style.textContent = css;
+        (root.head || root).appendChild(style);
+      }
+
+      function scan(root) {
+        if (!root || !root.querySelectorAll) return;
+        injectStyle(root);
+        const elements = root.querySelectorAll('*');
+        for (const el of elements) {
+          if (el.shadowRoot) scan(el.shadowRoot);
+          const text = (el.innerText || '').trim();
+          if (/^powered\s+by\s+netlify$/i.test(text)) {
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 350 && rect.height <= 120) {
+              let target = el;
+              while (target.parentElement && target.parentElement !== document.body) {
+                const p = target.parentElement;
+                const r = p.getBoundingClientRect();
+                if (r.width > 350 || r.height > 120) break;
+                target = p;
+                if (getComputedStyle(p).position === 'fixed') break;
+              }
+              target.style.setProperty('display', 'none', 'important');
+            }
+          }
+        }
+      }
+
+      const originalAttachShadow = Element.prototype.attachShadow;
+      Element.prototype.attachShadow = function (options) {
+        const shadow = originalAttachShadow.call(this, options);
+        if (options && options.mode === 'open') {
+          scan(shadow);
+          new MutationObserver(() => scan(shadow)).observe(shadow, { childList: true, subtree: true });
+        }
+        return shadow;
+      };
+
+      function run() {
+        if (!document.documentElement) return;
+        injectStyle(document.documentElement);
+        scan(document);
+      }
+
+      const observer = new MutationObserver(run);
+      if (document.documentElement) {
+        run();
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          run();
+          observer.observe(document.documentElement, { childList: true, subtree: true });
+        }, { once: true });
+      }
+    })();
+    </script>
     <title>Ocean Travel</title>
     <link rel="icon" type="image/png" href="ocean-travel-logo.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
