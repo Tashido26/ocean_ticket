@@ -24,6 +24,7 @@ import {
     formatSafeAccountLink,
     getSocialPlatformMeta,
     formatDateForSheet,
+    formatPaymentMethod,
     buildCustomerMessage,
     copyCustomerMessageToClipboard,
     isInternationalFlightRoute,
@@ -48,7 +49,8 @@ import {
     openModal,
     closeModal,
     showConfirmModal,
-    showInvoiceOptionModal
+    showInvoiceOptionModal,
+    enhanceMobileBankingSelect
 } from "./ui.js";
 
 const DASHBOARD_TASKS_STORAGE_KEY = 'oceanDashboardTasks';
@@ -2056,6 +2058,13 @@ function openBulkAccountPayModal(acc) {
 
     openModal(modalHtml);
 
+    const bulkMethodEl = document.getElementById('bulkPayMethod');
+    const bulkBankSel = bulkMethodEl ? enhanceMobileBankingSelect(bulkMethodEl) : null;
+    const bulkDateEl = document.getElementById('bulkPayDate');
+    if (bulkDateEl && typeof Datepicker === 'function') {
+        new Datepicker(bulkDateEl, { format: 'dd/mm/yyyy', autohide: true, todayHighlight: true });
+    }
+
     const selectAllChk = document.getElementById('bulkPaySelectAll');
     const itemChecks = Array.from(document.querySelectorAll('.bulk-pay-check'));
     const selectedLabel = document.getElementById('bulkPaySelectedLabel');
@@ -2098,7 +2107,14 @@ function openBulkAccountPayModal(acc) {
         const chosen = getSelectedItems();
         if (chosen.length === 0) return;
 
-        const method = document.getElementById('bulkPayMethod')?.value || 'KBZ Pay';
+        const rawMethod = bulkMethodEl?.value || 'KBZ Pay';
+        const bankVal = (bulkBankSel?.value || document.getElementById('bulkPayMethod_bank')?.value || '').trim();
+        if (rawMethod === 'Mobile Banking' && !bankVal) {
+            showToast('Please select which bank for Mobile Banking.', 'warning');
+            bulkBankSel?.focus();
+            return;
+        }
+        const method = formatPaymentMethod(rawMethod, bankVal);
         const rawDate = (document.getElementById('bulkPayDate')?.value || todayDmy).trim();
         const paidDateFormatted = formatDateForSheet(rawDate || new Date());
         const txnId = (document.getElementById('bulkPayTxnId')?.value || '').trim();
