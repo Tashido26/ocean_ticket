@@ -818,11 +818,21 @@ html body.material-theme.dark-theme #hotel-view .kpi-card strong {
 }
 
 html body.material-theme.dark-theme #hotel-view input,
-html body.material-theme.dark-theme #hotel-view select {
+html body.material-theme.dark-theme #hotel-view select,
+html body.material-theme.dark-theme section#hotel-view #hotel-display-container input#hotelResSearchText,
+html body.material-theme.dark-theme section#hotel-view input#hotelResSearchText,
+html body.material-theme.dark-theme section#hotel-view #hotel-display-container select#hotelResStatusFilter,
+html body.material-theme.dark-theme section#hotel-view select#hotelResStatusFilter,
+html body.material-theme.dark-theme section#hotel-view #hotel-display-container #hotelResClearBtn {
     background: #1A253A !important;
     background-color: #1A253A !important;
     color: #F1F5F9 !important;
     border: 1px solid #2B3B55 !important;
+}
+
+html body.material-theme.dark-theme section#hotel-view #hotel-display-container #hotelResClearBtn:hover {
+    background: #24324B !important;
+    color: #FFFFFF !important;
 }
 
 /* Settle View Exact Cards, Period Bar, Reconciliation, Summary Strip & Table */
