@@ -1029,3 +1029,34 @@ html body.material-theme.dark-theme #home-view #tasks-reminders-box button {
     color: #E2E8F0 !important;
     border: 1px solid #2B3B55 !important;
 }
+
+/* Bulk Pay Account Button & Modal in Dark Mode */
+html body.material-theme.dark-theme .bulk-pay-account-btn {
+    background: rgba(16, 185, 129, 0.16) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.36) !important;
+}
+
+html body.material-theme.dark-theme .bulk-pay-account-btn:hover {
+    background: #059669 !important;
+    color: #FFFFFF !important;
+}
+
+html body.material-theme.dark-theme .bulk-pay-summary-bar {
+    background: rgba(16, 185, 129, 0.14) !important;
+    border-color: rgba(16, 185, 129, 0.32) !important;
+}
+
+html body.material-theme.dark-theme .bulk-pay-summary-bar strong,
+html body.material-theme.dark-theme .bulk-pay-item-amt {
+    color: #34D399 !important;
+}
+
+html body.material-theme.dark-theme .bulk-pay-item {
+    background: #182338 !important;
+    border-color: #263550 !important;
+}
+
+html body.material-theme.dark-theme .bulk-pay-item-top {
+    color: #F8FAFC !important;
+}

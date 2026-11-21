@@ -5,7 +5,8 @@
  */
 
 import { state } from "./state.js";
-import { addDashboardTask, updateDashboardTask, deleteDashboardTask, batchUpdateTickets, batchUpdateWithAudit } from "./db.js";
+import { addDashboardTask, updateDashboardTask, deleteDashboardTask, batchUpdateTickets, batchUpdateWithAudit, updateHotelReservation } from "./db.js";
+import { createAuditPayload } from "./history.js";
 import {
     showToast,
     parseSheetDate,
@@ -1728,6 +1729,9 @@ function renderDashboardUnpaidTickets(groups) {
                     <td class="num"><strong>${formatDashboardAmount(acc.unpaidAmount)} MMK</strong></td>
                     <td>
                         <div class="unpaid-row-actions">
+                            <button type="button" class="dashboard-row-action bulk-pay-account-btn" data-pay-account="${dashboardEscapeHtml(acc.accountGroupKey)}" title="Mark all unpaid bookings for ${dashboardEscapeHtml(acc.accountDisplayLabel)} as Paid">
+                                <i class="fa-solid fa-circle-check"></i> Pay All
+                            </button>
                             <button type="button" class="dashboard-row-action reminder-card-btn primary-pill" data-reminder-account="${dashboardEscapeHtml(acc.accountGroupKey)}" title="1-Click Payment Reminder Card (PNG / PDF)">
                                 <i class="fa-solid fa-file-invoice-dollar"></i> Card
                             </button>
@@ -1908,6 +1912,16 @@ function renderDashboardUnpaidTickets(groups) {
         });
     });
 
+    container.querySelectorAll('.bulk-pay-account-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const accountKey = btn.dataset.payAccount || '';
+            const acc = consolidatedAccounts.find(a => a.accountGroupKey === accountKey);
+            if (acc) openBulkAccountPayModal(acc);
+        });
+    });
+
     const searchInput = document.getElementById('dashboardUnpaidSearch');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1920,6 +1934,299 @@ function renderDashboardUnpaidTickets(groups) {
             }
         });
     }
+}
+
+function openBulkAccountPayModal(acc) {
+    if (!acc) return;
+
+    const pnrItems = (acc.pnrGroups || []).map((g, idx) => ({
+        key: `pnr_${idx}`,
+        type: 'ticket',
+        label: g.pnr || 'NO PNR',
+        client: g.client || acc.accountDisplayLabel,
+        route: g.route || '',
+        amount: Number(g.amount) || 0,
+        ticketRows: Array.isArray(g.ticketRows) ? g.ticketRows : [],
+        pnr: g.pnr || ''
+    }));
+
+    const hotelItems = (acc.hotelGroups || []).map((h, idx) => ({
+        key: `hotel_${idx}`,
+        type: 'hotel',
+        label: h.pnr || h.hotelName || 'Hotel',
+        client: h.client || acc.accountDisplayLabel,
+        route: h.hotelName ? `${h.hotelName}${h.city ? ` (${h.city})` : ''}` : 'Hotel Stay',
+        amount: Number(h.amount) || 0,
+        hotelId: h.hotelId,
+        hotelRow: h.hotelRow
+    }));
+
+    const allItems = [...pnrItems, ...hotelItems];
+    if (allItems.length === 0) {
+        showToast('No unpaid items found for this account.', 'info');
+        return;
+    }
+
+    const now = new Date();
+    const todayDmy = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const totalDue = allItems.reduce((sum, item) => sum + item.amount, 0);
+
+    const itemsHtml = allItems.map(item => `
+        <label class="bulk-pay-item" data-item-key="${item.key}">
+            <input type="checkbox" class="bulk-pay-check" value="${item.key}" checked>
+            <div class="bulk-pay-item-info">
+                <div class="bulk-pay-item-top">
+                    <span>${item.type === 'hotel' ? '<i class="fa-solid fa-hotel"></i> ' : ''}${dashboardEscapeHtml(item.label)}</span>
+                    <small style="font-weight:500; opacity:0.75;">${dashboardEscapeHtml(item.client)}</small>
+                </div>
+                <div class="bulk-pay-item-sub">${dashboardEscapeHtml(item.route)}</div>
+            </div>
+            <div class="bulk-pay-item-amt">${formatDashboardAmount(item.amount)} MMK</div>
+        </label>
+    `).join('');
+
+    const modalHtml = `
+        <div class="bulk-pay-modal-wrap">
+            <div>
+                <h2 style="margin:0 0 4px 0; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-circle-check" style="color:#059669;"></i>
+                    <span>Bulk Mark Paid — ${dashboardEscapeHtml(acc.accountDisplayLabel)}</span>
+                </h2>
+                <p style="margin:0; font-size:0.82rem; color:var(--text-muted, #64748B);">
+                    ငွေရှင်းပြီးသော PNR / Booking များကို တစ်ခါတည်း ရွေးချယ်၍ Paid မှတ်နိုင်ပါသည်
+                </p>
+            </div>
+
+            <div class="bulk-pay-summary-bar">
+                <span id="bulkPaySelectedLabel">${allItems.length} of ${allItems.length} selected</span>
+                <strong id="bulkPaySelectedTotal">${formatDashboardAmount(totalDue)} MMK</strong>
+            </div>
+
+            <div>
+                <div class="bulk-pay-list-head">
+                    <span>UNPAID BOOKINGS (${allItems.length})</span>
+                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600;">
+                        <input type="checkbox" id="bulkPaySelectAll" checked style="width:15px; height:15px; accent-color:#059669;">
+                        <span>Select All</span>
+                    </label>
+                </div>
+                <div class="bulk-pay-list" id="bulkPayList">
+                    ${itemsHtml}
+                </div>
+            </div>
+
+            <form id="bulkPayAccountForm">
+                <div class="bulk-pay-fields-grid">
+                    <div class="form-group">
+                        <label for="bulkPayMethod">Payment Method <span class="req">*</span></label>
+                        <select id="bulkPayMethod" required>
+                            <option value="KBZ Pay" selected>KBZ Pay</option>
+                            <option value="Mobile Banking">Mobile Banking</option>
+                            <option value="Aya Pay">Aya Pay</option>
+                            <option value="UAB Pay">UAB Pay</option>
+                            <option value="Wave Pay">Wave Pay</option>
+                            <option value="CB Pay">CB Pay</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkPayDate">Paid Date <span class="req">*</span></label>
+                        <input type="text" id="bulkPayDate" value="${todayDmy}" placeholder="DD/MM/YYYY" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkPayTxnId">Transaction / Ref No. (optional)</label>
+                        <input type="text" id="bulkPayTxnId" placeholder="e.g. KBZ123456" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkPayNote">Note (optional)</label>
+                        <input type="text" id="bulkPayNote" placeholder="e.g. Bulk settled all PNRs" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="bulk-pay-actions" style="margin-top:14px;">
+                    <button type="button" class="btn btn-secondary" id="bulkPayCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="bulkPayConfirmBtn" style="background:#059669; border-color:#059669;">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span id="bulkPayConfirmText">Confirm Pay All (${allItems.length})</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    openModal(modalHtml);
+
+    const selectAllChk = document.getElementById('bulkPaySelectAll');
+    const itemChecks = Array.from(document.querySelectorAll('.bulk-pay-check'));
+    const selectedLabel = document.getElementById('bulkPaySelectedLabel');
+    const selectedTotal = document.getElementById('bulkPaySelectedTotal');
+    const confirmBtn = document.getElementById('bulkPayConfirmBtn');
+    const confirmText = document.getElementById('bulkPayConfirmText');
+    const cancelBtn = document.getElementById('bulkPayCancelBtn');
+    const formEl = document.getElementById('bulkPayAccountForm');
+
+    const getSelectedItems = () => {
+        const checkedKeys = new Set(itemChecks.filter(c => c.checked).map(c => c.value));
+        return allItems.filter(item => checkedKeys.has(item.key));
+    };
+
+    const syncSelectionUi = () => {
+        const chosen = getSelectedItems();
+        const sum = chosen.reduce((s, it) => s + it.amount, 0);
+        if (selectedLabel) selectedLabel.textContent = `${chosen.length} of ${allItems.length} selected`;
+        if (selectedTotal) selectedTotal.textContent = `${formatDashboardAmount(sum)} MMK`;
+        if (confirmBtn) confirmBtn.disabled = chosen.length === 0;
+        if (confirmText) confirmText.textContent = chosen.length === allItems.length
+            ? `Confirm Pay All (${chosen.length})`
+            : `Confirm Pay Selected (${chosen.length})`;
+        if (selectAllChk) {
+            selectAllChk.checked = chosen.length === allItems.length;
+            selectAllChk.indeterminate = chosen.length > 0 && chosen.length < allItems.length;
+        }
+    };
+
+    selectAllChk?.addEventListener('change', () => {
+        itemChecks.forEach(c => { c.checked = selectAllChk.checked; });
+        syncSelectionUi();
+    });
+
+    itemChecks.forEach(c => c.addEventListener('change', syncSelectionUi));
+    cancelBtn?.addEventListener('click', closeModal);
+
+    formEl?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const chosen = getSelectedItems();
+        if (chosen.length === 0) return;
+
+        const method = document.getElementById('bulkPayMethod')?.value || 'KBZ Pay';
+        const rawDate = (document.getElementById('bulkPayDate')?.value || todayDmy).trim();
+        const paidDateFormatted = formatDateForSheet(rawDate || new Date());
+        const txnId = (document.getElementById('bulkPayTxnId')?.value || '').trim();
+        const note = (document.getElementById('bulkPayNote')?.value || '').trim();
+
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving ${chosen.length}...`;
+        }
+
+        try {
+            const ticketUpdates = [];
+            const auditEntries = [];
+            const seenTicketIds = new Set();
+            const settledNowIso = new Date().toISOString();
+
+            const chosenTicketItems = chosen.filter(i => i.type === 'ticket');
+            const chosenHotelItems = chosen.filter(i => i.type === 'hotel');
+
+            for (const item of chosenTicketItems) {
+                // Collect every unpaid ticket document for this PNR group
+                let rows = item.ticketRows.filter(t => t && t.id && !isCanceledTicket(t) && !isTicketPaid(t));
+                if (rows.length === 0 && item.pnr) {
+                    const normPnr = String(item.pnr).trim().toUpperCase();
+                    rows = (state.allTickets || []).filter(t =>
+                        t && t.id &&
+                        String(t.booking_reference || '').trim().toUpperCase() === normPnr &&
+                        !isCanceledTicket(t) &&
+                        !isTicketPaid(t)
+                    );
+                }
+
+                let firstRowForAudit = null;
+                for (const t of rows) {
+                    if (seenTicketIds.has(t.id)) continue;
+                    seenTicketIds.add(t.id);
+                    if (!firstRowForAudit) firstRowForAudit = t;
+
+                    const updatePayload = {
+                        paid: true,
+                        payment_method: method,
+                        paid_date: paidDateFormatted,
+                        payment_transaction_id: txnId,
+                        payment_note: note || `Bulk paid (${acc.accountDisplayLabel})`
+                    };
+
+                    if ((Number(t.sub_agent_fare) || 0) > 0 && !t.sub_agent_settled) {
+                        updatePayload.sub_agent_settled = true;
+                        updatePayload.sub_agent_settled_at = settledNowIso;
+                        updatePayload.sub_agent_settled_date = paidDateFormatted;
+                        updatePayload.sub_agent_settlement_method = method || 'Deducted from Ticket Fare';
+                    }
+
+                    ticketUpdates.push({ id: t.id, data: updatePayload });
+                }
+
+                if (firstRowForAudit) {
+                    auditEntries.push(createAuditPayload(
+                        firstRowForAudit,
+                        `BULK PAYMENT UPDATE (${acc.accountDisplayLabel}): Paid via ${method} on ${paidDateFormatted}${txnId ? ` [Ref: ${txnId}]` : ''}${note ? ` — ${note}` : ''}`,
+                        {
+                            action: 'PAYMENT_UPDATE',
+                            changes: [
+                                { field: 'paid', from: false, to: true },
+                                { field: 'payment_method', from: firstRowForAudit.payment_method || '—', to: method },
+                                { field: 'paid_date', from: firstRowForAudit.paid_date || '—', to: paidDateFormatted }
+                            ],
+                            financial: true
+                        }
+                    ));
+                }
+            }
+
+            // Commit ticket updates in safe Firestore batch chunks (<= 200 updates per batch)
+            if (ticketUpdates.length > 0) {
+                const CHUNK_SIZE = 200;
+                for (let i = 0; i < ticketUpdates.length; i += CHUNK_SIZE) {
+                    const updateChunk = ticketUpdates.slice(i, i + CHUNK_SIZE);
+                    const auditChunk = i === 0 ? auditEntries.slice(0, 200) : [];
+                    await batchUpdateWithAudit(updateChunk, auditChunk);
+                }
+                if (auditEntries.length > 200) {
+                    for (let j = 200; j < auditEntries.length; j += 200) {
+                        await batchUpdateWithAudit([], auditEntries.slice(j, j + 200));
+                    }
+                }
+
+                // Optimistically sync local state immediately
+                const updateById = new Map(ticketUpdates.map(u => [u.id, u.data]));
+                (state.allTickets || []).forEach(t => {
+                    const patch = updateById.get(t.id);
+                    if (patch) Object.assign(t, patch);
+                });
+            }
+
+            // Update any selected unpaid Hotel reservations
+            for (const h of chosenHotelItems) {
+                if (!h.hotelId) continue;
+                const totalHotelAmt = Number(h.hotelRow?.total_amount) || Number(h.hotelRow?.base_fare) || h.amount || 0;
+                const hotelPatch = {
+                    paid: 'paid',
+                    paid_amount: totalHotelAmt,
+                    payment_method: method,
+                    paid_date: paidDateFormatted
+                };
+                await updateHotelReservation(h.hotelId, hotelPatch);
+                const localHotel = (state.allHotels || []).find(row => row.id === h.hotelId);
+                if (localHotel) Object.assign(localHotel, hotelPatch);
+            }
+
+            const paidSum = chosen.reduce((s, it) => s + it.amount, 0);
+            closeModal();
+            updateUnpaidCount();
+            updateDashboardData();
+            updateSettlementDashboard();
+            if (document.getElementById('records-view')?.classList.contains('active')) {
+                displayTickets();
+            }
+            showToast(`Marked ${chosen.length} booking${chosen.length > 1 ? 's' : ''} (${formatDashboardAmount(paidSum)} MMK) as Paid for ${acc.accountDisplayLabel}!`, 'success');
+        } catch (err) {
+            console.error('Bulk account payment failed:', err);
+            showToast(`Failed to update payments: ${err.message || 'Unknown error'}`, 'error');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> <span>Retry</span>`;
+            }
+        }
+    });
 }
 
 const REMINDER_BANK_CARDS = [

@@ -490,3 +490,148 @@ body.dark-theme.material-theme .sidebar-nav .nav-btn[data-view="logs"] i { color
 body.dark-theme.material-theme .sidebar-nav-footer #sidebarRefreshBtn i { color: #7DD3FC !important; background: rgba(14, 165, 233, 0.16) !important; }
 body.dark-theme.material-theme .sidebar-nav-footer #sidebarSettingsBtn i { color: #CBD5E1 !important; background: rgba(148, 163, 184, 0.16) !important; }
 body.dark-theme.material-theme .sidebar-nav-footer #sidebarSignoutBtn i { color: #FCA5A5 !important; background: rgba(239, 68, 68, 0.18) !important; }
+
+/* 6. Bulk Pay Account Button & Modal (Dashboard Unpaid -> By Account) */
+.bulk-pay-account-btn {
+    background: #ECFDF5 !important;
+    color: #047857 !important;
+    border: 1px solid #A7F3D0 !important;
+    font-weight: 700 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px !important;
+    border-radius: 7px !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.bulk-pay-account-btn:hover {
+    background: #059669 !important;
+    color: #FFFFFF !important;
+    border-color: #059669 !important;
+}
+
+.bulk-pay-modal-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.bulk-pay-summary-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #ECFDF5;
+    border: 1px solid #A7F3D0;
+}
+
+.bulk-pay-summary-bar strong {
+    font-size: 1.05rem;
+    color: #047857;
+}
+
+.bulk-pay-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted, #64748B);
+    margin-bottom: 6px;
+}
+
+.bulk-pay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 230px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.bulk-pay-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--border, #E2E8F0);
+    background: var(--surface-soft, #F8FAFC);
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.bulk-pay-item:hover {
+    border-color: #0D6E77;
+}
+
+.bulk-pay-item input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: #059669;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.bulk-pay-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bulk-pay-item-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--text, #0F172A);
+}
+
+.bulk-pay-item-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748B);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bulk-pay-item-amt {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #047857;
+    white-space: nowrap;
+}
+
+.bulk-pay-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.bulk-pay-fields-grid .form-group {
+    margin: 0;
+}
+
+.bulk-pay-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border, #E2E8F0);
+}
+
+@media (max-width: 560px) {
+    .bulk-pay-fields-grid {
+        grid-template-columns: 1fr;
+    }
+}
