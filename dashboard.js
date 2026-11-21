@@ -1729,7 +1729,7 @@ function renderDashboardUnpaidTickets(groups) {
                     <td class="num"><strong>${formatDashboardAmount(acc.unpaidAmount)} MMK</strong></td>
                     <td>
                         <div class="unpaid-row-actions">
-                            <button type="button" class="dashboard-row-action bulk-pay-account-btn" data-pay-account="${dashboardEscapeHtml(acc.accountGroupKey)}" title="Mark all unpaid bookings for ${dashboardEscapeHtml(acc.accountDisplayLabel)} as Paid">
+                            <button type="button" class="dashboard-row-action bulk-pay-account-btn primary-pill" data-pay-account="${dashboardEscapeHtml(acc.accountGroupKey)}" title="Mark all unpaid bookings for ${dashboardEscapeHtml(acc.accountDisplayLabel)} as Paid">
                                 <i class="fa-solid fa-circle-check"></i> Pay All
                             </button>
                             <button type="button" class="dashboard-row-action reminder-card-btn primary-pill" data-reminder-account="${dashboardEscapeHtml(acc.accountGroupKey)}" title="1-Click Payment Reminder Card (PNG / PDF)">
