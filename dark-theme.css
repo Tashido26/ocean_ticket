@@ -869,3 +869,146 @@ html body.material-theme.dark-theme #settle-view .settle-health-label,
 html body.material-theme.dark-theme #settle-view .settle-health-sub {
     color: #94A3B8 !important;
 }
+
+/* 16. Dashboard Precision Dark Polish (Upcoming Travel, Unpaid Summary Cards, Pills, Deadlines) */
+
+/* Upcoming Travel rows: dark card, bright readable date chip, crisp text */
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-schedule-row {
+    background: #182338 !important;
+    border: 1px solid #263550 !important;
+    color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-schedule-row:hover {
+    background: #1E2D47 !important;
+    border-color: #354B70 !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-date-chip {
+    background: #1E2E47 !important;
+    border: 1px solid rgba(45, 212, 191, 0.32) !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-date-chip strong {
+    color: #F8FAFC !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-date-chip span {
+    color: #5EEAD4 !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-schedule-main strong {
+    color: #F8FAFC !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-schedule-main span {
+    color: #94A3B8 !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-schedule-main small a.clickable-pnr {
+    color: #5EEAD4 !important;
+}
+
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-progress,
+html body.material-theme.dark-theme #home-view #travel-schedule-box .travel-progress small {
+    background: #131C2E !important;
+    color: #E2E8F0 !important;
+    border-color: #2B3B55 !important;
+}
+
+/* Unpaid Tickets 4 summary cards: rich dark-tinted cards matching deep slate */
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div {
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(1),
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(2) {
+    background: rgba(244, 63, 94, 0.12) !important;
+    border: 1px solid rgba(244, 63, 94, 0.28) !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(1) strong,
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(2) strong {
+    color: #FDA4AF !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(3) {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border: 1px solid rgba(245, 158, 11, 0.28) !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(3) strong {
+    color: #FCD34D !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(4) {
+    background: rgba(56, 189, 248, 0.12) !important;
+    border: 1px solid rgba(56, 189, 248, 0.28) !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div:nth-child(4) strong {
+    color: #7DD3FC !important;
+}
+
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div span,
+html body.material-theme.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-grid > div small {
+    color: #94A3B8 !important;
+}
+
+/* Unpaid Status Pills (Overdue, Due today, Due this week) & Panel Header Hints */
+html body.material-theme.dark-theme #home-view .unpaid-status-pill.is-overdue {
+    background: rgba(244, 63, 94, 0.18) !important;
+    color: #FDA4AF !important;
+    border: 1px solid rgba(244, 63, 94, 0.35) !important;
+}
+
+html body.material-theme.dark-theme #home-view .unpaid-status-pill.is-due-today {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #FCD34D !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+html body.material-theme.dark-theme #home-view .unpaid-status-pill.is-due-week {
+    background: rgba(56, 189, 248, 0.18) !important;
+    color: #7DD3FC !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+}
+
+html body.material-theme.dark-theme #home-view .dashboard-panel .panel-hint.hint-neutral {
+    background: #1A253A !important;
+    color: #CBD5E1 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+html body.material-theme.dark-theme #home-view .dashboard-panel .panel-hint.unpaid-coral-hint {
+    background: rgba(244, 63, 94, 0.16) !important;
+    color: #FDA4AF !important;
+    border: 1px solid rgba(244, 63, 94, 0.32) !important;
+}
+
+/* Tasks & Reminders: Booking Deadlines amber card (replaces bright yellow cream) */
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .reminder-item,
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .deadline-row,
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="deadline"],
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="urgent"],
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="warning"] {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders strong {
+    color: #F8FAFC !important;
+}
+
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders small,
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .meta {
+    color: #CBD5E1 !important;
+}
+
+html body.material-theme.dark-theme #home-view #tasks-reminders-box button {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2B3B55 !important;
+}
