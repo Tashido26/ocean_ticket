@@ -1,51 +1,117 @@
 /* ==========================================================================
-   OCEAN TRAVEL — UNIFIED PREMIUM DARK THEME (High-Specificity Overrides)
-   Loaded LAST in app-styles.min.css. Matches/exceeds ID specificity of
-   dashboard-exact.css, settle-exact.css, hotel-exact.css, search-exact.css,
-   visa-exact.css, sell.css, apple-ui.css, and styles.css.
+   OCEAN TRAVEL — COMPLETE UNIFIED DARK THEME (All 11 Views + All Tokens)
+   Loaded LAST in app-styles.min.css.
+   Overrides all view-scoped CSS custom properties (--hotel-*, --surface,
+   --ink, --app-bg, etc.) AND all two-ID selectors across every view.
    ========================================================================== */
 
 body.dark-theme,
-body.material-theme.dark-theme {
+body.material-theme.dark-theme,
+body.dark-theme #home-view,
+body.dark-theme #records-view,
+body.dark-theme #sell-view,
+body.dark-theme #booking-view,
+body.dark-theme #services-view,
+body.dark-theme #visa-view,
+body.dark-theme #hotel-view,
+body.dark-theme #manage-view,
+body.dark-theme #settle-view,
+body.dark-theme #logs-view,
+body.dark-theme #search-view,
+body.dark-theme #settings-view {
     color-scheme: dark;
+
+    /* Core & Dashboard/Settle/Search/Visa Tokens */
     --bg: #0B1120;
     --app-bg: #0B1120;
     --bg-color: #0B1120;
+    --sidebar-bg: #0F172A;
     --surface: #131C2E;
     --surface-2: #1A253A;
     --surface-3: #24324B;
     --surface-soft: #101827;
     --border: #1F2D45;
+    --border-soft: #1F2D45;
     --border-color: #1F2D45;
     --border-strong: #2E405E;
     --border-color-strong: #2E405E;
     --line: #1E293B;
-    --text: #F1F5F9;
+    --text-strong: #F8FAFC;
+    --text: #E2E8F0;
     --text-primary: #F1F5F9;
     --ink: #F1F5F9;
     --ink-2: #CBD5E1;
+    --ink-3: #94A3B8;
     --text-muted: #94A3B8;
     --text-secondary: #94A3B8;
     --muted: #94A3B8;
     --text-faint: #64748B;
+
+    /* Apple UI Tokens */
     --apple-toolbar: #0F172A;
     --apple-separator: #1F2D45;
     --apple-label: #F1F5F9;
     --apple-secondary-label: #94A3B8;
     --apple-bg: #131C2E;
+
+    /* Semantic & Soft Tint Tokens */
     --brand: #14B8A6;
     --brand-soft: rgba(20, 184, 166, 0.16);
     --primary: #14B8A6;
     --primary-accent: #14B8A6;
     --primary-soft: rgba(20, 184, 166, 0.16);
     --teal: #14B8A6;
+    --teal-700: #2DD4BF;
+    --teal-600: #14B8A6;
+    --teal-500: #2DD4BF;
+    --teal-bright: #2DD4BF;
+    --teal-100: rgba(20, 184, 166, 0.16);
+    --teal-050: rgba(20, 184, 166, 0.1);
     --teal-soft: rgba(20, 184, 166, 0.16);
-    background-color: #0B1120 !important;
-    background-image: none !important;
-    color: #F1F5F9 !important;
+    --coral: #FB7185;
+    --coral-soft: rgba(244, 63, 94, 0.16);
+    --danger: #F87171;
+    --danger-soft: rgba(239, 68, 68, 0.16);
+    --amber: #FBBF24;
+    --amber-soft: rgba(245, 158, 11, 0.16);
+    --sky: #38BDF8;
+    --sky-soft: rgba(56, 189, 248, 0.16);
+    --sage: #34D399;
+    --sage-soft: rgba(16, 185, 129, 0.16);
+    --mint: #34D399;
+    --mint-soft: rgba(16, 185, 129, 0.16);
+    --rose: #FB7185;
+    --rose-soft: rgba(244, 63, 94, 0.16);
+    --violet: #A78BFA;
+    --violet-soft: rgba(139, 92, 246, 0.16);
+
+    /* Hotel View Tokens (--hotel-*) */
+    --hotel-app-bg: #0B1120;
+    --hotel-surface: #131C2E;
+    --hotel-surface-2: #1A253A;
+    --hotel-surface-3: #24324B;
+    --hotel-border: #1F2D45;
+    --hotel-border-strong: #2E405E;
+    --hotel-ink: #F1F5F9;
+    --hotel-ink-2: #CBD5E1;
+    --hotel-ink-3: #94A3B8;
+    --hotel-teal: #14B8A6;
+    --hotel-teal-bright: #2DD4BF;
+    --hotel-teal-soft: rgba(20, 184, 166, 0.16);
+    --hotel-coral: #FB7185;
+    --hotel-coral-soft: rgba(244, 63, 94, 0.16);
+    --hotel-amber: #FBBF24;
+    --hotel-amber-soft: rgba(245, 158, 11, 0.16);
+    --hotel-sage: #34D399;
+    --hotel-sage-soft: rgba(16, 185, 129, 0.16);
+    --hotel-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
 /* 1. App Shell & All View Canvases */
+body.dark-theme,
+body.material-theme.dark-theme,
 body.dark-theme .main-container,
 body.dark-theme .app-body,
 body.material-theme.dark-theme .app-body,
@@ -57,29 +123,28 @@ body.dark-theme #home-view.view,
 body.dark-theme #home-view #dashboard-content,
 body.dark-theme #home-view .dashboard-content-wrapper,
 body.dark-theme #records-view,
+body.dark-theme #records-view .records-view-wrapper,
 body.dark-theme #sell-view,
 body.dark-theme #manage-view,
 body.dark-theme #booking-view,
 body.dark-theme #hotel-view,
+body.dark-theme #hotel-view:not([style*="display: none"]),
 body.dark-theme #visa-view,
 body.dark-theme #settle-view,
 body.dark-theme #services-view,
 body.dark-theme #logs-view,
 body.dark-theme #search-view,
 body.dark-theme #settings-view {
-    background-color: #0B1120 !important;
     background: #0B1120 !important;
+    background-color: #0B1120 !important;
     background-image: none !important;
     color: #F1F5F9 !important;
 }
 
-/* 2. Sidebar (#main-sidebar ID specificity beats dashboard-exact.css!) */
+/* 2. Sidebar (#main-sidebar) */
 body.dark-theme #main-sidebar,
-body.material-theme.dark-theme #main-sidebar,
-body.dark-theme .sidebar,
-body.material-theme.dark-theme .sidebar {
+body.material-theme.dark-theme #main-sidebar {
     background: #0F172A !important;
-    background-color: #0F172A !important;
     border-right: 1px solid #1F2D45 !important;
     box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4) !important;
 }
@@ -90,25 +155,17 @@ body.dark-theme #main-sidebar .sidebar-header {
     border-bottom: 1px solid #1F2D45 !important;
 }
 
-/* Crisp pure-white Ocean Travel logo on dark sidebar */
 body.dark-theme #main-sidebar .brand-logo,
-body.material-theme.dark-theme #main-sidebar .brand-logo,
-body.dark-theme .sidebar-brand .brand-logo {
+body.material-theme.dark-theme #main-sidebar .brand-logo {
     background: transparent !important;
     padding: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     filter: brightness(0) invert(1) !important;
-    opacity: 0.95 !important;
+    opacity: 0.96 !important;
 }
 
-body.dark-theme #main-sidebar .sidebar-brand-text {
-    color: #F8FAFC !important;
-}
-
-body.dark-theme #main-sidebar .sidebar-section-label {
-    color: #64748B !important;
-}
+body.dark-theme #main-sidebar .sidebar-section-label { color: #64748B !important; }
 
 body.dark-theme #main-sidebar .sidebar-nav .nav-btn,
 body.material-theme.dark-theme #main-sidebar .sidebar-nav .nav-btn {
@@ -117,62 +174,44 @@ body.material-theme.dark-theme #main-sidebar .sidebar-nav .nav-btn {
     border-color: transparent !important;
 }
 
-body.dark-theme #main-sidebar .sidebar-nav .nav-btn span {
-    color: inherit !important;
-}
+body.dark-theme #main-sidebar .sidebar-nav .nav-btn span { color: inherit !important; }
 
-body.dark-theme #main-sidebar .sidebar-nav .nav-btn:hover,
-body.material-theme.dark-theme #main-sidebar .sidebar-nav .nav-btn:hover {
+body.dark-theme #main-sidebar .sidebar-nav .nav-btn:hover {
     background: #1A253A !important;
     color: #F8FAFC !important;
 }
 
-body.dark-theme #main-sidebar .sidebar-nav .nav-btn.active,
-body.material-theme.dark-theme #main-sidebar .sidebar-nav .nav-btn.active {
+body.dark-theme #main-sidebar .sidebar-nav .nav-btn.active {
     background: rgba(20, 184, 166, 0.16) !important;
     color: #5EEAD4 !important;
     border-color: rgba(20, 184, 166, 0.3) !important;
 }
 
-body.dark-theme #main-sidebar .sidebar-nav-footer {
-    border-top: 1px solid #1F2D45 !important;
-}
-
+body.dark-theme #main-sidebar .sidebar-nav-footer,
 body.dark-theme #main-sidebar .sidebar-user-strip {
-    background: #131C2E !important;
     border-top: 1px solid #1F2D45 !important;
 }
 
-body.dark-theme #main-sidebar .sidebar-user-avatar {
-    background: #1E293B !important;
-    color: #5EEAD4 !important;
-    border: 1px solid #2E405E !important;
-}
+body.dark-theme #main-sidebar .sidebar-user-strip { background: #131C2E !important; }
+body.dark-theme #main-sidebar .sidebar-user-name { color: #F1F5F9 !important; }
+body.dark-theme #main-sidebar .sidebar-user-role { color: #94A3B8 !important; }
 
-body.dark-theme #main-sidebar .sidebar-user-name {
-    color: #F1F5F9 !important;
-}
-
-body.dark-theme #main-sidebar .sidebar-user-role {
-    color: #94A3B8 !important;
-}
-
-/* 3. Top Header & Global Search (beats dashboard-exact.css:445!) */
+/* 3. Header & Global Search */
 body.dark-theme #main-header,
-body.material-theme.dark-theme #main-header,
-body.dark-theme .header,
-body.material-theme.dark-theme .header {
+body.material-theme.dark-theme #main-header {
     background: #0F172A !important;
-    background-color: #0F172A !important;
     border-bottom: 1px solid #1F2D45 !important;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35) !important;
 }
 
-body.dark-theme #main-header .sidebar-toggle {
+body.dark-theme #main-header .sidebar-toggle,
+body.dark-theme #headerTodayDate {
     background: #1A253A !important;
-    color: #CBD5E1 !important;
+    color: #E2E8F0 !important;
     border: 1px solid #2B3B55 !important;
 }
+
+body.dark-theme #headerTodayDate i { color: #5EEAD4 !important; }
 
 body.dark-theme #main-header .global-search-box,
 body.material-theme.dark-theme .header .global-search-box {
@@ -184,23 +223,11 @@ body.material-theme.dark-theme .header .global-search-box {
 body.material-theme.dark-theme .header .global-search-box input#globalSearchInput,
 body.material-theme.dark-theme .header .global-search-box input#globalSearchInput:focus,
 body.material-theme.dark-theme .header .global-search-box input#globalSearchInput:hover,
-body.dark-theme .header .global-search-box #globalSearchInput,
 body.dark-theme .header #globalSearchInput {
     background: transparent !important;
-    background-color: transparent !important;
     color: #F1F5F9 !important;
     border: none !important;
     box-shadow: none !important;
-}
-
-body.dark-theme .header #globalSearchInput::placeholder {
-    color: #64748B !important;
-}
-
-body.dark-theme .header .global-search-box .search-icon,
-body.dark-theme .header .global-search-clear {
-    color: #94A3B8 !important;
-    background: transparent !important;
 }
 
 body.dark-theme #globalSearchSuggestions {
@@ -209,72 +236,17 @@ body.dark-theme #globalSearchSuggestions {
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
-body.dark-theme #globalSearchSuggestions .suggestion-group-title {
-    color: #64748B !important;
-    border-bottom-color: #1F2D45 !important;
-}
+body.dark-theme #globalSearchSuggestions .suggestion-item { color: #E2E8F0 !important; }
+body.dark-theme #globalSearchSuggestions .suggestion-item:hover { background: #1E2D45 !important; }
+body.dark-theme #globalSearchSuggestions .suggestion-main { color: #F8FAFC !important; }
+body.dark-theme #globalSearchSuggestions .suggestion-meta { color: #94A3B8 !important; }
 
-body.dark-theme #globalSearchSuggestions .suggestion-item {
-    color: #E2E8F0 !important;
-}
-
-body.dark-theme #globalSearchSuggestions .suggestion-item:hover {
-    background: #1E2D45 !important;
-}
-
-body.dark-theme #globalSearchSuggestions .suggestion-main {
-    color: #F8FAFC !important;
-}
-
-body.dark-theme #globalSearchSuggestions .suggestion-meta {
-    color: #94A3B8 !important;
-}
-
-body.dark-theme #headerTodayDate,
-body.dark-theme .header-today-date {
-    background: #1A253A !important;
-    border: 1px solid #2B3B55 !important;
-    color: #E2E8F0 !important;
-}
-
-body.dark-theme #headerTodayDate i {
-    color: #5EEAD4 !important;
-}
-
-/* 4. Dashboard (#home-view ID specificity beats dashboard-exact.css!) */
-body.dark-theme #home-view .dashboard-compact-title,
-body.dark-theme #home-view .dashboard-command-title h2 {
-    color: #F8FAFC !important;
-}
-
-body.dark-theme #home-view .dashboard-compact-subtitle,
-body.dark-theme #home-view .dashboard-command-title p {
-    color: #94A3B8 !important;
-}
-
-body.dark-theme #home-view .dashboard-period-controls {
-    background: #131C2E !important;
-    border: 1px solid #24324B !important;
-}
-
-body.dark-theme #home-view .dashboard-period-btn {
-    color: #94A3B8 !important;
-    background: transparent !important;
-}
-
-body.dark-theme #home-view .dashboard-period-btn:hover {
-    color: #F8FAFC !important;
-    background: #1A253A !important;
-}
-
-body.dark-theme #home-view .dashboard-period-btn.active {
-    background: rgba(20, 184, 166, 0.2) !important;
-    color: #5EEAD4 !important;
-    border-color: rgba(20, 184, 166, 0.4) !important;
-}
-
+/* 4. Dashboard (#home-view — TWO-ID overrides for all 4 main panels!) */
+body.dark-theme #home-view #booking-revenue-overview-box,
+body.dark-theme #home-view #travel-schedule-box,
+body.dark-theme #home-view #dashboard-unpaid-box,
+body.dark-theme #home-view #tasks-reminders-box,
 body.dark-theme #home-view .dashboard-kpis .info-card,
-body.dark-theme #home-view .stat-card,
 body.dark-theme #home-view .dashboard-panel {
     background: #131C2E !important;
     border: 1px solid #1F2D45 !important;
@@ -282,8 +254,13 @@ body.dark-theme #home-view .dashboard-panel {
     color: #F1F5F9 !important;
 }
 
-body.dark-theme #home-view .dashboard-kpis .info-card .stat-head h3 {
-    color: #94A3B8 !important;
+body.dark-theme #home-view .dashboard-compact-title,
+body.dark-theme #home-view .dashboard-kpis .info-card .main-value,
+body.dark-theme #home-view #booking-revenue-overview-box .panel-header h3,
+body.dark-theme #home-view #travel-schedule-box .panel-header h3,
+body.dark-theme #home-view #dashboard-unpaid-box .panel-header h3,
+body.dark-theme #home-view #tasks-reminders-box .panel-header h3 {
+    color: #F8FAFC !important;
 }
 
 body.dark-theme #home-view .dashboard-kpis .info-card .stat-head .icon {
@@ -291,114 +268,86 @@ body.dark-theme #home-view .dashboard-kpis .info-card .stat-head .icon {
     border: 1px solid #2B3B55 !important;
 }
 
-body.dark-theme #home-view .dashboard-kpis .info-card .main-value {
-    color: #F8FAFC !important;
+body.dark-theme #home-view .dashboard-kpis .trend-badge,
+body.dark-theme #home-view .trend-badge {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
+body.dark-theme #home-view .trend-badge.positive { background: rgba(16, 185, 129, 0.18) !important; color: #34D399 !important; }
+body.dark-theme #home-view .trend-badge.negative { background: rgba(239, 68, 68, 0.18) !important; color: #FCA5A5 !important; }
+body.dark-theme #home-view .trend-badge.neutral { background: rgba(148, 163, 184, 0.18) !important; color: #CBD5E1 !important; }
 
-body.dark-theme #home-view .dashboard-kpis .info-card .currency-label,
-body.dark-theme #home-view .dashboard-kpis .info-card .sub-value,
-body.dark-theme #home-view .kpi-breakdown-hint {
-    color: #94A3B8 !important;
-}
+body.dark-theme #home-view .dashboard-period-controls { background: #131C2E !important; border-color: #24324B !important; }
+body.dark-theme #home-view .dashboard-period-btn { color: #94A3B8 !important; background: transparent !important; }
+body.dark-theme #home-view .dashboard-period-btn.active { background: rgba(20, 184, 166, 0.2) !important; color: #5EEAD4 !important; }
 
-body.dark-theme #home-view .trend-badge.positive {
-    background: rgba(16, 185, 129, 0.16) !important;
-    color: #34D399 !important;
-}
-
-body.dark-theme #home-view .trend-badge.negative {
-    background: rgba(239, 68, 68, 0.16) !important;
-    color: #FCA5A5 !important;
-}
-
-body.dark-theme #home-view .trend-badge.neutral {
-    background: rgba(148, 163, 184, 0.16) !important;
-    color: #CBD5E1 !important;
-}
-
-body.dark-theme #home-view .dashboard-panel .panel-header {
-    background: transparent !important;
-    border-bottom: 1px solid #1F2D45 !important;
-}
-
-body.dark-theme #home-view .dashboard-panel .panel-header h3 {
-    color: #F8FAFC !important;
-}
-
-body.dark-theme #home-view .dashboard-panel .panel-hint.hint-neutral {
-    background: #1A253A !important;
-    color: #CBD5E1 !important;
-    border: 1px solid #2B3B55 !important;
-}
-
-body.dark-theme #home-view .dashboard-panel .panel-hint.unpaid-coral-hint {
-    background: rgba(239, 68, 68, 0.16) !important;
-    color: #FCA5A5 !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-}
-
-/* Dashboard Upcoming Travel, Unpaid Tickets & Tasks inner cards */
-body.dark-theme #home-view #dashboardTravelSchedule > *,
-body.dark-theme #home-view .travel-item,
-body.dark-theme #home-view .travel-schedule-card,
-body.dark-theme #home-view .unpaid-summary-strip > *,
-body.dark-theme #home-view .unpaid-stat-card,
-body.dark-theme #home-view .unpaid-kpi-pill,
-body.dark-theme #home-view .task-group-card,
-body.dark-theme #home-view .task-item,
-body.dark-theme #home-view .task-empty-box {
-    background: #182338 !important;
-    border-color: #263550 !important;
-    color: #F1F5F9 !important;
-}
-
-body.dark-theme #home-view .unpaid-filter-bar,
-body.dark-theme #home-view .unpaid-controls,
-body.dark-theme #home-view .unpaid-tabs,
-body.dark-theme #home-view .unpaid-mode-toggle {
-    background: #101827 !important;
-    border-color: #24324B !important;
-}
-
-body.dark-theme #home-view #dashboardUnpaidTickets input,
-body.dark-theme #home-view #dashboardUnpaidTickets button:not(.active),
-body.dark-theme #home-view #dashboardTasksReminders input {
+/* Dashboard Upcoming Travel date badge & airline chip */
+body.dark-theme #home-view #travel-schedule-box .travel-date-badge,
+body.dark-theme #home-view #travel-schedule-box .trip-date-box,
+body.dark-theme #home-view #travel-schedule-box [class*="date"] {
     background: #1A253A !important;
     color: #E2E8F0 !important;
     border-color: #2B3B55 !important;
 }
 
-body.dark-theme #home-view #dashboardUnpaidTickets table thead th {
+body.dark-theme #home-view #travel-schedule-box .airline-chip,
+body.dark-theme #home-view #travel-schedule-box .airline-pill,
+body.dark-theme #home-view #travel-schedule-box .travel-airline-badge {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+/* Dashboard Unpaid Tickets & Tasks inner surfaces */
+body.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-card,
+body.dark-theme #home-view #dashboard-unpaid-box .unpaid-kpi-card,
+body.dark-theme #home-view #dashboard-unpaid-box .unpaid-summary-strip > *,
+body.dark-theme #home-view #tasks-reminders-box .task-section,
+body.dark-theme #home-view #tasks-reminders-box .task-card,
+body.dark-theme #home-view #tasks-reminders-box .task-empty,
+body.dark-theme #home-view #tasks-reminders-box [class*="empty"],
+body.dark-theme #home-view #tasks-reminders-box [class*="card"],
+body.dark-theme #home-view #tasks-reminders-box [class*="item"] {
+    background: #182338 !important;
+    border-color: #263550 !important;
+    color: #E2E8F0 !important;
+}
+
+body.dark-theme #home-view #dashboard-unpaid-box input,
+body.dark-theme #home-view #dashboard-unpaid-box button {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+body.dark-theme #home-view #dashboard-unpaid-box button.active,
+body.dark-theme #home-view #dashboard-unpaid-box .is-active {
+    background: #0D6E77 !important;
+    color: #FFFFFF !important;
+    border-color: #14B8A6 !important;
+}
+
+body.dark-theme #home-view #dashboard-unpaid-box table thead th {
     background: #172236 !important;
     color: #94A3B8 !important;
     border-bottom-color: #24324B !important;
 }
 
-body.dark-theme #home-view #dashboardUnpaidTickets table tbody tr,
-body.dark-theme #home-view #dashboardUnpaidTickets table tbody td {
+body.dark-theme #home-view #dashboard-unpaid-box table tbody td {
     background: #131C2E !important;
     color: #E2E8F0 !important;
     border-bottom-color: #1E293B !important;
 }
 
-body.dark-theme #home-view #dashboardUnpaidTickets table tbody tr:hover td {
-    background: #1B2942 !important;
+body.dark-theme #home-view #dashboard-unpaid-box .clickable-pnr,
+body.dark-theme #home-view #dashboard-unpaid-box td:first-child {
+    color: #5EEAD4 !important;
 }
 
-body.dark-theme #home-view .task-section-header,
-body.dark-theme #home-view .dashboard-task-group-header {
-    background: #1A253A !important;
-    color: #E2E8F0 !important;
-    border-color: #2B3B55 !important;
-}
-
-/* 5. Records View (#records-view #resultsTable TWO-ID specificity!) */
+/* 5. Records View (#records-view) */
 body.dark-theme #records-view #recordsSection,
-body.dark-theme #records-view .results-section,
-body.dark-theme #records-view .records-toolbar,
-body.dark-theme #records-view .records-filter-row {
+body.dark-theme #records-view .results-section {
     background: #131C2E !important;
-    border-color: #1F2D45 !important;
+    border: 1px solid #1F2D45 !important;
     color: #F1F5F9 !important;
 }
 
@@ -407,25 +356,20 @@ body.dark-theme #records-view .records-header-left h2 {
     color: #F8FAFC !important;
 }
 
+body.dark-theme #records-view .search-input-group,
+body.dark-theme #records-view .records-search-wrap,
+body.dark-theme #records-view .input-group,
 body.dark-theme #records-view input,
-body.dark-theme #records-view select,
-body.dark-theme #records-view .records-search-box,
-body.dark-theme #records-view .records-input-wrap {
+body.dark-theme #records-view select {
     background: #1A253A !important;
     color: #F1F5F9 !important;
     border-color: #2B3B55 !important;
-}
-
-body.dark-theme #records-view #resultsTable {
-    background: #131C2E !important;
-    color: #E2E8F0 !important;
 }
 
 body.dark-theme #records-view #resultsTable thead th {
     background: #172236 !important;
     color: #94A3B8 !important;
     border-bottom: 1px solid #24324B !important;
-    box-shadow: 0 1px 0 #24324B !important;
 }
 
 body.dark-theme #records-view #resultsTable tbody tr,
@@ -435,26 +379,15 @@ body.dark-theme #records-view #resultsTable tbody td {
     border-bottom: 1px solid #1E293B !important;
 }
 
-body.dark-theme #records-view #resultsTable tbody tr:nth-child(even) td {
-    background: #152035 !important;
-}
-
+body.dark-theme #records-view #resultsTable tbody tr:nth-child(even) td { background: #152035 !important; }
 body.dark-theme #records-view #resultsTable tbody tr:hover td,
 body.dark-theme #records-view #resultsTable tbody tr:hover td.col-actions,
-body.dark-theme #records-view #resultsTable tbody tr:hover td.actions-cell {
-    background: #1D2C47 !important;
-}
+body.dark-theme #records-view #resultsTable tbody tr:hover td.actions-cell { background: #1D2C47 !important; }
 
-body.dark-theme #records-view #resultsTable td.col-issued-date,
-body.dark-theme #records-view #resultsTable td.col-route,
+body.dark-theme #records-view #resultsTable td.col-name { color: #F8FAFC !important; }
 body.dark-theme #records-view #resultsTable td.col-airline,
-body.dark-theme #records-view #resultsTable td.col-airline .airline-name {
-    color: #CBD5E1 !important;
-}
-
-body.dark-theme #records-view #resultsTable td.col-name {
-    color: #F8FAFC !important;
-}
+body.dark-theme #records-view #resultsTable td.col-airline *,
+body.dark-theme #records-view #resultsTable td.col-route { color: #CBD5E1 !important; }
 
 body.dark-theme #records-view #resultsTable .clickable-pnr,
 body.dark-theme #records-view #resultsTable .clickable-hotel-ref {
@@ -468,168 +401,262 @@ body.dark-theme #records-view #resultsTable td.actions-cell {
     background: #131C2E !important;
     border-left: 1px solid #1F2D45 !important;
 }
-
 body.dark-theme #records-view #resultsTable tbody tr:nth-child(even) td.col-actions,
 body.dark-theme #records-view #resultsTable tbody tr:nth-child(even) td.actions-cell {
     background: #152035 !important;
 }
 
-/* 6. Sell Tickets View (#sell-view ID specificity!) */
+body.dark-theme #records-view .pagination button,
+body.dark-theme #records-view .pagination-controls button,
+body.dark-theme #records-view .btn-page-nav {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2B3B55 !important;
+}
+body.dark-theme #records-view .pagination button.active {
+    background: #0D6E77 !important;
+    color: #FFFFFF !important;
+    border-color: #14B8A6 !important;
+}
+
+/* 6. Sell Tickets View (#sell-view — including NRC inputs!) */
 body.dark-theme #sell-view .sell-section,
 body.dark-theme #sell-view #section-payment {
     background: #131C2E !important;
     border: 1px solid #1F2D45 !important;
+}
+
+body.dark-theme #sell-view .sell-section-header h3 { color: #F8FAFC !important; }
+body.dark-theme #sell-view .pax-card { background: #162136 !important; border-color: #24324B !important; }
+body.dark-theme #sell-view .pax-card-header { background: #1A253A !important; border-bottom-color: #24324B !important; }
+body.dark-theme #sell-view .pax-panel { background: #131C2E !important; border-color: #24324B !important; }
+
+body.dark-theme #sell-view .nrc-input,
+body.material-theme.dark-theme #sell-view .nrc-input {
+    background: #101827 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+body.dark-theme #sell-view .nrc-input input,
+body.material-theme.dark-theme #sell-view .nrc-input input,
+body.dark-theme #sell-view .nrc-input .nrc-region,
+body.dark-theme #sell-view .nrc-input .nrc-township,
+body.dark-theme #sell-view .nrc-input .nrc-type,
+body.dark-theme #sell-view .nrc-input .nrc-serial {
+    background: #1A253A !important;
+    background-color: #1A253A !important;
     color: #F1F5F9 !important;
-}
-
-body.dark-theme #sell-view .sell-section-header h3 {
-    color: #F8FAFC !important;
-}
-
-body.dark-theme #sell-view .sell-section-header .section-subtitle {
-    color: #94A3B8 !important;
+    border: 1px solid #2E405E !important;
 }
 
 body.dark-theme #sell-view .btn-secondary,
 body.dark-theme #sell-view #openPnrParserBtn,
 body.dark-theme #sell-view #addExistingPassengerBtn,
-body.dark-theme #sell-view #cancelSellBtn,
-body.dark-theme #sell-view .pnr-parser-btn {
+body.dark-theme #sell-view #cancelSellBtn {
     background: #1A253A !important;
     color: #E2E8F0 !important;
     border: 1px solid #2E405E !important;
 }
 
-body.dark-theme #sell-view .btn-secondary:hover,
-body.dark-theme #sell-view #openPnrParserBtn:hover,
-body.dark-theme #sell-view #addExistingPassengerBtn:hover,
-body.dark-theme #sell-view #cancelSellBtn:hover {
+/* 7. Services View (#services-view — headings, dropzones, secondary buttons!) */
+body.dark-theme #services-view .service-panel {
+    background: #131C2E !important;
+    border-color: #1F2D45 !important;
+}
+
+body.dark-theme #services-view .service-panel-header h2 { color: #F8FAFC !important; }
+body.dark-theme #services-view .service-panel-desc { color: #94A3B8 !important; }
+
+body.dark-theme #services-view .airasia-upload-zone,
+body.dark-theme #services-view .service-quick-config {
+    background: #101827 !important;
+    border-color: #2B3B55 !important;
+    color: #E2E8F0 !important;
+}
+
+body.dark-theme #services-view .airasia-upload-title,
+body.dark-theme #services-view .airasia-upload-zone div,
+body.dark-theme #services-view .airasia-upload-zone strong {
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme #services-view .btn-service.btn-secondary,
+body.dark-theme #services-view .btn-service.btn-clear,
+body.dark-theme #services-view .btn-secondary,
+body.dark-theme #services-view .btn-clear {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
+}
+
+body.dark-theme #services-view .btn-service.btn-secondary:hover,
+body.dark-theme #services-view .btn-service.btn-clear:hover {
     background: #24324B !important;
     color: #FFFFFF !important;
 }
 
-body.dark-theme #sell-view .pax-card {
-    background: #162136 !important;
-    border-color: #24324B !important;
-}
-
-body.dark-theme #sell-view .pax-card-header {
-    background: #1A253A !important;
-    border-bottom-color: #24324B !important;
-}
-
-body.dark-theme #sell-view .pax-panel {
-    background: #131C2E !important;
-    border-color: #24324B !important;
-}
-
-body.dark-theme #sell-view .nrc-input,
-body.material-theme.dark-theme #sell-view .nrc-input {
-    background: #1A253A !important;
-    border: 1px solid #2B3B55 !important;
-    color: #F1F5F9 !important;
-}
-
-body.dark-theme #sell-view .nrc-input input,
-body.material-theme.dark-theme #sell-view .nrc-input input {
-    background: #101827 !important;
-    color: #F1F5F9 !important;
-    border: 1px solid #2B3B55 !important;
-}
-
-body.dark-theme #sell-view .nrc-input .nrc-sep,
-body.material-theme.dark-theme #sell-view .nrc-input .nrc-sep {
-    color: #94A3B8 !important;
-}
-
-body.dark-theme #sell-view .flight-type-toggle {
-    background: #101827 !important;
-    border: 1px solid #2B3B55 !important;
-    color: #CBD5E1 !important;
-}
-
-/* 7. Settings View (#settings-view ID specificity!) */
-body.dark-theme #settings-view .page-header h2 {
+/* 8. Hotel View (#hotel-view) */
+body.dark-theme #hotel-view h2,
+body.dark-theme #hotel-view .page-header h2,
+body.dark-theme #hotel-view .hotel-title {
     color: #F8FAFC !important;
 }
 
-body.dark-theme #settings-view .page-header h2 i {
-    color: #5EEAD4 !important;
-}
-
-body.dark-theme #settings-view .settings-card {
+body.dark-theme #hotel-view .booking-kpi-card,
+body.dark-theme #hotel-view .booking-search-section,
+body.dark-theme #hotel-view #hotelResTableContainer {
     background: #131C2E !important;
-    border: 1px solid #1F2D45 !important;
+    border-color: #1F2D45 !important;
     color: #F1F5F9 !important;
 }
 
-body.dark-theme #settings-view .settings-section {
-    border-bottom-color: #1F2D45 !important;
+body.dark-theme #hotel-view table thead th { background: #172236 !important; color: #94A3B8 !important; }
+body.dark-theme #hotel-view table tbody td { background: #131C2E !important; color: #E2E8F0 !important; border-bottom-color: #1E293B !important; }
+body.dark-theme #hotel-view table tbody td strong,
+body.dark-theme #hotel-view table tbody td .guest-name { color: #F8FAFC !important; }
+body.dark-theme #hotel-view .clickable-hotel-ref,
+body.dark-theme #hotel-view .hotel-ref-pill,
+body.dark-theme #hotel-view .ref-badge {
+    background: rgba(20, 184, 166, 0.16) !important;
+    color: #5EEAD4 !important;
+    border: 1px solid rgba(20, 184, 166, 0.35) !important;
 }
 
-body.dark-theme #settings-view #reset-settings-btn,
-body.dark-theme #settings-view .btn-secondary {
-    background: #1A253A !important;
-    color: #FCA5A5 !important;
-    border: 1px solid rgba(248, 113, 113, 0.35) !important;
-}
+/* 9. Manage Ticket View (#manage-view) */
+body.dark-theme #manage-view h2,
+body.dark-theme #manage-view h3 { color: #F8FAFC !important; }
 
-body.dark-theme #settings-view #reset-settings-btn:hover {
-    background: rgba(239, 68, 68, 0.16) !important;
-    color: #FECACA !important;
-}
-
-/* 8. Booking, Hotel, Visa, Settle, Services, Manage, Logs, Search Views */
-body.dark-theme #booking-view .booking-kpi-card,
-body.dark-theme #hotel-view .booking-kpi-card,
-body.dark-theme #visa-view .booking-kpi-card,
-body.dark-theme #settle-view .settle-kpi-card,
-body.dark-theme #settle-view .settle-card,
-body.dark-theme #booking-view .booking-search-section,
-body.dark-theme #hotel-view .booking-search-section,
-body.dark-theme #visa-view .booking-search-section,
-body.dark-theme #services-view .service-panel,
 body.dark-theme #manage-view .form-container,
 body.dark-theme #manage-view .results-section,
-body.dark-theme #logs-view .logs-filter-card,
-body.dark-theme #logs-view .logs-table-card,
-body.dark-theme #search-view .client-detail-new,
-body.dark-theme #search-view .client-card,
-body.dark-theme #search-view .search-card {
+body.dark-theme #manage-view .manage-search-card,
+body.dark-theme #manage-view .history-section,
+body.dark-theme #manage-view .table-container {
     background: #131C2E !important;
     border: 1px solid #1F2D45 !important;
     color: #F1F5F9 !important;
 }
 
-body.dark-theme #booking-view table thead th,
-body.dark-theme #hotel-view table thead th,
-body.dark-theme #visa-view table thead th,
-body.dark-theme #settle-view table thead th,
-body.dark-theme #logs-view table thead th {
+body.dark-theme #manage-view table thead th {
     background: #172236 !important;
     color: #94A3B8 !important;
-    border-bottom-color: #24324B !important;
+    border-bottom: 1px solid #24324B !important;
 }
 
-body.dark-theme #booking-view table tbody td,
-body.dark-theme #hotel-view table tbody td,
-body.dark-theme #visa-view table tbody td,
-body.dark-theme #settle-view table tbody td,
-body.dark-theme #logs-view table tbody td {
+body.dark-theme #manage-view table tbody tr,
+body.dark-theme #manage-view table tbody td {
+    background: #131C2E !important;
+    color: #E2E8F0 !important;
+    border-bottom: 1px solid #1E293B !important;
+}
+
+body.dark-theme #manage-view table tbody tr:hover td { background: #1C2A45 !important; }
+
+/* 10. Settle View (#settle-view) */
+body.dark-theme #settle-view .settle-header,
+body.dark-theme #settle-view .settle-hero-card,
+body.dark-theme #settle-view .settle-period-bar,
+body.dark-theme #settle-view .settle-kpi-card,
+body.dark-theme #settle-view .settle-reconciliation,
+body.dark-theme #settle-view .settle-recon-card,
+body.dark-theme #settle-view .settle-summary-strip,
+body.dark-theme #settle-view .settle-table-card,
+body.dark-theme #settle-view .settle-card {
+    background: #131C2E !important;
+    border-color: #1F2D45 !important;
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme #settle-view .settle-kpi-value,
+body.dark-theme #settle-view .settle-amount,
+body.dark-theme #settle-view .recon-value,
+body.dark-theme #settle-view h2,
+body.dark-theme #settle-view h3 {
+    color: #F8FAFC !important;
+}
+
+body.dark-theme #settle-view table tbody td {
     background: #131C2E !important;
     color: #E2E8F0 !important;
     border-bottom-color: #1E293B !important;
 }
 
-body.dark-theme #booking-view table tbody tr:hover td,
-body.dark-theme #hotel-view table tbody tr:hover td,
-body.dark-theme #visa-view table tbody tr:hover td,
-body.dark-theme #settle-view table tbody tr:hover td,
-body.dark-theme #logs-view table tbody tr:hover td {
-    background: #1C2A45 !important;
+body.dark-theme #settle-view .settle-action-btn,
+body.dark-theme #settle-view .settle-row-btn,
+body.dark-theme #settle-view table button {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
 }
 
-/* 9. Universal Inputs, Selects, Buttons, Segmented Controls, Modals & Datepickers */
+/* 11. Activity Logs View (#logs-view) */
+body.dark-theme #logs-view .logs-filter-card,
+body.dark-theme #logs-view .logs-table-card {
+    background: #131C2E !important;
+    border-color: #1F2D45 !important;
+}
+
+body.dark-theme #logs-view #refreshLogsBtn,
+body.dark-theme #logs-view #logsResetFiltersBtn {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
+}
+
+body.dark-theme #logs-view .logs-table tbody td {
+    background: #131C2E !important;
+    color: #E2E8F0 !important;
+    border-bottom-color: #1E293B !important;
+}
+
+body.dark-theme #logs-view .logs-table tbody td:nth-child(4),
+body.dark-theme #logs-view .log-passenger-name {
+    color: #F8FAFC !important;
+}
+
+/* Badges/Pills inside Logs & Manage History (prevent bright white pills!) */
+body.dark-theme #logs-view .log-user-pill,
+body.dark-theme #logs-view .log-pnr-pill,
+body.dark-theme #logs-view .badge,
+body.dark-theme #logs-view .pill,
+body.dark-theme #manage-view .badge,
+body.dark-theme #manage-view .pill,
+body.dark-theme #manage-view .history-user-pill,
+body.dark-theme #manage-view .history-pnr-pill {
+    background: #1A253A !important;
+    color: #CBD5E1 !important;
+    border: 1px solid #2E405E !important;
+}
+
+/* 12. Booking, Visa & Global Secondary/Clear Buttons */
+body.dark-theme #booking-view #clearBookingSearchBtn,
+body.dark-theme #visa-view #visaClearSearchBtn,
+body.dark-theme #hotel-view #clearHotelSearchBtn,
+body.dark-theme #manage-view #clearManageBtn,
+body.dark-theme #settings-view #reset-settings-btn,
+body.dark-theme .btn-secondary,
+body.dark-theme .btn-clear,
+body.dark-theme .btn-outline,
+body.dark-theme .icon-btn,
+body.dark-theme .booking-action-btn,
+body.dark-theme .records-preset-btn {
+    background: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
+}
+
+body.dark-theme #settings-view #reset-settings-btn {
+    color: #FCA5A5 !important;
+    border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+body.dark-theme .btn-secondary:hover,
+body.dark-theme .btn-clear:hover,
+body.dark-theme .icon-btn:hover {
+    background: #24324B !important;
+    color: #FFFFFF !important;
+}
+
+/* 13. Universal Inputs, Selects, Segmented Controls, Modals & Datepickers */
 body.dark-theme input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not(#globalSearchInput),
 body.dark-theme select,
 body.dark-theme textarea,
@@ -640,51 +667,9 @@ body.dark-theme .custom-select-trigger {
 }
 
 body.dark-theme input::placeholder,
-body.dark-theme textarea::placeholder {
-    color: #64748B !important;
-}
+body.dark-theme textarea::placeholder { color: #64748B !important; }
 
-body.dark-theme .custom-options {
-    background: #131C2E !important;
-    border: 1px solid #2B3B55 !important;
-}
-
-body.dark-theme .custom-option {
-    color: #E2E8F0 !important;
-}
-
-body.dark-theme .custom-option:hover,
-body.dark-theme .custom-option.selected {
-    background: rgba(20, 184, 166, 0.18) !important;
-    color: #5EEAD4 !important;
-}
-
-body.dark-theme label {
-    color: #CBD5E1 !important;
-}
-
-body.dark-theme .btn-secondary,
-body.dark-theme .btn-clear,
-body.dark-theme .btn-outline,
-body.dark-theme .records-preset-btn,
-body.dark-theme .btn-page-nav,
-body.dark-theme .icon-btn,
-body.dark-theme .booking-action-btn,
-body.dark-theme .settle-row-btn,
-body.dark-theme .history-action-btn {
-    background: #1A253A !important;
-    color: #E2E8F0 !important;
-    border: 1px solid #2E405E !important;
-}
-
-body.dark-theme .btn-secondary:hover,
-body.dark-theme .btn-clear:hover,
-body.dark-theme .records-preset-btn:hover,
-body.dark-theme .btn-page-nav:hover,
-body.dark-theme .icon-btn:hover {
-    background: #24324B !important;
-    color: #FFFFFF !important;
-}
+body.dark-theme label { color: #CBD5E1 !important; }
 
 body.dark-theme .trip-type-segment,
 body.dark-theme .gender-segment,
@@ -712,7 +697,8 @@ body.dark-theme .view-toggle input:checked + label {
 body.dark-theme .modal-content,
 body.dark-theme .modal-box,
 body.dark-theme .pnr-detail-modal-container,
-body.dark-theme .dialog-content {
+body.dark-theme .dialog-content,
+body.dark-theme .datepicker-picker {
     background: #131C2E !important;
     border: 1px solid #2B3B55 !important;
     color: #F1F5F9 !important;
@@ -720,32 +706,15 @@ body.dark-theme .dialog-content {
 
 body.dark-theme .modal-header,
 body.dark-theme .modal-footer {
+    background: #131C2E !important;
     border-color: #1F2D45 !important;
-    background: #131C2E !important;
 }
 
-body.dark-theme .datepicker-picker {
-    background: #131C2E !important;
-    border: 1px solid #2B3B55 !important;
-    color: #F1F5F9 !important;
-}
+body.dark-theme .datepicker-cell { color: #E2E8F0 !important; background: transparent !important; }
+body.dark-theme .datepicker-cell:hover:not(.disabled) { background: #1F2D45 !important; }
+body.dark-theme .datepicker-cell.selected { background: #0D6E77 !important; color: #FFFFFF !important; }
 
-body.dark-theme .datepicker-header .datepicker-controls .button,
-body.dark-theme .datepicker-cell {
-    background: transparent !important;
-    color: #E2E8F0 !important;
-}
-
-body.dark-theme .datepicker-cell:hover:not(.disabled) {
-    background: #1F2D45 !important;
-}
-
-body.dark-theme .datepicker-cell.selected {
-    background: #0D6E77 !important;
-    color: #FFFFFF !important;
-}
-
-/* 10. Preserve White Paper Previews for PDF/Image Generation */
+/* 14. Preserve White Paper Previews for PDF/Image Generation */
 body.dark-theme #airAsiaPreviewContainer,
 body.dark-theme #agodaPreviewContainer,
 body.dark-theme #invoicePreview,
