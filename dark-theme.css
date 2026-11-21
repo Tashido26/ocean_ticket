@@ -722,3 +722,150 @@ body.dark-theme .voucher-preview,
 body.dark-theme .ticket-preview {
     color-scheme: light;
 }
+
+/* 15. Final High-Specificity Fixes (html + :has() + exact IDs) */
+html:has(body.dark-theme),
+html body.dark-theme,
+html body.material-theme.dark-theme,
+html body.dark-theme:has(#hotel-view:not([style*="display: none"])),
+html body.material-theme.dark-theme:has(#hotel-view:not([style*="display: none"])),
+html body.dark-theme:has(#hotel-view:not([style*="display: none"])) .main-container,
+html body.dark-theme:has(#hotel-view:not([style*="display: none"])) .app-container,
+html body.dark-theme:has(#hotel-view:not([style*="display: none"])) .app-body,
+html body.dark-theme:has(#hotel-view:not([style*="display: none"])) .main-content,
+html body.dark-theme #hotel-view,
+html body.dark-theme #hotel-view.view,
+html body.dark-theme:has(#settle-view:not([style*="display: none"])),
+html body.material-theme.dark-theme:has(#settle-view:not([style*="display: none"])),
+html body.dark-theme:has(#settle-view:not([style*="display: none"])) .main-container,
+html body.dark-theme:has(#settle-view:not([style*="display: none"])) .app-container,
+html body.dark-theme:has(#settle-view:not([style*="display: none"])) .app-body,
+html body.dark-theme:has(#settle-view:not([style*="display: none"])) .main-content,
+html body.dark-theme #settle-view,
+html body.dark-theme #settle-view.view {
+    background: #0B1120 !important;
+    background-color: #0B1120 !important;
+    background-image: none !important;
+}
+
+/* Sell Tickets NRC 4 inputs (beats all sell.css & solid-ui.css rules) */
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input {
+    background: #101827 !important;
+    background-color: #101827 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input input,
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input input[type="text"],
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input .nrc-region,
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input .nrc-township,
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input .nrc-type,
+html body.material-theme.dark-theme #sell-view #sellForm .nrc-input .nrc-serial {
+    background: #1A253A !important;
+    background-color: #1A253A !important;
+    color: #F1F5F9 !important;
+    border: 1px solid #2E405E !important;
+    box-shadow: none !important;
+}
+
+/* Exact Clear Buttons across Booking, Visa, Hotel, Manage */
+html body.material-theme.dark-theme section#booking-view #bookingClearBtn,
+html body.material-theme.dark-theme section#visa-view #visaClearBtn,
+html body.material-theme.dark-theme section#hotel-view #hotelResClearBtn,
+html body.material-theme.dark-theme section#hotel-view #cancelHotelResBtn,
+html body.material-theme.dark-theme section#manage-view #clearManageBtn {
+    background: #1A253A !important;
+    background-color: #1A253A !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #2E405E !important;
+}
+
+html body.material-theme.dark-theme section#booking-view #bookingClearBtn:hover,
+html body.material-theme.dark-theme section#visa-view #visaClearBtn:hover,
+html body.material-theme.dark-theme section#hotel-view #hotelResClearBtn:hover,
+html body.material-theme.dark-theme section#manage-view #clearManageBtn:hover {
+    background: #24324B !important;
+    color: #FFFFFF !important;
+}
+
+/* Hotel View Exact Cards, KPIs, Search Inputs & Heading */
+html body.material-theme.dark-theme #hotel-view .glass-card,
+html body.material-theme.dark-theme #hotel-view .form-container,
+html body.material-theme.dark-theme #hotel-view .results-section,
+html body.material-theme.dark-theme #hotel-view #hotel-form-container,
+html body.material-theme.dark-theme #hotel-view #hotel-display-container,
+html body.material-theme.dark-theme #hotel-view .kpi-card,
+html body.material-theme.dark-theme #hotel-view #hotelKpiGrid > * {
+    background: #131C2E !important;
+    background-color: #131C2E !important;
+    border-color: #1F2D45 !important;
+    color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #hotel-view h1,
+html body.material-theme.dark-theme #hotel-view h2,
+html body.material-theme.dark-theme #hotel-view h3,
+html body.material-theme.dark-theme #hotel-view .kpi-card .kpi-value,
+html body.material-theme.dark-theme #hotel-view .kpi-card strong {
+    color: #F8FAFC !important;
+}
+
+html body.material-theme.dark-theme #hotel-view input,
+html body.material-theme.dark-theme #hotel-view select {
+    background: #1A253A !important;
+    background-color: #1A253A !important;
+    color: #F1F5F9 !important;
+    border: 1px solid #2B3B55 !important;
+}
+
+/* Settle View Exact Cards, Period Bar, Reconciliation, Summary Strip & Table */
+html body.material-theme.dark-theme #settle-view .glass-card,
+html body.material-theme.dark-theme #settle-view .settle-header,
+html body.material-theme.dark-theme #settle-view .settle-toolbar,
+html body.material-theme.dark-theme #settle-view .settle-kpi-card,
+html body.material-theme.dark-theme #settle-view .settle-reconcile-card,
+html body.material-theme.dark-theme #settle-view .settle-health-card,
+html body.material-theme.dark-theme #settle-view .settle-section,
+html body.material-theme.dark-theme #settle-view .settle-closed-card,
+html body.material-theme.dark-theme #settle-view .settle-table-wrap {
+    background: #131C2E !important;
+    background-color: #131C2E !important;
+    border-color: #1F2D45 !important;
+    color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #settle-view .settle-header-balance,
+html body.material-theme.dark-theme #settle-view .settle-reconcile-term,
+html body.material-theme.dark-theme #settle-view #settlePeriodTabs,
+html body.material-theme.dark-theme #settle-view #closeMonthBtn,
+html body.material-theme.dark-theme #settle-view #settleCustomRange input[type="date"],
+html body.material-theme.dark-theme #settle-view #settleCustomRange button {
+    background: #1A253A !important;
+    background-color: #1A253A !important;
+    border-color: #2B3B55 !important;
+    color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #settle-view .settle-header-pill,
+html body.material-theme.dark-theme #settle-view .settle-badge,
+html body.material-theme.dark-theme #settle-view .settle-chip {
+    background: #1A253A !important;
+    color: #CBD5E1 !important;
+    border-color: #2B3B55 !important;
+}
+
+html body.material-theme.dark-theme #settle-view h1,
+html body.material-theme.dark-theme #settle-view h2,
+html body.material-theme.dark-theme #settle-view h3,
+html body.material-theme.dark-theme #settle-view .settle-section-title,
+html body.material-theme.dark-theme #settle-view .settle-reconcile-value,
+html body.material-theme.dark-theme #settle-view .settle-health-value {
+    color: #F8FAFC !important;
+}
+
+html body.material-theme.dark-theme #settle-view .settle-section-sub,
+html body.material-theme.dark-theme #settle-view .settle-reconcile-label,
+html body.material-theme.dark-theme #settle-view .settle-health-label,
+html body.material-theme.dark-theme #settle-view .settle-health-sub {
+    color: #94A3B8 !important;
+}
