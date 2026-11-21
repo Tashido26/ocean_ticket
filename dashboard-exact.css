@@ -125,7 +125,7 @@ body.material-theme .main-content,
 .sidebar :not(i):not([class*="fa-"]),
 .header,
 .header :not(i):not([class*="fa-"]) {
-    font-family: "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    font-family: var(--font-main, "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif) !important;
 }
 
 /* ==========================================================================

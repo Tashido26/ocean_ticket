@@ -4475,7 +4475,11 @@ export function initializeUISettings() {
         // Apply Font
         if (settings.font) {
             ensureFontLoaded(settings.font);
-            document.documentElement.style.setProperty('--font-main', settings.font);
+            const fontStack = settings.font.includes('Noto Sans Myanmar')
+                ? settings.font
+                : `${settings.font}, "Noto Sans Myanmar", sans-serif`;
+            document.documentElement.style.setProperty('--font-main', fontStack);
+            document.body.style.fontFamily = fontStack;
         }
 
         // Update UI text if container exists

@@ -50,7 +50,7 @@ body.material-theme,
    ========================================================================== */
 html body #hotel-view,
 html body #hotel-view :not(i):not([class*="fa-"]):not([class*="fas"]):not([class*="far"]):not([class*="fab"]):not([class*="fa"]):not([class*="fa-solid"]):not([class*="fa-regular"]):not([class*="fa-brands"]) {
-    font-family: "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-family: var(--font-main, "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
 }
 
 /* Explicitly protect Font Awesome icons */
@@ -837,7 +837,7 @@ html body.material-theme section#hotel-view #hotel-form-container form#newHotelR
 html body section#hotel-view #hotel-form-container input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
 html body section#hotel-view #hotel-form-container select,
 html body section#hotel-view #hotel-form-container textarea {
-    font-family: "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-family: var(--font-main, "Inter", "Noto Sans Myanmar", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     color: #0D2B33 !important;

@@ -65,7 +65,7 @@ body.material-theme,
    ========================================================================== */
 #settle-view,
 #settle-view :not(i):not([class*="fa-"]):not([class*="fas"]):not([class*="far"]):not([class*="fab"]):not([class*="fa"]):not([class*="fa-solid"]):not([class*="fa-regular"]):not([class*="fa-brands"]) {
-    font-family: "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    font-family: var(--font-main, "Manrope", "Noto Sans Myanmar", system-ui, -apple-system, "Segoe UI", sans-serif) !important;
 }
 
 /* Explicitly protect Font Awesome icons */
