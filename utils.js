@@ -1091,38 +1091,40 @@ export function getPnrSectors(tickets) {
                 existing.leg = String(t.leg).toLowerCase();
             }
         }
+    });
 
-        const isRound = String(t.trip_type || '').toLowerCase().includes('round') ||
-                        t.is_round_trip === true ||
-                        !!(t.return_date || t.returning_on);
-        const hasReturnDate = String(t.return_date || t.returning_on || '').trim();
+    // Only synthesize a return sector if there is only 1 unique sector in candidateRows,
+    // NO explicit return leg row exists, and the row indicates a round trip.
+    // Multi-sector or open-jaw itineraries (e.g. Mandalay -> Bangkok and Bangkok -> Yangon)
+    // already have all their sectors recorded as separate rows and MUST NOT synthesize inverted legs.
+    if (sectorsMap.size === 1) {
+        const hasExplicitReturnRow = candidateRows.some(r => String(r.leg || '').toLowerCase() === 'return');
+        const roundTripRow = !hasExplicitReturnRow && sortedRows.find(t => {
+            if (String(t.leg || '').toLowerCase() === 'return') return false;
+            return String(t.trip_type || '').toLowerCase().includes('round') ||
+                   t.is_round_trip === true ||
+                   Boolean(t.return_date || t.returning_on);
+        });
 
-        if (isRound && dep && dest) {
-            const returnKey = `${normKey(dest)}->${normKey(dep)}`;
-            const hasActualReturnRow = candidateRows.some(row => {
-                const rDep = cleanPlaceName(row.departure, candidateRows);
-                const rDest = cleanPlaceName(row.destination, candidateRows);
-                return normKey(rDep) === normKey(dest) && normKey(rDest) === normKey(dep);
-            });
-
-            if (!hasActualReturnRow && !sectorsMap.has(returnKey)) {
-                const retDep = cleanPlaceName(t.return_departure || dest, candidateRows);
-                const retDest = cleanPlaceName(t.return_destination || dep, candidateRows);
-                const retDate = hasReturnDate || '';
-                const retAirline = String(t.return_airline || t.airline || '').trim();
-                const synthKey = `${normKey(retDep)}->${normKey(retDest)}`;
-                if (!sectorsMap.has(synthKey)) {
-                    sectorsMap.set(synthKey, {
-                        departure: retDep,
-                        destination: retDest,
-                        departing_on: retDate,
-                        leg: 'return',
-                        airline: retAirline
-                    });
-                }
+        if (roundTripRow) {
+            const dep = cleanPlaceName(roundTripRow.departure, candidateRows);
+            const dest = cleanPlaceName(roundTripRow.destination, candidateRows);
+            const retDep = cleanPlaceName(roundTripRow.return_departure || dest, candidateRows);
+            const retDest = cleanPlaceName(roundTripRow.return_destination || dep, candidateRows);
+            const retDate = String(roundTripRow.return_date || roundTripRow.returning_on || '').trim();
+            const retAirline = String(roundTripRow.return_airline || roundTripRow.airline || '').trim();
+            const synthKey = `${normKey(retDep)}->${normKey(retDest)}`;
+            if (!sectorsMap.has(synthKey)) {
+                sectorsMap.set(synthKey, {
+                    departure: retDep,
+                    destination: retDest,
+                    departing_on: retDate,
+                    leg: 'return',
+                    airline: retAirline
+                });
             }
         }
-    });
+    }
 
     const sectors = [...sectorsMap.values()];
 

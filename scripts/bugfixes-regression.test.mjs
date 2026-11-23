@@ -346,6 +346,46 @@ test('getPnrRouteDisplay and getPnrTravelDateDisplay display both sectors for ro
     assert.equal(sectorsF[1].departure, 'New Delhi');
     assert.equal(sectorsF[1].destination, 'Yangon');
     assert.equal(getPnrRouteDisplay(ticketsTruncatedCity), 'Yangon → New Delhi / New Delhi → Yangon');
+
+    // Case G: Open-Jaw / Multi-City Round-Trip (e.g. 1TZ540 Mandalay → Bangkok, Bangkok → Yangon)
+    // Must NOT synthesize inverted return legs (Bangkok → Mandalay, Yangon → Bangkok)
+    const tickets1TZ540 = [
+        {
+            booking_reference: '1TZ540',
+            departure: 'Mandalay',
+            destination: 'Bangkok',
+            departing_on: '18-Nov-2026',
+            leg: 'outbound',
+            trip_type: 'Round-Trip',
+            name: 'EI EI CHO'
+        },
+        {
+            booking_reference: '1TZ540',
+            departure: 'Bangkok',
+            destination: 'Yangon',
+            departing_on: '25-Nov-2026',
+            leg: 'return',
+            trip_type: 'Round-Trip',
+            name: 'EI EI CHO'
+        }
+    ];
+    const sectorsG = getPnrSectors(tickets1TZ540);
+    assert.equal(sectorsG.length, 2, 'Open-jaw PNR must contain exactly 2 sectors (no duplicate synthesized legs)');
+    assert.equal(sectorsG[0].departure, 'Mandalay');
+    assert.equal(sectorsG[0].destination, 'Bangkok');
+    assert.equal(sectorsG[1].departure, 'Bangkok');
+    assert.equal(sectorsG[1].destination, 'Yangon');
+    assert.equal(getPnrRouteDisplay(tickets1TZ540), 'Mandalay → Bangkok / Bangkok → Yangon');
+
+    // Case H: Multi-sector 3 legs (must not synthesize reciprocal routes)
+    const tickets3Legs = [
+        { booking_reference: 'MULTI3', departure: 'Yangon', destination: 'Bangkok', departing_on: '10-Dec-2026', leg: 'outbound', trip_type: 'Round-Trip' },
+        { booking_reference: 'MULTI3', departure: 'Bangkok', destination: 'Singapore', departing_on: '15-Dec-2026', leg: 'transit', trip_type: 'Round-Trip' },
+        { booking_reference: 'MULTI3', departure: 'Singapore', destination: 'Yangon', departing_on: '20-Dec-2026', leg: 'return', trip_type: 'Round-Trip' }
+    ];
+    const sectorsH = getPnrSectors(tickets3Legs);
+    assert.equal(sectorsH.length, 3, 'Must contain exactly 3 sectors');
+    assert.equal(getPnrRouteDisplay(tickets3Legs), 'Yangon → Bangkok / Bangkok → Singapore / Singapore → Yangon');
 });
 
 
