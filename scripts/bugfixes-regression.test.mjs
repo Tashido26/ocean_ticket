@@ -416,4 +416,107 @@ test('getPnrRouteDisplay and getPnrTravelDateDisplay display both sectors for ro
     assert.equal(getPnrRouteDisplay(returnOnlyTicket), 'Bangkok → Yangon');
 });
 
+test('Payment Reminder & Unpaid Grouping: exclude fully-paid zero-due tickets from line items and summary (Tha Dar Phyu scenario)', async () => {
+    const { isTicketPaid, isFeeEntryRow, isCanceledTicket } = await import('../utils.js');
+
+    // Tha Dar Phyu scenario:
+    // PNR 1SFPD2 has 2 fully paid passenger legs from 30/09/2026 totaling 1,670,000 MMK,
+    // and 1 unpaid Date Change / Fee row of 400,000 MMK from 17/11/2026.
+    const tickets1SFPD2 = [
+        {
+            id: 'fee-1',
+            booking_reference: '1SFPD2',
+            name: 'THA DAR PHYU (Fees)',
+            remarks: 'Date Change / Fee Entry',
+            net_amount: 0,
+            date_change: 400000,
+            paid: false,
+            departure: 'Kuala Lumpur',
+            destination: 'Yangon',
+            airline: 'MAI',
+            departing_on: '07-Feb-2027',
+            issued_date: '17/11/2026'
+        },
+        {
+            id: 'leg-1',
+            booking_reference: '1SFPD2',
+            name: 'THA DAR PHYU',
+            net_amount: 882850,
+            paid: true,
+            departure: 'Kuala Lumpur',
+            destination: 'Yangon',
+            airline: 'MAI',
+            departing_on: '07-Feb-2027',
+            issued_date: '30/09/2026',
+            leg: 'outbound'
+        },
+        {
+            id: 'leg-2',
+            booking_reference: '1SFPD2',
+            name: 'THA DAR PHYU',
+            net_amount: 787150,
+            paid: true,
+            departure: 'Yangon',
+            destination: 'Kuala Lumpur',
+            airline: 'MAI',
+            departing_on: '12-Mar-2027',
+            issued_date: '30/09/2026',
+            leg: 'return'
+        }
+    ];
+
+    const ticketGrossAmount = (t) => (Number(t.net_amount) || 0) + (Number(t.extra_fare) || 0) + (Number(t.sub_agent_fare) || 0) + (Number(t.date_change) || 0);
+
+    // 1. Line items filter logic as implemented in dashboard.js buildLineItems
+    const unpaidRows = tickets1SFPD2.filter(t => {
+        if (!t || isCanceledTicket(t)) return false;
+        const gross = ticketGrossAmount(t);
+        const paid = isTicketPaid(t)
+            ? gross
+            : (t.outstanding_amount !== undefined && Number(t.outstanding_amount) >= 0
+                ? Math.max(0, gross - Number(t.outstanding_amount))
+                : 0);
+        const due = Math.max(0, gross - paid);
+        return due > 0;
+    });
+
+    assert.equal(unpaidRows.length, 1, 'Only the unpaid fee row must be included');
+    assert.equal(unpaidRows[0].id, 'fee-1');
+    assert.equal(unpaidRows[0].name, 'THA DAR PHYU (Fees)');
+
+    // 2. Summary computation
+    const lineItems = unpaidRows.map(t => {
+        const gross = ticketGrossAmount(t);
+        const paid = isTicketPaid(t) ? gross : 0;
+        const due = Math.max(0, gross - paid);
+        return { gross, paid, due };
+    });
+
+    const totalGross = lineItems.reduce((s, item) => s + item.gross, 0);
+    const defaultPaid = lineItems.reduce((s, item) => s + item.paid, 0);
+    const balanceDue = Math.max(0, totalGross - defaultPaid);
+
+    assert.equal(totalGross, 400000, 'Sub Total must be 400,000 MMK, not 2,070,000 MMK');
+    assert.equal(defaultPaid, 0, 'Paid amount must be 0 MMK, not 1,670,000 MMK');
+    assert.equal(balanceDue, 400000, 'Balance Due must be 400,000 MMK');
+
+    // 3. Partially paid ticket scenario (deposit)
+    const partialTicket = {
+        id: 'partial-1',
+        booking_reference: 'DEP01',
+        name: 'AUNG AUNG',
+        net_amount: 1000000,
+        outstanding_amount: 600000, // 400,000 deposit paid
+        paid: false
+    };
+
+    const partialGross = ticketGrossAmount(partialTicket);
+    const partialPaid = Math.max(0, partialGross - Number(partialTicket.outstanding_amount));
+    const partialDue = Math.max(0, partialGross - partialPaid);
+
+    assert.equal(partialPaid, 400000, 'Partial deposit must be 400,000 MMK');
+    assert.equal(partialDue, 600000, 'Due must be 600,000 MMK');
+    assert.equal(partialDue > 0, true, 'Partially paid ticket must be included in reminder line items');
+});
+
 

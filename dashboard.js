@@ -504,7 +504,7 @@ function getUpcomingTripGroups(days = 14) {
     return [...groups.values()].sort((a, b) => a.date - b.date);
 }
 
-function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
+export function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
     const groups = new Map();
 
     // Match Client Detail outstanding logic: unpaid money can live on passenger rows
@@ -527,6 +527,7 @@ function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
         let unpaidAmount = 0;
         let paidAmount = 0;
         let agentFareAmount = 0;
+        let totalGross = 0;
         let hasFeeUnpaid = false;
 
         tickets.forEach(t => {
@@ -549,11 +550,14 @@ function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
                 itemUnpaid = netReceivable;
             }
 
-            agentFareAmount += agentFare;
-            paidAmount += itemPaid;
-
+            // Only rows with unpaid balances / receivables (or partial deposits)
+            // contribute to the active unpaid group metrics. Fully settled historical rows
+            // (due === 0) must not inflate totalGross or paidAmount.
             if (itemUnpaid > 0) {
                 unpaidAmount += itemUnpaid;
+                paidAmount += itemPaid;
+                agentFareAmount += agentFare;
+                totalGross += gross;
                 if (isFee || Number(t.date_change) > 0) {
                     hasFeeUnpaid = true;
                 }
@@ -599,10 +603,18 @@ function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
                                 feeTickets.find(t => t.departure && t.destination) ||
                                 passengerTicket;
 
-            const totalGross = tickets.reduce((sum, t) => sum + ticketGrossAmount(t), 0);
             const cleanSocial = (accountName && accountName.toLowerCase() !== 'undefined') ? accountName : '';
             const accountDisplayLabel = cleanSocial || clientLabel;
             const accountGroupKey = accountDisplayLabel.trim().toLowerCase();
+
+            // Identify rows that have active unpaid receivables
+            const unpaidTicketsList = tickets.filter(t => {
+                if (isTicketPaid(t)) {
+                    return t.outstanding_amount !== undefined && Number(t.outstanding_amount) > 0;
+                }
+                return true;
+            });
+            const unpaidNonFeeTickets = unpaidTicketsList.filter(t => !isFeeEntryRow(t));
 
             groups.set(pnrKey, {
                 isHotel: false,
@@ -623,11 +635,11 @@ function groupUnpaidTickets(rows, hotelRows = (state.allHotels || [])) {
                 dueDate: parseSheetDate(dateTicket.departing_on),
                 issuedDate: parseSheetDate(passengerTicket.issued_date),
                 amount: unpaidAmount,
-                totalGross,
+                totalGross: totalGross || unpaidAmount,
                 agentFareAmount,
                 paidAmount,
-                tickets: nonFeeTickets.length || tickets.length,
-                ticketRows: tickets,
+                tickets: unpaidNonFeeTickets.length || unpaidTicketsList.length || 1,
+                ticketRows: unpaidTicketsList.length > 0 ? unpaidTicketsList : tickets,
                 hasFeeRows: hasFeeUnpaid
             });
         }
@@ -2683,7 +2695,23 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                 ? group.ticketRows
                 : [];
             if (rows.length > 0) {
-                rows.forEach(t => {
+                // Filter out fully paid / settled rows with zero balance due.
+                // A Payment Reminder Card is strictly for unpaid receivables (due > 0).
+                const unpaidRows = rows.filter(t => {
+                    if (!t || isCanceledTicket(t)) return false;
+                    const gross = ticketGrossAmount(t);
+                    const paid = isTicketPaid(t)
+                        ? gross
+                        : (t.outstanding_amount !== undefined && Number(t.outstanding_amount) >= 0
+                            ? Math.max(0, gross - Number(t.outstanding_amount))
+                            : 0);
+                    const due = Math.max(0, gross - paid);
+                    return due > 0;
+                });
+
+                const targetRows = unpaidRows.length > 0 ? unpaidRows : rows;
+
+                targetRows.forEach(t => {
                     const gross = ticketGrossAmount(t);
                     const agentFare = ticketUnsettledAgentFare(t);
                     const paid = isTicketPaid(t)
@@ -2696,13 +2724,13 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                     let itemRoute = '—';
                     if (t.departure && t.destination) {
                         const leg = String(t.leg || '').toLowerCase();
-                        const isSingleRowRoundTrip = rows.length === 1 && (leg !== 'outbound' && leg !== 'return') && (
+                        const isSingleRowRoundTrip = targetRows.length === 1 && (leg !== 'outbound' && leg !== 'return') && (
                             String(t.trip_type || '').toLowerCase().includes('round') ||
                             t.is_round_trip === true ||
                             Boolean(t.return_date || t.returning_on)
                         );
                         itemRoute = isSingleRowRoundTrip
-                            ? (group.route || getPnrRouteDisplay(rows))
+                            ? (group.route || getPnrRouteDisplay(targetRows))
                             : `${compactPlace(t.departure)} → ${compactPlace(t.destination)}`;
                     } else if (t.route) {
                         itemRoute = t.route;
@@ -2878,10 +2906,12 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                         <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: #DD9426;">- ${formatDashboardAmount(effectiveAgentFare)} MMK</span>
                     </div>
                     ` : ''}
+                    ${effectivePaid > 0 ? `
                     <div class="prc-total-line prc-paid-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #5F6B78; padding: ${isCompact ? '2px 0' : '4px 0'};">
                         <span>Paid / Deposit</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: #059669;">- ${formatDashboardAmount(effectivePaid)} MMK</span>
                     </div>
+                    ` : ''}
                     <div class="prc-balance-pill" style="background: #AA0F11; border-radius: 6px; padding: ${isCompact ? '6px 12px' : '9px 14px'}; display: flex; justify-content: space-between; align-items: center; color: #ffffff; font-weight: 700; font-size: ${isCompact ? '12px' : '13px'}; letter-spacing: 0.03em; margin-top: ${isCompact ? '5px' : '8px'};">
                         <span>BALANCE DUE</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 800;">MMK ${formatDashboardAmount(balanceDue)}</span>
@@ -2928,7 +2958,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             `💰 ငွေစာရင်းချုပ်`,
             `• စုစုပေါင်း ကျသင့်ငွေ (Total): ${formatDashboardAmount(totalGross)} MMK`,
             ...(effectiveAgentFare > 0 ? [`• အေးဂျင့်ခ နှုတ်ငွေ (Agent Fare): -${formatDashboardAmount(effectiveAgentFare)} MMK`] : []),
-            `• ပေးချေပြီးငွေ (Paid): ${formatDashboardAmount(effectivePaid)} MMK`,
+            ...(effectivePaid > 0 ? [`• ပေးချေပြီးငွေ (Paid): ${formatDashboardAmount(effectivePaid)} MMK`] : []),
             `• ပေးချေရန် ကျန်ငွေ (Balance Due): ${formatDashboardAmount(balanceDue)} MMK`,
             ``,
             `🏦 ငွေလွှဲပေးပို့နိုင်သော အကောင့်များ (Aung Pyae Sone)`,
