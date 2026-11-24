@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ocean-travel-a13bc095';
+const CACHE_NAME = 'ocean-travel-fd346d2f';
 const CORE_ASSETS = [
     './',
     './index.html',
@@ -10,10 +10,10 @@ const CORE_ASSETS = [
     './vendor/chart.min.js',
     './document-libraries.js?v=7c5a726d',
     './main.js?v=23c2aa06',
-    './dashboard.js?v=1f16c75e',
+    './dashboard.js?v=ca7310b2',
     './auth.js?v=625c50ce',
     './firebase-config.js?v=aab230c1',
-    './utils.js?v=c6c54218',
+    './utils.js?v=a0f7e2f2',
     './state.js?v=7bc2f9f5',
     './db.js?v=584fb002',
     './ui.js?v=fc0171c0',

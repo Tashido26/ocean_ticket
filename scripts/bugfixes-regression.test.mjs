@@ -386,6 +386,34 @@ test('getPnrRouteDisplay and getPnrTravelDateDisplay display both sectors for ro
     const sectorsH = getPnrSectors(tickets3Legs);
     assert.equal(sectorsH.length, 3, 'Must contain exactly 3 sectors');
     assert.equal(getPnrRouteDisplay(tickets3Legs), 'Yangon → Bangkok / Bangkok → Singapore / Singapore → Yangon');
+
+    // Case I: Single outbound ticket row with leg: 'outbound' and trip_type: 'Round-Trip'
+    // Passed alone (e.g. from reminder line-items or today's departures) must NOT synthesize an inverted return leg
+    const outboundOnlyTicket = {
+        booking_reference: '1TZ51D',
+        departure: 'Mandalay',
+        destination: 'Bangkok',
+        departing_on: '02-Dec-2026',
+        leg: 'outbound',
+        trip_type: 'Round-Trip',
+        name: 'KHIN MYAT HTAN'
+    };
+    const sectorsI = getPnrSectors(outboundOnlyTicket);
+    assert.equal(sectorsI.length, 1, 'Outbound leg row alone must not synthesize a return leg');
+    assert.equal(sectorsI[0].departure, 'Mandalay');
+    assert.equal(sectorsI[0].destination, 'Bangkok');
+    assert.equal(getPnrRouteDisplay(outboundOnlyTicket), 'Mandalay → Bangkok');
+
+    const returnOnlyTicket = {
+        booking_reference: '1TZ51D',
+        departure: 'Bangkok',
+        destination: 'Yangon',
+        departing_on: '10-Dec-2026',
+        leg: 'return',
+        trip_type: 'Round-Trip',
+        name: 'KHIN MYAT HTAN'
+    };
+    assert.equal(getPnrRouteDisplay(returnOnlyTicket), 'Bangkok → Yangon');
 });
 
 

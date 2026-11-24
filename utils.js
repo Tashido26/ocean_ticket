@@ -1100,7 +1100,8 @@ export function getPnrSectors(tickets) {
     if (sectorsMap.size === 1) {
         const hasExplicitReturnRow = candidateRows.some(r => String(r.leg || '').toLowerCase() === 'return');
         const roundTripRow = !hasExplicitReturnRow && sortedRows.find(t => {
-            if (String(t.leg || '').toLowerCase() === 'return') return false;
+            const leg = String(t.leg || '').toLowerCase();
+            if (leg === 'return' || leg === 'outbound') return false;
             return String(t.trip_type || '').toLowerCase().includes('round') ||
                    t.is_round_trip === true ||
                    Boolean(t.return_date || t.returning_on);

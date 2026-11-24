@@ -427,10 +427,22 @@ function dashboardEscapeHtml(value) {
 
 function dashboardRouteLabel(record) {
     if (!record) return '—';
-    if (Array.isArray(record) || record.trip_type === 'Round-Trip' || record.is_round_trip) {
+    if (Array.isArray(record)) {
         return getPnrRouteDisplay(record);
     }
-    return `${compactPlace(record.departure)} → ${compactPlace(record.destination)}`;
+    const leg = String(record.leg || '').toLowerCase();
+    const isSingleRowRoundTrip = (leg !== 'outbound' && leg !== 'return') && (
+        String(record.trip_type || '').toLowerCase().includes('round') ||
+        record.is_round_trip === true ||
+        Boolean(record.return_date || record.returning_on)
+    );
+    if (isSingleRowRoundTrip) {
+        return getPnrRouteDisplay(record);
+    }
+    if (record.departure && record.destination) {
+        return `${compactPlace(record.departure)} → ${compactPlace(record.destination)}`;
+    }
+    return record.route || '—';
 }
 
 function formatDashboardDateLabel(value, fallback = '—') {
@@ -2279,7 +2291,6 @@ const REMINDER_CARD_STYLE_CSS = `
         min-height: 1123px !important;
         box-sizing: border-box !important;
         margin: 0 auto !important;
-        padding: 44px 56px 40px !important;
         background: #ffffff !important;
         color: #232323 !important;
         font-family: Arial, Helvetica, sans-serif !important;
@@ -2422,6 +2433,9 @@ const REMINDER_CARD_STYLE_CSS = `
         color: #5F6B78 !important;
         background: transparent !important;
         text-align: left !important;
+        overflow: hidden !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table td {
         padding: 9px 6px !important;
@@ -2430,34 +2444,61 @@ const REMINDER_CARD_STYLE_CSS = `
         color: #232323 !important;
         vertical-align: middle !important;
         word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        overflow: hidden !important;
+    }
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-route,
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-desc,
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-pnr {
+        white-space: normal !important;
+    }
+    #paymentReminderCardCanvasTarget .prc-cell-route,
+    #paymentReminderCardCanvasTarget .prc-cell-pax,
+    #paymentReminderCardCanvasTarget .prc-cell-pnr,
+    #paymentReminderCardCanvasTarget .prc-cell-sub {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        overflow: hidden !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table th.col-idx,
     #paymentReminderCardCanvasTarget .prc-inv-table td.col-idx {
         text-align: center !important;
-        width: 28px !important;
+        width: 26px !important;
         color: #5F6B78 !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table th.col-pnr,
     #paymentReminderCardCanvasTarget .prc-inv-table td.col-pnr {
         text-align: left !important;
-        width: 95px !important;
+        width: 88px !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table th.col-desc,
     #paymentReminderCardCanvasTarget .prc-inv-table td.col-desc {
         text-align: left !important;
-        width: 140px !important;
+        width: 134px !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table th.col-route,
     #paymentReminderCardCanvasTarget .prc-inv-table td.col-route {
         text-align: left !important;
-        width: 165px !important;
+        width: 186px !important;
     }
     #paymentReminderCardCanvasTarget .prc-inv-table th.col-num,
     #paymentReminderCardCanvasTarget .prc-inv-table td.col-num {
         text-align: right !important;
-        width: 86px !important;
         font-variant-numeric: tabular-nums !important;
         font-weight: 700 !important;
+    }
+    #paymentReminderCardCanvasTarget .prc-inv-table th.col-gross,
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-gross {
+        width: 82px !important;
+    }
+    #paymentReminderCardCanvasTarget .prc-inv-table th.col-paid,
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-paid {
+        width: 80px !important;
+    }
+    #paymentReminderCardCanvasTarget .prc-inv-table th.col-due,
+    #paymentReminderCardCanvasTarget .prc-inv-table td.col-due {
+        width: 86px !important;
     }
     #paymentReminderCardCanvasTarget .prc-totals-section {
         width: 290px !important;
@@ -2652,13 +2693,29 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                             : 0);
                     const due = Math.max(0, gross - paid);
                     const isFee = isFeeEntryRow(t);
+                    let itemRoute = '—';
+                    if (t.departure && t.destination) {
+                        const leg = String(t.leg || '').toLowerCase();
+                        const isSingleRowRoundTrip = rows.length === 1 && (leg !== 'outbound' && leg !== 'return') && (
+                            String(t.trip_type || '').toLowerCase().includes('round') ||
+                            t.is_round_trip === true ||
+                            Boolean(t.return_date || t.returning_on)
+                        );
+                        itemRoute = isSingleRowRoundTrip
+                            ? (group.route || getPnrRouteDisplay(rows))
+                            : `${compactPlace(t.departure)} → ${compactPlace(t.destination)}`;
+                    } else if (t.route) {
+                        itemRoute = t.route;
+                    } else if (group.route) {
+                        itemRoute = group.route;
+                    }
                     items.push({
                         pnr: group.pnr,
                         issuedDate: String(t.issued_date || group.issuedDateStr || '').trim() || '-',
                         passenger: String(t.name || group.client || 'Passenger').trim(),
                         isFee,
                         airline: String(t.airline || group.airline || '').trim(),
-                        route: (t.departure && t.destination) ? getPnrRouteDisplay(t) : group.route,
+                        route: itemRoute,
                         travelDate: (t.departing_on ? formatDashboardDateLabel(t.departing_on) : '') || group.travelDateStr || '-',
                         gross,
                         agentFare,
@@ -2714,35 +2771,44 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
         const items = buildLineItems(groupsToUse);
         const { totalGross, effectiveAgentFare, effectivePaid, balanceDue } = computeSummary(items, groupsToUse);
 
+        const isCompact = items.length >= 7;
+        const isVeryCompact = items.length >= 10;
+        const rowPadding = isVeryCompact ? '4px 4px' : (isCompact ? '5px 5px' : '8px 6px');
+        const fontSizeMain = isVeryCompact ? '10.5px' : (isCompact ? '11px' : '11.5px');
+        const fontSizeSub = isVeryCompact ? '9px' : (isCompact ? '9.5px' : '10px');
+
         const rowsHtml = items.map((item, idx) => `
             <tr style="${idx % 2 === 1 ? 'background: #F7F8F9;' : 'background: #FFFFFF;'}">
-                <td class="col-idx" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #5F6B78; text-align: center; width: 28px;">${idx + 1}</td>
-                <td class="col-pnr" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #232323; text-align: left; width: 95px;">
-                    <div class="prc-cell-pnr" style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; color: #232323; font-size: 11.5px;">${dashboardEscapeHtml(item.pnr)}</div>
-                    <div class="prc-cell-sub" style="font-size: 10px; color: #5F6B78; margin-top: 2px;">Issued: ${dashboardEscapeHtml(item.issuedDate)}</div>
+                <td class="col-idx" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #5F6B78; text-align: center; width: 26px;">${idx + 1}</td>
+                <td class="col-pnr" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #232323; text-align: left; width: 88px; overflow: hidden; word-break: break-word;">
+                    <div class="prc-cell-pnr" style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; color: #232323; font-size: ${fontSizeMain}; word-break: break-word;">${dashboardEscapeHtml(item.pnr)}</div>
+                    <div class="prc-cell-sub" style="font-size: ${fontSizeSub}; color: #5F6B78; margin-top: 1px; white-space: nowrap;">Issued: ${dashboardEscapeHtml(item.issuedDate)}</div>
                 </td>
-                <td class="col-desc" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #232323; text-align: left; width: 140px;">
-                    <div class="prc-cell-pax" style="font-weight: 700; color: #232323; font-size: 11.5px;">${dashboardEscapeHtml(item.passenger)}</div>
-                    ${item.isFee ? `<span class="prc-fee-badge" style="display: inline-block; margin-top: 2px; padding: 1px 6px; border-radius: 4px; background: #FEF3C7; color: #B45309; font-size: 9.5px; font-weight: 700;">Date Change / Fee</span>` : ''}
+                <td class="col-desc" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #232323; text-align: left; width: 134px; overflow: hidden; word-break: break-word;">
+                    <div class="prc-cell-pax" style="font-weight: 700; color: #232323; font-size: ${fontSizeMain}; word-break: break-word;">${dashboardEscapeHtml(item.passenger)}</div>
+                    ${item.isFee ? `<span class="prc-fee-badge" style="display: inline-block; margin-top: 1px; padding: 1px 5px; border-radius: 4px; background: #FEF3C7; color: #B45309; font-size: 9px; font-weight: 700;">Date Change / Fee</span>` : ''}
                 </td>
-                <td class="col-route" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #232323; text-align: left; width: 165px;">
-                    <div class="prc-cell-route" style="font-weight: 600; color: #232323; font-size: 11.5px;">${dashboardEscapeHtml(item.route)}</div>
-                    <div class="prc-cell-sub" style="font-size: 10px; color: #5F6B78; margin-top: 2px;">${item.airline ? `${dashboardEscapeHtml(item.airline)} · ` : ''}Travel: ${dashboardEscapeHtml(item.travelDate)}</div>
+                <td class="col-route" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #232323; text-align: left; width: 186px; overflow: hidden; word-break: break-word;">
+                    <div class="prc-cell-route" style="font-weight: 600; color: #232323; font-size: ${fontSizeMain}; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;">${dashboardEscapeHtml(item.route)}</div>
+                    <div class="prc-cell-sub" style="font-size: ${fontSizeSub}; color: #5F6B78; margin-top: 1px;">${item.airline ? `${dashboardEscapeHtml(item.airline)} · ` : ''}Travel: ${dashboardEscapeHtml(item.travelDate)}</div>
                 </td>
-                <td class="col-num" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #232323; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; width: 86px;">${formatDashboardAmount(item.gross)}</td>
-                <td class="col-num prc-cell-paid" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #059669; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; width: 80px;">${formatDashboardAmount(item.paid)}</td>
-                <td class="col-num prc-cell-due" style="padding: 9px 6px; border-bottom: 1px solid #E2E6EA; font-size: 11.5px; color: #AA0F11; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; width: 88px;">${formatDashboardAmount(item.due)}</td>
+                <td class="col-num col-gross" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #232323; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; width: 82px;">${formatDashboardAmount(item.gross)}</td>
+                <td class="col-num col-paid prc-cell-paid" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #059669; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; width: 80px;">${formatDashboardAmount(item.paid)}</td>
+                <td class="col-num col-due prc-cell-due" style="padding: ${rowPadding}; border-bottom: 1px solid #E2E6EA; font-size: ${fontSizeMain}; color: #AA0F11; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; width: 86px;">${formatDashboardAmount(item.due)}</td>
             </tr>
         `).join('');
 
+        const bankCardBodyPad = isVeryCompact ? '4px 8px 6px' : (isCompact ? '6px 10px 8px' : '8px 12px 10px');
+        const bankCardHeaderPad = isCompact ? '4px 10px' : '6px 12px';
+        const bankCardRowGap = isVeryCompact ? '3px' : '5px';
         const bankCardsHtml = REMINDER_BANK_CARDS.map(card => `
             <div class="prc-bank-card" style="background: #F7F8F9; border: 1px solid #E2E6EA; border-radius: 6px; overflow: hidden;">
-                <div class="prc-bank-card-header" style="background: #232323; color: #ffffff; font-weight: 700; font-size: 11.5px; padding: 6px 12px; border-bottom: 2px solid #AA0F11;">${dashboardEscapeHtml(card.bank)}</div>
-                <div class="prc-bank-card-body" style="padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 6px;">
+                <div class="prc-bank-card-header" style="background: #232323; color: #ffffff; font-weight: 700; font-size: ${isCompact ? '11px' : '11.5px'}; padding: ${bankCardHeaderPad}; border-bottom: 2px solid #AA0F11;">${dashboardEscapeHtml(card.bank)}</div>
+                <div class="prc-bank-card-body" style="padding: ${bankCardBodyPad}; display: flex; flex-direction: column; gap: ${bankCardRowGap};">
                     ${card.items.map(item => `
                         <div class="prc-bank-row" style="line-height: 1.35; display: flex; justify-content: space-between; align-items: baseline;">
-                            <div class="prc-bank-label" style="font-size: 9.5px; color: #5F6B78;">${dashboardEscapeHtml(item.label)}</div>
-                            <div class="prc-bank-acc" style="font-size: 11.5px; font-weight: 700; color: #232323; font-family: Arial, Helvetica, sans-serif;">${dashboardEscapeHtml(item.account)}</div>
+                            <div class="prc-bank-label" style="font-size: 9px; color: #5F6B78;">${dashboardEscapeHtml(item.label)}</div>
+                            <div class="prc-bank-acc" style="font-size: ${isCompact ? '11px' : '11.5px'}; font-weight: 700; color: #232323; font-family: Arial, Helvetica, sans-serif;">${dashboardEscapeHtml(item.account)}</div>
                         </div>
                     `).join('')}
                 </div>
@@ -2763,37 +2829,37 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                     </div>
                 </div>
 
-                <div class="prc-company-lines" style="margin-top: 14px;">
-                    <p style="margin: 0 0 3px; font-size: 10.5px; color: #5F6B78; line-height: 1.4;">A3-1, Room 603, Myanma Gone Yi Housing, Upper Pansodan St,<br>Mingalar Taung Nyunt Tsp, Yangon</p>
-                    <p style="margin: 0 0 3px; font-size: 10.5px; color: #5F6B78; line-height: 1.4;">09964403435, 09740862500 · oceantravel.mm@gmail.com</p>
+                <div class="prc-company-lines" style="margin-top: ${isCompact ? '6px' : '14px'};">
+                    <p style="margin: 0 0 2px; font-size: 10.5px; color: #5F6B78; line-height: 1.4;">A3-1, Room 603, Myanma Gone Yi Housing, Upper Pansodan St,<br>Mingalar Taung Nyunt Tsp, Yangon</p>
+                    <p style="margin: 0 0 2px; font-size: 10.5px; color: #5F6B78; line-height: 1.4;">09964403435, 09740862500 · oceantravel.mm@gmail.com</p>
                 </div>
 
-                <hr class="prc-header-rule" style="height: 2.5px; background: #AA0F11; margin: 12px 0 18px; border: none; width: 100%;" />
+                <hr class="prc-header-rule" style="height: 2.5px; background: #AA0F11; margin: ${isCompact ? '8px 0 12px' : '12px 0 18px'}; border: none; width: 100%;" />
 
-                <div class="prc-billing-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; width: 100%;">
+                <div class="prc-billing-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: ${isCompact ? '12px' : '22px'}; width: 100%;">
                     <div>
-                        <div class="prc-billed-label" style="font-size: 10px; font-weight: 700; color: #AA0F11; margin-bottom: 4px; letter-spacing: 0.05em;">BILLED TO</div>
-                        <div class="prc-client-name" style="font-size: 18px; font-weight: 700; color: #232323; margin-bottom: 4px;">${dashboardEscapeHtml(activeDisplayName)}</div>
-                        ${activeLead.socialAccount ? `<div class="prc-pnr-line" style="font-size: 11.5px; color: #232323; line-height: 1.4;">Account: ${dashboardEscapeHtml(activeLead.socialAccount)}${activeLead.accountType ? ` · <span class="prc-platform-badge" style="display: inline-block; padding: 1px 7px; border-radius: 999px; background: #EEF4F5; border: 1px solid #D3DFE2; color: #0D2B33; font-size: 10px; font-weight: 700;">${dashboardEscapeHtml(activeLead.accountType)}</span>` : ''}</div>` : ''}
-                        <div class="prc-pnr-line" style="font-size: 11.5px; color: #232323; line-height: 1.4;">${scopeMode === 'single' ? `Booking: PNR ${dashboardEscapeHtml(activeLead.pnr)}` : `Unpaid Bookings: ${groupsToUse.length} PNR${groupsToUse.length > 1 ? 's' : ''}`} (${items.length} Item${items.length > 1 ? 's' : ''})</div>
+                        <div class="prc-billed-label" style="font-size: 10px; font-weight: 700; color: #AA0F11; margin-bottom: 3px; letter-spacing: 0.05em;">BILLED TO</div>
+                        <div class="prc-client-name" style="font-size: ${isCompact ? '16px' : '18px'}; font-weight: 700; color: #232323; margin-bottom: 3px;">${dashboardEscapeHtml(activeDisplayName)}</div>
+                        ${activeLead.socialAccount ? `<div class="prc-pnr-line" style="font-size: 11px; color: #232323; line-height: 1.4;">Account: ${dashboardEscapeHtml(activeLead.socialAccount)}${activeLead.accountType ? ` · <span class="prc-platform-badge" style="display: inline-block; padding: 1px 7px; border-radius: 999px; background: #EEF4F5; border: 1px solid #D3DFE2; color: #0D2B33; font-size: 9.5px; font-weight: 700;">${dashboardEscapeHtml(activeLead.accountType)}</span>` : ''}</div>` : ''}
+                        <div class="prc-pnr-line" style="font-size: 11px; color: #232323; line-height: 1.4;">${scopeMode === 'single' ? `Booking: PNR ${dashboardEscapeHtml(activeLead.pnr)}` : `Unpaid Bookings: ${groupsToUse.length} PNR${groupsToUse.length > 1 ? 's' : ''}`} (${items.length} Item${items.length > 1 ? 's' : ''})</div>
                     </div>
-                    <div class="prc-meta-right" style="display: flex; flex-direction: column; gap: 5px; min-width: 200px;">
-                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11.5px;"><span class="prc-meta-label" style="color: #5F6B78;">Reminder Date</span><span class="prc-meta-val" style="font-weight: 700; color: #232323;">${dashboardEscapeHtml(todayFormatted)}</span></div>
-                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11.5px;"><span class="prc-meta-label" style="color: #5F6B78;">Terms</span><span class="prc-meta-val" style="font-weight: 700; color: #232323;">Due on Receipt</span></div>
-                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11.5px;"><span class="prc-meta-label" style="color: #5F6B78;">Status</span><span class="prc-meta-val prc-status-pending" style="font-weight: 700; color: #AA0F11;">Payment Pending</span></div>
+                    <div class="prc-meta-right" style="display: flex; flex-direction: column; gap: ${isCompact ? '3px' : '5px'}; min-width: 180px;">
+                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11px;"><span class="prc-meta-label" style="color: #5F6B78;">Reminder Date</span><span class="prc-meta-val" style="font-weight: 700; color: #232323;">${dashboardEscapeHtml(todayFormatted)}</span></div>
+                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11px;"><span class="prc-meta-label" style="color: #5F6B78;">Terms</span><span class="prc-meta-val" style="font-weight: 700; color: #232323;">Due on Receipt</span></div>
+                        <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11px;"><span class="prc-meta-label" style="color: #5F6B78;">Status</span><span class="prc-meta-val prc-status-pending" style="font-weight: 700; color: #AA0F11;">Payment Pending</span></div>
                     </div>
                 </div>
 
-                <table class="prc-inv-table" style="width: 100%; border-collapse: collapse; margin-bottom: 16px; table-layout: fixed; background: #FFFFFF;">
+                <table class="prc-inv-table" style="width: 100%; border-collapse: collapse; margin-bottom: ${isCompact ? '10px' : '16px'}; table-layout: fixed; background: #FFFFFF;">
                     <thead>
                         <tr>
-                            <th class="col-idx" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: center; width: 28px;">#</th>
-                            <th class="col-pnr" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: left; width: 95px;">PNR / REF</th>
-                            <th class="col-desc" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: left; width: 140px;">PASSENGER & DETAILS</th>
-                            <th class="col-route" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: left; width: 165px;">ROUTE & TRAVEL DATE</th>
-                            <th class="col-num" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: right; width: 86px;">TOTAL (MMK)</th>
-                            <th class="col-num" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: right; width: 80px;">PAID (MMK)</th>
-                            <th class="col-num" style="padding: 8px 6px; border-bottom: 1px solid #E2E6EA; font-size: 10.5px; font-weight: 700; color: #5F6B78; text-align: right; width: 88px;">DUE (MMK)</th>
+                            <th class="col-idx" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: center; width: 26px;">#</th>
+                            <th class="col-pnr" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: left; width: 88px;">PNR / REF</th>
+                            <th class="col-desc" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: left; width: 134px;">PASSENGER & DETAILS</th>
+                            <th class="col-route" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: left; width: 186px;">ROUTE & TRAVEL DATE</th>
+                            <th class="col-num col-gross" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: right; width: 82px;">TOTAL (MMK)</th>
+                            <th class="col-num col-paid" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: right; width: 80px;">PAID (MMK)</th>
+                            <th class="col-num col-due" style="padding: ${isCompact ? '5px 4px' : '8px 6px'}; border-bottom: 1px solid #E2E6EA; font-size: 10px; font-weight: 700; color: #5F6B78; text-align: right; width: 86px;">DUE (MMK)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2801,43 +2867,43 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                     </tbody>
                 </table>
 
-                <div class="prc-totals-section" style="width: 290px; margin-left: auto; margin-top: 4px; margin-bottom: 22px;">
-                    <div class="prc-total-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5F6B78; padding: 4px 0;">
+                <div class="prc-totals-section" style="width: 280px; margin-left: auto; margin-top: 2px; margin-bottom: ${isCompact ? '10px' : '22px'};">
+                    <div class="prc-total-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #5F6B78; padding: ${isCompact ? '2px 0' : '4px 0'};">
                         <span>Sub Total</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: #232323;">${formatDashboardAmount(totalGross)} MMK</span>
                     </div>
                     ${effectiveAgentFare > 0 ? `
-                    <div class="prc-total-line prc-agent-fare-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5F6B78; padding: 4px 0;">
+                    <div class="prc-total-line prc-agent-fare-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #5F6B78; padding: ${isCompact ? '2px 0' : '4px 0'};">
                         <span>Agent Fare</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: #DD9426;">- ${formatDashboardAmount(effectiveAgentFare)} MMK</span>
                     </div>
                     ` : ''}
-                    <div class="prc-total-line prc-paid-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5F6B78; padding: 4px 0;">
+                    <div class="prc-total-line prc-paid-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #5F6B78; padding: ${isCompact ? '2px 0' : '4px 0'};">
                         <span>Paid / Deposit</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: #059669;">- ${formatDashboardAmount(effectivePaid)} MMK</span>
                     </div>
-                    <div class="prc-balance-pill" style="background: #AA0F11; border-radius: 6px; padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; font-weight: 700; font-size: 13px; letter-spacing: 0.03em; margin-top: 8px;">
+                    <div class="prc-balance-pill" style="background: #AA0F11; border-radius: 6px; padding: ${isCompact ? '6px 12px' : '9px 14px'}; display: flex; justify-content: space-between; align-items: center; color: #ffffff; font-weight: 700; font-size: ${isCompact ? '12px' : '13px'}; letter-spacing: 0.03em; margin-top: ${isCompact ? '5px' : '8px'};">
                         <span>BALANCE DUE</span>
                         <span style="font-variant-numeric: tabular-nums; font-weight: 800;">MMK ${formatDashboardAmount(balanceDue)}</span>
                     </div>
                 </div>
 
-                <div class="prc-thank-you" style="text-align: center; font-style: italic; font-size: 12.5px; color: #5F6B78; margin-top: auto; margin-bottom: auto; padding: 22px 0;">
+                <div class="prc-thank-you" style="text-align: center; font-style: italic; font-size: ${isCompact ? '11px' : '12px'}; color: #5F6B78; margin-top: auto; margin-bottom: auto; padding: ${isVeryCompact ? '6px 0' : (isCompact ? '10px 0' : '20px 0')};">
                     Thank you for choosing Ocean Travel. Please transfer the outstanding balance to one of our accounts below.
                 </div>
 
-                <div class="prc-payment-section" style="margin-top: auto; margin-bottom: 24px; width: 100%;">
-                    <div class="prc-payment-title" style="font-size: 12px; font-weight: 700; color: #232323; letter-spacing: 0.04em; margin-bottom: 4px;">PAYMENT METHODS</div>
-                    <div class="prc-account-name" style="font-size: 13px; font-weight: 700; color: #AA0F11; margin-bottom: 12px;">Account Name: AUNG PYAE SONE</div>
-                    <div class="prc-bank-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%;">
+                <div class="prc-payment-section" style="margin-top: auto; margin-bottom: ${isCompact ? '12px' : '24px'}; width: 100%;">
+                    <div class="prc-payment-title" style="font-size: 11.5px; font-weight: 700; color: #232323; letter-spacing: 0.04em; margin-bottom: 3px;">PAYMENT METHODS</div>
+                    <div class="prc-account-name" style="font-size: 12px; font-weight: 700; color: #AA0F11; margin-bottom: ${isCompact ? '6px' : '12px'};">Account Name: AUNG PYAE SONE</div>
+                    <div class="prc-bank-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: ${isCompact ? '10px' : '14px'}; width: 100%;">
                         ${bankCardsHtml}
                     </div>
                 </div>
 
-                <div class="prc-footer" style="margin-top: auto; text-align: center; padding-top: 24px; width: 100%;">
-                    <div class="prc-footer-tagline" style="font-size: 11px; font-weight: 700; color: #AA0F11; letter-spacing: 0.08em; margin-bottom: 5px;">EXPLORE. DISCOVER. EXPERIENCE.</div>
-                    <div class="prc-footer-line" style="width: 70px; height: 1px; background: #E2E6EA; margin: 0 auto 6px;"></div>
-                    <div class="prc-footer-contact" style="font-size: 10px; color: #5F6B78;">OCEAN TRAVEL & TOUR CO., LTD. · oceantravel.mm@gmail.com · 09964403435 / 09740862500</div>
+                <div class="prc-footer" style="margin-top: auto; text-align: center; padding-top: ${isCompact ? '10px' : '20px'}; width: 100%;">
+                    <div class="prc-footer-tagline" style="font-size: 10.5px; font-weight: 700; color: #AA0F11; letter-spacing: 0.08em; margin-bottom: 4px;">EXPLORE. DISCOVER. EXPERIENCE.</div>
+                    <div class="prc-footer-line" style="width: 70px; height: 1px; background: #E2E6EA; margin: 0 auto 5px;"></div>
+                    <div class="prc-footer-contact" style="font-size: 9.5px; color: #5F6B78;">OCEAN TRAVEL & TOUR CO., LTD. · oceantravel.mm@gmail.com · 09964403435 / 09740862500</div>
                 </div>
             </div>
         `;
@@ -2878,6 +2944,9 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
     const initialGroupsToUse = getActiveGroups();
     const initialItems = buildLineItems(initialGroupsToUse);
     const initialSummary = computeSummary(initialItems, initialGroupsToUse);
+    const isInitialCompact = initialItems.length >= 7;
+    const isInitialVeryCompact = initialItems.length >= 10;
+    const initialPadding = isInitialVeryCompact ? '24px 38px 20px' : (isInitialCompact ? '28px 44px 24px' : '44px 56px 40px');
 
     const modalHtml = `
         <div class="prc-modal-wrapper">
@@ -2925,7 +2994,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             </div>
 
             <div class="prc-preview-scroll-viewport">
-                <div id="paymentReminderCardCanvasTarget" class="payment-reminder-card-sheet" style="width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; box-sizing: border-box; margin: 0 auto; padding: 44px 56px 40px; background: #ffffff; color: #232323; font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; text-align: left;">
+                <div id="paymentReminderCardCanvasTarget" class="payment-reminder-card-sheet" style="width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; box-sizing: border-box; margin: 0 auto; padding: ${initialPadding}; background: #ffffff; color: #232323; font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; text-align: left;">
                     ${buildCardInnerHtml()}
                 </div>
             </div>
@@ -2936,7 +3005,14 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
     const refreshCardView = () => {
         const target = document.getElementById('paymentReminderCardCanvasTarget');
-        if (target) target.innerHTML = buildCardInnerHtml();
+        if (target) {
+            const grps = getActiveGroups();
+            const itms = buildLineItems(grps);
+            const isComp = itms.length >= 7;
+            const isVeryComp = itms.length >= 10;
+            target.style.padding = isVeryComp ? '24px 38px 20px' : (isComp ? '28px 44px 24px' : '44px 56px 40px');
+            target.innerHTML = buildCardInnerHtml();
+        }
     };
 
     const waitForTargetImages = (root) => {
@@ -3066,6 +3142,12 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             if (pdfHeight <= 297.5) {
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            } else if (pdfHeight <= 340) {
+                // If content slightly exceeds standard A4 (within ~14%), scale proportionally to fit cleanly on 1 single page!
+                const scale = 297 / pdfHeight;
+                const scaledWidth = pdfWidth * scale;
+                const xOffset = (pdfWidth - scaledWidth) / 2;
+                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, 297);
             } else {
                 let heightLeft = pdfHeight;
                 let position = 0;
