@@ -58,6 +58,156 @@ export const DESTINATION_PRESETS = {
         bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
         benefits: 'Express check-in, Free WiFi, Breakfast included'
     },
+    Bali: {
+        destination: 'Bali',
+        propertyName: 'Mercure Kuta Bali',
+        propertyAddress: 'Jalan Pantai Kuta 10 X, Br. Pande Mas,\nKuta, Bali 80361, Indonesia',
+        propertyContact: '+62 361 767 411',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Pool access'
+    },
+    Beijing: {
+        destination: 'Beijing',
+        propertyName: 'Novotel Beijing Peace',
+        propertyAddress: '3 Jinyu Hutong, Dongcheng District,\nBeijing 100006, China',
+        propertyContact: '+86 10 6512 8833',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Chengdu: {
+        destination: 'Chengdu',
+        propertyName: 'Dorsett Chengdu',
+        propertyAddress: '168 Xi Yulong Street, Qingyang District,\nChengdu, Sichuan 610041, China',
+        propertyContact: '+86 28 8332 8666',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Dubai: {
+        destination: 'Dubai',
+        propertyName: 'Rove Downtown',
+        propertyAddress: '312 Al Mustaqbal Street, Zabeel 2,\nDubai, United Arab Emirates',
+        propertyContact: '+971 4 561 9999',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Free Parking'
+    },
+    'Hong Kong': {
+        destination: 'Hong Kong',
+        propertyName: 'Park Hotel Hong Kong',
+        propertyAddress: '61-65 Chatham Road South, Tsim Sha Tsui,\nKowloon, Hong Kong',
+        propertyContact: '+852 2731 2100',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    'New Delhi': {
+        destination: 'New Delhi',
+        propertyName: 'The Hans, New Delhi',
+        propertyAddress: '15 Barakhamba Road, Connaught Place,\nNew Delhi, Delhi 110001, India',
+        propertyContact: '+91 11 2371 3951',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Osaka: {
+        destination: 'Osaka',
+        propertyName: 'Cross Hotel Osaka',
+        propertyAddress: '2-5-15 Shinsaibashisuji, Chuo-ku,\nOsaka 542-0085, Japan',
+        propertyContact: '+81 6 6213 8281',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Pattaya: {
+        destination: 'Pattaya',
+        propertyName: 'Holiday Inn Express Pattaya Central',
+        propertyAddress: '293/16 Moo 10, Nongprue, Banglamung,\nPattaya, Chonburi 20150, Thailand',
+        propertyContact: '+66 33 265 999',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Breakfast included'
+    },
+    Penang: {
+        destination: 'Penang',
+        propertyName: 'Cititel Penang',
+        propertyAddress: '66 Jalan Penang, 10000 George Town,\nPulau Pinang, Malaysia',
+        propertyContact: '+60 4 291 1188',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    'Phnom Penh': {
+        destination: 'Phnom Penh',
+        propertyName: 'SUN & MOON, Urban Hotel',
+        propertyAddress: 'No. 68, Corner of Street 136 & Street 15,\nSangkat Phsar Kandal 1, Khan Daun Penh, Phnom Penh, Cambodia',
+        propertyContact: '+855 23 961 888',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Phuket: {
+        destination: 'Phuket',
+        propertyName: 'SLEEP WITH ME HOTEL design hotel @ patong',
+        propertyAddress: '187/5 Rat-U-Thit 200 Pee Road, Patong Beach,\nKathu, Phuket 83150, Thailand',
+        propertyContact: '+66 76 363 333',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Pool access'
+    },
+    Seoul: {
+        destination: 'Seoul',
+        propertyName: 'L7 Myeongdong',
+        propertyAddress: '137 Toegye-ro, Jung-gu,\nSeoul 04537, South Korea',
+        propertyContact: '+82 2 6310 1000',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Shanghai: {
+        destination: 'Shanghai',
+        propertyName: 'Holiday Inn Shanghai Nanjing Road',
+        propertyAddress: '595 Jiujiang Road, Huangpu District,\nShanghai 200001, China',
+        propertyContact: '+86 21 3313 4888',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Taipei: {
+        destination: 'Taipei',
+        propertyName: 'Hotel Midtown Richardson',
+        propertyAddress: 'No. 4, Xiushan St., Zhongzheng Dist.,\nTaipei City 100, Taiwan',
+        propertyContact: '+886 2 2375 7777',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Tokyo: {
+        destination: 'Tokyo',
+        propertyName: 'Hotel Gracery Shinjuku',
+        propertyAddress: '1-19-1 Kabukicho, Shinjuku-ku,\nTokyo 160-8466, Japan',
+        propertyContact: '+81 3 6833 1111',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
     Guangzhou: {
         destination: 'Guangzhou',
         propertyName: 'Grand Park Guangzhou Hotel',
@@ -163,6 +313,10 @@ DESTINATION_PRESETS.ChiangMai = DESTINATION_PRESETS['Chiang Mai'];
 DESTINATION_PRESETS['R2 Hotel Chiangmai'] = DESTINATION_PRESETS['Chiang Mai - R2'];
 DESTINATION_PRESETS['Ibis Styles Kunming'] = DESTINATION_PRESETS.Kunming;
 DESTINATION_PRESETS['Landmark Vientiane Life Center'] = DESTINATION_PRESETS.Vientiane;
+DESTINATION_PRESETS.HongKong = DESTINATION_PRESETS['Hong Kong'];
+DESTINATION_PRESETS.NewDelhi = DESTINATION_PRESETS['New Delhi'];
+DESTINATION_PRESETS.Delhi = DESTINATION_PRESETS['New Delhi'];
+DESTINATION_PRESETS.PhnomPenh = DESTINATION_PRESETS['Phnom Penh'];
 DESTINATION_PRESETS.DaNang = DESTINATION_PRESETS['Da Nang'];
 DESTINATION_PRESETS.HoChiMinh = DESTINATION_PRESETS['Ho Chi Minh'];
 DESTINATION_PRESETS.Saigon = DESTINATION_PRESETS['Ho Chi Minh'];
@@ -1440,10 +1594,55 @@ function detectHotelDestination(text = '', propertyName = '', propertyAddress = 
     if (combined.includes('kunming') || combined.includes('nanping') || combined.includes('qingnian road') || combined.includes('yunnan')) {
         return 'Kunming';
     }
-    if (combined.includes('guangzhou') || combined.includes('china') || combined.includes('beijing') || combined.includes('shanghai') || combined.includes('shenzhen') || combined.includes('chengdu')) {
+    if (combined.includes('beijing') || combined.includes('jinyu hutong') || combined.includes('wangfujing')) {
+        return 'Beijing';
+    }
+    if (combined.includes('shanghai') || combined.includes('jiujiang road') || combined.includes('nanjing road')) {
+        return 'Shanghai';
+    }
+    if (combined.includes('chengdu') || combined.includes('sichuan') || combined.includes('xi yulong')) {
+        return 'Chengdu';
+    }
+    if (combined.includes('tokyo') || combined.includes('shinjuku') || combined.includes('kabukicho') || combined.includes('gracery')) {
+        return 'Tokyo';
+    }
+    if (combined.includes('osaka') || combined.includes('shinsaibashi') || combined.includes('dotonbori') || combined.includes('namba')) {
+        return 'Osaka';
+    }
+    if (combined.includes('seoul') || combined.includes('myeongdong') || combined.includes('toegye-ro') || combined.includes('south korea') || combined.includes('korea')) {
+        return 'Seoul';
+    }
+    if (combined.includes('taipei') || combined.includes('taiwan') || combined.includes('ximen') || combined.includes('midtown richardson')) {
+        return 'Taipei';
+    }
+    if (combined.includes('hong kong') || combined.includes('hongkong') || combined.includes('kowloon') || combined.includes('tsim sha tsui')) {
+        return 'Hong Kong';
+    }
+    if (combined.includes('phuket') || combined.includes('patong') || combined.includes('rat-u-thit')) {
+        return 'Phuket';
+    }
+    if (combined.includes('pattaya') || combined.includes('chonburi') || combined.includes('banglamung')) {
+        return 'Pattaya';
+    }
+    if (combined.includes('bali') || combined.includes('kuta') || combined.includes('denpasar') || combined.includes('indonesia')) {
+        return 'Bali';
+    }
+    if (combined.includes('phnom penh') || combined.includes('cambodia') || combined.includes('daun penh') || combined.includes('sun & moon')) {
+        return 'Phnom Penh';
+    }
+    if (combined.includes('penang') || combined.includes('george town') || combined.includes('cititel penang') || combined.includes('pulau pinang')) {
+        return 'Penang';
+    }
+    if (combined.includes('new delhi') || combined.includes('delhi') || combined.includes('connaught place') || combined.includes('barakhamba') || combined.includes('india')) {
+        return 'New Delhi';
+    }
+    if (combined.includes('dubai') || combined.includes('united arab emirates') || combined.includes('uae') || combined.includes('rove downtown')) {
+        return 'Dubai';
+    }
+    if (combined.includes('guangzhou') || combined.includes('china') || combined.includes('shenzhen')) {
         return 'Guangzhou';
     }
-    if (combined.includes('kuala lumpur') || combined.includes('malaysia') || combined.includes('penang')) {
+    if (combined.includes('kuala lumpur') || combined.includes('malaysia')) {
         return 'Kuala Lumpur';
     }
     if (combined.includes('lotte')) return 'Yangon - Lotte';

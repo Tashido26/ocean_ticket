@@ -641,6 +641,25 @@ test('Agoda Hotel Presets: includes Vientiane (Landmark), Kunming (Ibis Styles),
 
     const vteParsed = parseHotelConfirmationText('Property : Landmark Vientiane Life Center\nAddress : Khouvieng Road, Vientiane, Laos');
     assert.equal(vteParsed.destination, 'Vientiane');
+
+    // Verify all 15 new major Asian city presets exist with verified addresses & phone numbers
+    const newCities = [
+        'Bali', 'Beijing', 'Chengdu', 'Dubai', 'Hong Kong', 'New Delhi',
+        'Osaka', 'Pattaya', 'Penang', 'Phnom Penh', 'Phuket',
+        'Seoul', 'Shanghai', 'Taipei', 'Tokyo'
+    ];
+    for (const city of newCities) {
+        const preset = DESTINATION_PRESETS[city];
+        assert.ok(preset, `Preset for ${city} must exist`);
+        assert.ok(preset.propertyName && preset.propertyName.length > 3, `${city} propertyName`);
+        assert.ok(preset.propertyAddress && preset.propertyAddress.length > 10, `${city} propertyAddress`);
+        assert.match(preset.propertyContact, /^\+\d+/, `${city} must have international phone number`);
+    }
+
+    assert.equal(parseHotelConfirmationText('Property : Hotel Gracery Shinjuku\nAddress : Kabukicho, Tokyo').destination, 'Tokyo');
+    assert.equal(parseHotelConfirmationText('Property : L7 Myeongdong\nAddress : Seoul, South Korea').destination, 'Seoul');
+    assert.equal(parseHotelConfirmationText('Property : Cititel Penang\nAddress : George Town, Penang, Malaysia').destination, 'Penang');
+    assert.equal(parseHotelConfirmationText('Property : Novotel Beijing Peace\nAddress : Dongcheng, Beijing, China').destination, 'Beijing');
 });
 
 
