@@ -3299,6 +3299,315 @@ body.material-theme #modal.solid-modal-open .modal-content.solid-modal.prc-dialo
     background: #095763 !important;
 }
 
+#prcCopyTextBtn:disabled,
+#prcDownloadPdfBtn:disabled,
+#prcDownloadPngBtn:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+}
+
+/* Selective PNR / Item Picker Bar inside Payment Reminder Modal */
+#prcSelectorBarHost {
+    flex-shrink: 0 !important;
+}
+
+.prc-selector-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #DCE7EA !important;
+    border-radius: 10px !important;
+}
+
+.prc-selector-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+.prc-selector-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #365059 !important;
+}
+
+.prc-selector-title i {
+    color: #0C6B7A !important;
+    font-size: 12px !important;
+}
+
+.prc-selector-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 1px 7px !important;
+    border-radius: 999px !important;
+    background: #E8F4F6 !important;
+    color: #0C6B7A !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+.prc-selector-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.prc-sel-mini-btn {
+    height: 24px !important;
+    padding: 0 9px !important;
+    border-radius: 6px !important;
+    border: 1px solid #D3E1E4 !important;
+    background: #F8FBFB !important;
+    color: #355059 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.14s ease !important;
+}
+
+.prc-sel-mini-btn:hover:not(:disabled) {
+    background: #EBF4F6 !important;
+    border-color: #B4CDD3 !important;
+}
+
+.prc-sel-mini-btn:disabled {
+    opacity: 0.45 !important;
+    cursor: default !important;
+}
+
+.prc-sel-expand-btn {
+    color: #0C6B7A !important;
+    border-color: #BDD8DD !important;
+    background: #F0F8F9 !important;
+}
+
+.prc-pnr-pills {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+}
+
+.prc-pnr-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 4px 9px !important;
+    border-radius: 8px !important;
+    border: 1px solid #CFE0E3 !important;
+    background: #F6FAFA !important;
+    color: #24363D !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.14s ease !important;
+    max-width: 240px !important;
+}
+
+.prc-pnr-pill.is-checked {
+    background: #E8F5F7 !important;
+    border-color: #0C6B7A !important;
+    color: #0B4D58 !important;
+}
+
+.prc-pnr-pill.is-checked i {
+    color: #0C6B7A !important;
+}
+
+.prc-pnr-pill.is-partial {
+    background: #FEF9EC !important;
+    border-color: #D97706 !important;
+    color: #92400E !important;
+}
+
+.prc-pnr-pill.is-partial i {
+    color: #D97706 !important;
+}
+
+.prc-pnr-pill.is-unchecked {
+    background: #F8FAFC !important;
+    border-color: #DDE5E8 !important;
+    color: #8497A0 !important;
+    text-decoration: line-through !important;
+}
+
+.prc-pnr-pill.is-unchecked i {
+    color: #94A3B8 !important;
+}
+
+.prc-pnr-pill-code {
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.prc-pnr-pill-name {
+    font-weight: 500 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 115px !important;
+}
+
+.prc-pnr-pill-count {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: rgba(12, 107, 122, 0.12) !important;
+    color: inherit !important;
+}
+
+.prc-item-checklist {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    max-height: 156px !important;
+    overflow-y: auto !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed #DDE7EA !important;
+}
+
+.prc-item-check-row {
+    display: grid !important;
+    grid-template-columns: 16px 26px 68px minmax(110px, 1fr) minmax(120px, 1.1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 4px 8px !important;
+    border-radius: 7px !important;
+    font-size: 11.5px !important;
+    cursor: pointer !important;
+    transition: background 0.12s ease !important;
+}
+
+.prc-item-check-row:hover {
+    background: #F1F7F8 !important;
+}
+
+.prc-item-check-row.is-unchecked {
+    opacity: 0.52 !important;
+}
+
+.prc-item-checkbox {
+    width: 14px !important;
+    height: 14px !important;
+    accent-color: #0C6B7A !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+}
+
+.prc-item-idx {
+    color: #6B8089 !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+}
+
+.prc-item-pnr {
+    font-weight: 700 !important;
+    color: #1F2D33 !important;
+}
+
+.prc-item-pax {
+    font-weight: 600 !important;
+    color: #24363D !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.prc-item-fee-tag {
+    display: inline-block !important;
+    padding: 0 4px !important;
+    border-radius: 4px !important;
+    background: #FEF3C7 !important;
+    color: #B45309 !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    margin-left: 3px !important;
+}
+
+.prc-item-route {
+    color: #556C75 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.prc-item-amt {
+    font-weight: 700 !important;
+    color: #0F272E !important;
+    font-variant-numeric: tabular-nums !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+body.dark-theme .prc-selector-bar,
+body.material-theme.dark-theme .prc-selector-bar {
+    background: #131C2E !important;
+    border-color: #283852 !important;
+}
+
+body.dark-theme .prc-selector-title,
+body.material-theme.dark-theme .prc-selector-title {
+    color: #CBD5E1 !important;
+}
+
+body.dark-theme .prc-selector-count,
+body.material-theme.dark-theme .prc-selector-count {
+    background: rgba(20, 184, 166, 0.16) !important;
+    color: #5EEAD4 !important;
+}
+
+body.dark-theme .prc-sel-mini-btn,
+body.material-theme.dark-theme .prc-sel-mini-btn {
+    background: #1B273E !important;
+    border-color: #2F415F !important;
+    color: #CBD5E1 !important;
+}
+
+body.dark-theme .prc-pnr-pill.is-checked,
+body.material-theme.dark-theme .prc-pnr-pill.is-checked {
+    background: rgba(20, 184, 166, 0.18) !important;
+    border-color: #14B8A6 !important;
+    color: #CCFBF1 !important;
+}
+
+body.dark-theme .prc-pnr-pill.is-unchecked,
+body.material-theme.dark-theme .prc-pnr-pill.is-unchecked {
+    background: #172135 !important;
+    border-color: #293852 !important;
+    color: #64748B !important;
+}
+
+body.dark-theme .prc-item-check-row:hover,
+body.material-theme.dark-theme .prc-item-check-row:hover {
+    background: #1B273E !important;
+}
+
+body.dark-theme .prc-item-pnr,
+body.dark-theme .prc-item-pax,
+body.dark-theme .prc-item-amt,
+body.material-theme.dark-theme .prc-item-pnr,
+body.material-theme.dark-theme .prc-item-pax,
+body.material-theme.dark-theme .prc-item-amt {
+    color: #F1F5F9 !important;
+}
+
+body.dark-theme .prc-item-route,
+body.material-theme.dark-theme .prc-item-route {
+    color: #94A3B8 !important;
+}
+
 .prc-preview-scroll-viewport {
     flex: 1 1 auto !important;
     min-height: 0 !important;

@@ -2663,6 +2663,8 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
         : (accountMatchedGroups.length > 1 ? 'account' : 'all');
     let customExtraPaid = null; // null means use computed paidAmount from tickets
     let customExtraAgentFare = null; // null means use computed unsettled sub_agent_fare
+    let excludedItemKeys = new Set(); // empty = all items in active scope selected
+    let isItemListExpanded = false;
 
     const todayFormatted = new Date().toLocaleDateString('en-GB', {
         day: '2-digit', month: 'short', year: 'numeric'
@@ -2690,7 +2692,8 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
     const buildLineItems = (groupsToUse) => {
         const items = [];
-        groupsToUse.forEach(group => {
+        groupsToUse.forEach((group, groupIdx) => {
+            const groupKey = `${groupIdx}:${group.isHotel ? (group.hotelId || group.pnr) : group.pnr}`;
             const rows = Array.isArray(group.ticketRows) && group.ticketRows.length > 0
                 ? group.ticketRows
                 : [];
@@ -2711,7 +2714,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
                 const targetRows = unpaidRows.length > 0 ? unpaidRows : rows;
 
-                targetRows.forEach(t => {
+                targetRows.forEach((t, rowIdx) => {
                     const gross = ticketGrossAmount(t);
                     const agentFare = ticketUnsettledAgentFare(t);
                     const paid = isTicketPaid(t)
@@ -2738,6 +2741,9 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                         itemRoute = group.route;
                     }
                     items.push({
+                        itemKey: `${groupKey}:${rowIdx}`,
+                        groupKey,
+                        groupClient: group.client || 'Passenger',
                         pnr: group.pnr,
                         issuedDate: String(t.issued_date || group.issuedDateStr || '').trim() || '-',
                         passenger: String(t.name || group.client || 'Passenger').trim(),
@@ -2753,6 +2759,9 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                 });
             } else {
                 items.push({
+                    itemKey: `${groupKey}:summary`,
+                    groupKey,
+                    groupClient: group.client || 'Passenger',
                     pnr: group.pnr,
                     issuedDate: group.issuedDateStr || '-',
                     passenger: group.client,
@@ -2770,13 +2779,21 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
         return items;
     };
 
-    const computeSummary = (items, groupsToUse = getActiveGroups()) => {
+    const getSelectedLineItems = (groupsToUse = getActiveGroups()) => {
+        const allItems = buildLineItems(groupsToUse);
+        const selectedItems = allItems.filter(it => !excludedItemKeys.has(it.itemKey));
+        const selectedPnrs = [...new Set(selectedItems.map(it => it.pnr).filter(Boolean))];
+        const isPartial = selectedItems.length < allItems.length;
+        return { allItems, selectedItems, selectedPnrs, isPartial };
+    };
+
+    const computeSummary = (items, groupsToUse = getActiveGroups(), { isPartial = false } = {}) => {
         const totalGross = items.reduce((s, item) => s + item.gross, 0);
         const defaultPaid = items.reduce((s, item) => s + item.paid, 0);
         const itemsAgentFare = items.reduce((s, item) => s + (item.agentFare || 0), 0);
         const groupTicketRows = (groupsToUse || []).flatMap(g => g.ticketRows || []);
         const activeLead = getActiveLeadGroup();
-        const defaultAgentFare = scopeMode === 'single'
+        const defaultAgentFare = (scopeMode === 'single' || isPartial)
             ? itemsAgentFare
             : Math.max(
                 itemsAgentFare,
@@ -2796,14 +2813,33 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
         const groupsToUse = getActiveGroups();
         const activeLead = getActiveLeadGroup();
         const activeDisplayName = getActiveDisplayName();
-        const items = buildLineItems(groupsToUse);
-        const { totalGross, effectiveAgentFare, effectivePaid, balanceDue } = computeSummary(items, groupsToUse);
+        const { selectedItems: items, selectedPnrs, isPartial } = getSelectedLineItems(groupsToUse);
+
+        if (items.length === 0) {
+            return `
+                <style id="prcCardEmbeddedStyles">${REMINDER_CARD_STYLE_CSS}</style>
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 64px 32px; color: #5F6B78;">
+                    <i class="fa-solid fa-list-check" style="font-size: 36px; color: #94A3B8; margin-bottom: 14px;"></i>
+                    <div style="font-size: 16px; font-weight: 700; color: #232323; margin-bottom: 6px;">No items selected</div>
+                    <div style="font-size: 13px; color: #5F6B78; max-width: 360px; line-height: 1.5;">
+                        Please select at least 1 booking or item from the selector bar above to preview and download the Payment Reminder Card.
+                    </div>
+                </div>
+            `;
+        }
+
+        const { totalGross, effectiveAgentFare, effectivePaid, balanceDue } = computeSummary(items, groupsToUse, { isPartial });
 
         const isCompact = items.length >= 7;
         const isVeryCompact = items.length >= 10;
         const rowPadding = isVeryCompact ? '4px 4px' : (isCompact ? '5px 5px' : '8px 6px');
         const fontSizeMain = isVeryCompact ? '10.5px' : (isCompact ? '11px' : '11.5px');
         const fontSizeSub = isVeryCompact ? '9px' : (isCompact ? '9.5px' : '10px');
+        const docIdPnr = selectedPnrs.length === 1 ? selectedPnrs[0] : (activeLead.pnr || 'OCT26');
+        const pnrCount = selectedPnrs.length || 1;
+        const bookingSummaryLine = (scopeMode === 'single' || pnrCount === 1)
+            ? `Booking: PNR ${dashboardEscapeHtml(selectedPnrs[0] || activeLead.pnr)} (${items.length} Item${items.length > 1 ? 's' : ''})`
+            : `Unpaid Bookings: ${pnrCount} PNRs (${items.length} Item${items.length > 1 ? 's' : ''})`;
 
         const rowsHtml = items.map((item, idx) => `
             <tr style="${idx % 2 === 1 ? 'background: #F7F8F9;' : 'background: #FFFFFF;'}">
@@ -2852,7 +2888,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                     </div>
                     <div class="prc-top-right" style="text-align: right;">
                         <h1 class="prc-doc-type" style="margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: 0.04em; color: #232323; line-height: 1.1;">PAYMENT REMINDER</h1>
-                        <p class="prc-doc-id" style="margin: 0 0 3px; font-size: 13px; color: #5F6B78; font-weight: 600;">PR-${dashboardEscapeHtml(activeLead.pnr || 'OCT26')}</p>
+                        <p class="prc-doc-id" style="margin: 0 0 3px; font-size: 13px; color: #5F6B78; font-weight: 600;">PR-${dashboardEscapeHtml(docIdPnr)}</p>
                         <p class="prc-doc-date" style="margin: 0; font-size: 13px; color: #5F6B78;">${dashboardEscapeHtml(todayFormatted)} · Due on Receipt</p>
                     </div>
                 </div>
@@ -2869,7 +2905,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                         <div class="prc-billed-label" style="font-size: 10px; font-weight: 700; color: #AA0F11; margin-bottom: 3px; letter-spacing: 0.05em;">BILLED TO</div>
                         <div class="prc-client-name" style="font-size: ${isCompact ? '16px' : '18px'}; font-weight: 700; color: #232323; margin-bottom: 3px;">${dashboardEscapeHtml(activeDisplayName)}</div>
                         ${activeLead.socialAccount ? `<div class="prc-pnr-line" style="font-size: 11px; color: #232323; line-height: 1.4;">Account: ${dashboardEscapeHtml(activeLead.socialAccount)}${activeLead.accountType ? ` · <span class="prc-platform-badge" style="display: inline-block; padding: 1px 7px; border-radius: 999px; background: #EEF4F5; border: 1px solid #D3DFE2; color: #0D2B33; font-size: 9.5px; font-weight: 700;">${dashboardEscapeHtml(activeLead.accountType)}</span>` : ''}</div>` : ''}
-                        <div class="prc-pnr-line" style="font-size: 11px; color: #232323; line-height: 1.4;">${scopeMode === 'single' ? `Booking: PNR ${dashboardEscapeHtml(activeLead.pnr)}` : `Unpaid Bookings: ${groupsToUse.length} PNR${groupsToUse.length > 1 ? 's' : ''}`} (${items.length} Item${items.length > 1 ? 's' : ''})</div>
+                        <div class="prc-pnr-line" style="font-size: 11px; color: #232323; line-height: 1.4;">${bookingSummaryLine}</div>
                     </div>
                     <div class="prc-meta-right" style="display: flex; flex-direction: column; gap: ${isCompact ? '3px' : '5px'}; min-width: 180px;">
                         <div class="prc-meta-row" style="display: flex; justify-content: space-between; font-size: 11px;"><span class="prc-meta-label" style="color: #5F6B78;">Reminder Date</span><span class="prc-meta-val" style="font-weight: 700; color: #232323;">${dashboardEscapeHtml(todayFormatted)}</span></div>
@@ -2942,8 +2978,9 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
     const buildReminderTextMm = () => {
         const groupsToUse = getActiveGroups();
         const activeDisplayName = getActiveDisplayName();
-        const items = buildLineItems(groupsToUse);
-        const { totalGross, effectiveAgentFare, effectivePaid, balanceDue } = computeSummary(items, groupsToUse);
+        const { selectedItems: items, selectedPnrs, isPartial } = getSelectedLineItems(groupsToUse);
+        if (items.length === 0) return '';
+        const { totalGross, effectiveAgentFare, effectivePaid, balanceDue } = computeSummary(items, groupsToUse, { isPartial });
         const lines = items.map((item, idx) =>
             `  ${idx + 1}. PNR: ${item.pnr} | ${item.passenger} (${item.route}, ${item.travelDate}) — ${formatDashboardAmount(item.gross)} MMK`
         ).join('\n');
@@ -2952,7 +2989,7 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             `မင်္ဂလာပါ ${activeDisplayName} ခင်ဗျာ 🙏`,
             `Ocean Travel မှ လူကြီးမင်း၏ မရှင်းလင်းရသေးသော လေယာဉ်လက်မှတ် စာရင်းချုပ် (Payment Reminder) အား လေးစားစွာ ပေးပို့အပ်ပါသည်ခင်ဗျာ။`,
             ``,
-            `🎫 လက်မှတ်စာရင်း (${groupsToUse.length} PNR / ${items.length} စောင်)`,
+            `🎫 လက်မှတ်စာရင်း (${selectedPnrs.length || 1} PNR / ${items.length} စောင်)`,
             lines,
             ``,
             `💰 ငွေစာရင်းချုပ်`,
@@ -2971,9 +3008,97 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
         ].join('\n');
     };
 
+    const buildSelectorBarHtml = () => {
+        const groupsToUse = getActiveGroups();
+        const { allItems, selectedItems } = getSelectedLineItems(groupsToUse);
+        if (allItems.length <= 1) return '';
+
+        // Group items by groupKey for 1-click PNR toggle pills
+        const pnrBuckets = [];
+        const bucketMap = new Map();
+        allItems.forEach((it) => {
+            if (!bucketMap.has(it.groupKey)) {
+                const bucket = {
+                    groupKey: it.groupKey,
+                    pnr: it.pnr,
+                    client: it.groupClient || it.passenger,
+                    items: []
+                };
+                bucketMap.set(it.groupKey, bucket);
+                pnrBuckets.push(bucket);
+            }
+            bucketMap.get(it.groupKey).items.push(it);
+        });
+
+        const pillsHtml = pnrBuckets.length > 1
+            ? `<div class="prc-pnr-pills">
+                ${pnrBuckets.map((b) => {
+                    const totalInBucket = b.items.length;
+                    const checkedInBucket = b.items.filter(it => !excludedItemKeys.has(it.itemKey)).length;
+                    const stateClass = checkedInBucket === totalInBucket
+                        ? 'is-checked'
+                        : (checkedInBucket > 0 ? 'is-partial' : 'is-unchecked');
+                    const iconClass = checkedInBucket === totalInBucket
+                        ? 'fa-solid fa-square-check'
+                        : (checkedInBucket > 0 ? 'fa-solid fa-square-minus' : 'fa-regular fa-square');
+                    const countText = checkedInBucket === totalInBucket || checkedInBucket === 0
+                        ? `${totalInBucket}`
+                        : `${checkedInBucket}/${totalInBucket}`;
+                    return `
+                        <button type="button" class="prc-pnr-pill ${stateClass}" data-prc-group-key="${dashboardEscapeHtml(b.groupKey)}" title="Click to toggle PNR ${dashboardEscapeHtml(b.pnr)} (${dashboardEscapeHtml(b.client)})">
+                            <i class="${iconClass}"></i>
+                            <span class="prc-pnr-pill-code">${dashboardEscapeHtml(b.pnr)}</span>
+                            <span class="prc-pnr-pill-name">${dashboardEscapeHtml(b.client)}</span>
+                            <span class="prc-pnr-pill-count">${countText}</span>
+                        </button>
+                    `;
+                }).join('')}
+            </div>`
+            : '';
+
+        const checklistHtml = `
+            <div class="prc-item-checklist" id="prcItemChecklist" style="display: ${isItemListExpanded ? 'flex' : 'none'};">
+                ${allItems.map((it, idx) => {
+                    const isChecked = !excludedItemKeys.has(it.itemKey);
+                    return `
+                        <label class="prc-item-check-row ${isChecked ? 'is-checked' : 'is-unchecked'}">
+                            <input type="checkbox" class="prc-item-checkbox" data-prc-item-key="${dashboardEscapeHtml(it.itemKey)}" ${isChecked ? 'checked' : ''}>
+                            <span class="prc-item-idx">#${idx + 1}</span>
+                            <span class="prc-item-pnr">${dashboardEscapeHtml(it.pnr)}</span>
+                            <span class="prc-item-pax">${dashboardEscapeHtml(it.passenger)}${it.isFee ? ' <span class="prc-item-fee-tag">Fee</span>' : ''}</span>
+                            <span class="prc-item-route">${dashboardEscapeHtml(it.route)}</span>
+                            <span class="prc-item-amt">${formatDashboardAmount(it.gross)} MMK</span>
+                        </label>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        return `
+            <div class="prc-selector-bar">
+                <div class="prc-selector-header">
+                    <div class="prc-selector-title">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Select Bookings / Items:</span>
+                        <strong class="prc-selector-count">${selectedItems.length} / ${allItems.length}</strong>
+                    </div>
+                    <div class="prc-selector-actions">
+                        <button type="button" class="prc-sel-mini-btn" id="prcSelectAllBtn" ${selectedItems.length === allItems.length ? 'disabled' : ''}>All</button>
+                        <button type="button" class="prc-sel-mini-btn" id="prcClearAllBtn" ${selectedItems.length === 0 ? 'disabled' : ''}>Clear</button>
+                        <button type="button" class="prc-sel-mini-btn prc-sel-expand-btn" id="prcToggleItemListBtn">
+                            <i class="fa-solid fa-chevron-${isItemListExpanded ? 'up' : 'down'}"></i> ${isItemListExpanded ? 'Hide Items' : 'Pick Items'}
+                        </button>
+                    </div>
+                </div>
+                ${pillsHtml}
+                ${checklistHtml}
+            </div>
+        `;
+    };
+
     const initialGroupsToUse = getActiveGroups();
-    const initialItems = buildLineItems(initialGroupsToUse);
-    const initialSummary = computeSummary(initialItems, initialGroupsToUse);
+    const { selectedItems: initialItems, isPartial: initialIsPartial } = getSelectedLineItems(initialGroupsToUse);
+    const initialSummary = computeSummary(initialItems, initialGroupsToUse, { isPartial: initialIsPartial });
     const isInitialCompact = initialItems.length >= 7;
     const isInitialVeryCompact = initialItems.length >= 10;
     const initialPadding = isInitialVeryCompact ? '24px 38px 20px' : (isInitialCompact ? '28px 44px 24px' : '44px 56px 40px');
@@ -3023,6 +3148,8 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                 </div>
             </div>
 
+            <div id="prcSelectorBarHost">${buildSelectorBarHtml()}</div>
+
             <div class="prc-preview-scroll-viewport">
                 <div id="paymentReminderCardCanvasTarget" class="payment-reminder-card-sheet" style="width: 794px; min-width: 794px; max-width: 794px; min-height: 1123px; box-sizing: border-box; margin: 0 auto; padding: ${initialPadding}; background: #ffffff; color: #232323; font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; text-align: left;">
                     ${buildCardInnerHtml()}
@@ -3033,17 +3160,99 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
     openModal(modalHtml, 'solid-modal prc-dialog-modal');
 
+    const syncSummaryInputs = () => {
+        const grps = getActiveGroups();
+        const { selectedItems, isPartial } = getSelectedLineItems(grps);
+        const newSummary = computeSummary(selectedItems, grps, { isPartial });
+        const agentInput = document.getElementById('prcCustomAgentFareInput');
+        if (agentInput) agentInput.value = newSummary.effectiveAgentFare;
+        const paidInput = document.getElementById('prcCustomPaidInput');
+        if (paidInput) paidInput.value = newSummary.effectivePaid;
+    };
+
     const refreshCardView = () => {
         const target = document.getElementById('paymentReminderCardCanvasTarget');
+        const grps = getActiveGroups();
+        const { selectedItems: itms } = getSelectedLineItems(grps);
         if (target) {
-            const grps = getActiveGroups();
-            const itms = buildLineItems(grps);
             const isComp = itms.length >= 7;
             const isVeryComp = itms.length >= 10;
             target.style.padding = isVeryComp ? '24px 38px 20px' : (isComp ? '28px 44px 24px' : '44px 56px 40px');
             target.innerHTML = buildCardInnerHtml();
         }
+        const hasSelection = itms.length > 0;
+        ['prcCopyTextBtn', 'prcDownloadPdfBtn', 'prcDownloadPngBtn'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = !hasSelection;
+        });
     };
+
+    const refreshSelectorBar = () => {
+        const host = document.getElementById('prcSelectorBarHost');
+        if (!host) return;
+        host.innerHTML = buildSelectorBarHtml();
+        wireSelectorBarEvents();
+    };
+
+    const handleSelectionChanged = () => {
+        customExtraPaid = null;
+        customExtraAgentFare = null;
+        syncSummaryInputs();
+        refreshSelectorBar();
+        refreshCardView();
+    };
+
+    const wireSelectorBarEvents = () => {
+        const host = document.getElementById('prcSelectorBarHost');
+        if (!host) return;
+
+        host.querySelector('#prcSelectAllBtn')?.addEventListener('click', () => {
+            excludedItemKeys.clear();
+            handleSelectionChanged();
+        });
+
+        host.querySelector('#prcClearAllBtn')?.addEventListener('click', () => {
+            const { allItems } = getSelectedLineItems(getActiveGroups());
+            excludedItemKeys = new Set(allItems.map(it => it.itemKey));
+            handleSelectionChanged();
+        });
+
+        host.querySelector('#prcToggleItemListBtn')?.addEventListener('click', () => {
+            isItemListExpanded = !isItemListExpanded;
+            refreshSelectorBar();
+        });
+
+        host.querySelectorAll('.prc-pnr-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const gKey = pill.dataset.prcGroupKey;
+                if (!gKey) return;
+                const { allItems } = getSelectedLineItems(getActiveGroups());
+                const bucketItems = allItems.filter(it => it.groupKey === gKey);
+                const allSelected = bucketItems.every(it => !excludedItemKeys.has(it.itemKey));
+                if (allSelected) {
+                    bucketItems.forEach(it => excludedItemKeys.add(it.itemKey));
+                } else {
+                    bucketItems.forEach(it => excludedItemKeys.delete(it.itemKey));
+                }
+                handleSelectionChanged();
+            });
+        });
+
+        host.querySelectorAll('.prc-item-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const itemKey = cb.dataset.prcItemKey;
+                if (!itemKey) return;
+                if (cb.checked) {
+                    excludedItemKeys.delete(itemKey);
+                } else {
+                    excludedItemKeys.add(itemKey);
+                }
+                handleSelectionChanged();
+            });
+        });
+    };
+
+    wireSelectorBarEvents();
 
     const waitForTargetImages = (root) => {
         const images = Array.from(root.querySelectorAll('img'));
@@ -3067,14 +3276,12 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             document.querySelectorAll('.prc-scope-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             scopeMode = btn.dataset.prcScope || 'single';
+            excludedItemKeys.clear();
+            isItemListExpanded = false;
             customExtraPaid = null;
             customExtraAgentFare = null;
-            const activeGrps = getActiveGroups();
-            const newSummary = computeSummary(buildLineItems(activeGrps), activeGrps);
-            const agentInput = document.getElementById('prcCustomAgentFareInput');
-            if (agentInput) agentInput.value = newSummary.effectiveAgentFare;
-            const paidInput = document.getElementById('prcCustomPaidInput');
-            if (paidInput) paidInput.value = newSummary.effectivePaid;
+            syncSummaryInputs();
+            refreshSelectorBar();
             refreshCardView();
         });
     });
@@ -3100,6 +3307,10 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
     const copyTextBtn = document.getElementById('prcCopyTextBtn');
     copyTextBtn?.addEventListener('click', async () => {
         const text = buildReminderTextMm();
+        if (!text) {
+            showToast('Please select at least 1 item first.', 'warning');
+            return;
+        }
         const ok = await copyCustomerMessageToClipboard(text);
         if (ok) {
             showToast('Payment Reminder စာသား ကူးယူပြီးပါပြီ!', 'success');
@@ -3113,6 +3324,11 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
     const downloadPngBtn = document.getElementById('prcDownloadPngBtn');
     downloadPngBtn?.addEventListener('click', async () => {
+        const { selectedItems } = getSelectedLineItems(getActiveGroups());
+        if (!selectedItems.length) {
+            showToast('Please select at least 1 item first.', 'warning');
+            return;
+        }
         const target = document.getElementById('paymentReminderCardCanvasTarget');
         if (!target) return;
         const origHtml = downloadPngBtn.innerHTML;
@@ -3145,6 +3361,11 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
 
     const downloadPdfBtn = document.getElementById('prcDownloadPdfBtn');
     downloadPdfBtn?.addEventListener('click', async () => {
+        const { selectedItems } = getSelectedLineItems(getActiveGroups());
+        if (!selectedItems.length) {
+            showToast('Please select at least 1 item first.', 'warning');
+            return;
+        }
         const target = document.getElementById('paymentReminderCardCanvasTarget');
         if (!target) return;
         const origHtml = downloadPdfBtn.innerHTML;

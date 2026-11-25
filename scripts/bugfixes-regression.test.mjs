@@ -519,4 +519,61 @@ test('Payment Reminder & Unpaid Grouping: exclude fully-paid zero-due tickets fr
     assert.equal(partialDue > 0, true, 'Partially paid ticket must be included in reminder line items');
 });
 
+test('Payment Reminder Selective Picker: subset selection recalculates totals, PNR count, and scopes agent fare to selected items', () => {
+    // Mirrors the 9 items under PHYO PHYO HTUN LWIN (5 PNRs)
+    const allItems = [
+        { itemKey: '0:1TZ51D:0', groupKey: '0:1TZ51D', pnr: '1TZ51D', passenger: 'KHIN MYAT HTAN', gross: 1320000, agentFare: 20000, paid: 0, due: 1320000 },
+        { itemKey: '0:1TZ51D:1', groupKey: '0:1TZ51D', pnr: '1TZ51D', passenger: 'KHIN MYAT HTAN', gross: 920000, agentFare: 20000, paid: 0, due: 920000 },
+        { itemKey: '1:1TZ51P:0', groupKey: '1:1TZ51P', pnr: '1TZ51P', passenger: 'EAINT PHOO PHOO KHIT', gross: 1320000, agentFare: 20000, paid: 0, due: 1320000 },
+        { itemKey: '1:1TZ51P:1', groupKey: '1:1TZ51P', pnr: '1TZ51P', passenger: 'EAINT PHOO PHOO KHIT', gross: 920000, agentFare: 20000, paid: 0, due: 920000 },
+        { itemKey: '2:1TZ540:0', groupKey: '2:1TZ540', pnr: '1TZ540', passenger: 'EI EI CHO', gross: 920000, agentFare: 20000, paid: 0, due: 920000 },
+        { itemKey: '2:1TZ540:1', groupKey: '2:1TZ540', pnr: '1TZ540', passenger: 'EI EI CHO', gross: 1090000, agentFare: 20000, paid: 0, due: 1090000 },
+        { itemKey: '3:1TZ53K:0', groupKey: '3:1TZ53K', pnr: '1TZ53K', passenger: 'MOE THIRI NAUNG', gross: 1210000, agentFare: 20000, paid: 0, due: 1210000 },
+        { itemKey: '3:1TZ53K:1', groupKey: '3:1TZ53K', pnr: '1TZ53K', passenger: 'MOE THIRI NAUNG', gross: 1840000, agentFare: 20000, paid: 0, due: 1840000 },
+        { itemKey: '4:1SFPD2:0', groupKey: '4:1SFPD2', pnr: '1SFPD2', passenger: 'THA DAR PHYU (Fees)', gross: 400000, agentFare: 0, paid: 0, due: 400000 }
+    ];
+
+    const accountUnsettledAgentFare = 160000;
+
+    const evaluateSelection = (excludedSet) => {
+        const selectedItems = allItems.filter(it => !excludedSet.has(it.itemKey));
+        const selectedPnrs = [...new Set(selectedItems.map(it => it.pnr))];
+        const isPartial = selectedItems.length < allItems.length;
+        const totalGross = selectedItems.reduce((s, it) => s + it.gross, 0);
+        const defaultPaid = selectedItems.reduce((s, it) => s + it.paid, 0);
+        const itemsAgentFare = selectedItems.reduce((s, it) => s + (it.agentFare || 0), 0);
+        const effectiveAgentFare = isPartial ? itemsAgentFare : Math.max(itemsAgentFare, accountUnsettledAgentFare);
+        const balanceDue = Math.max(0, totalGross - effectiveAgentFare - defaultPaid);
+        return { selectedItems, selectedPnrs, isPartial, totalGross, effectiveAgentFare, balanceDue };
+    };
+
+    // Case 1: All 9 items selected
+    const allRes = evaluateSelection(new Set());
+    assert.equal(allRes.selectedItems.length, 9);
+    assert.equal(allRes.selectedPnrs.length, 5);
+    assert.equal(allRes.totalGross, 9940000);
+    assert.equal(allRes.effectiveAgentFare, 160000);
+    assert.equal(allRes.balanceDue, 9780000);
+
+    // Case 2: Exclude item #9 (1SFPD2) — keep items 1..8 only (user's exact example)
+    const items1to8 = evaluateSelection(new Set(['4:1SFPD2:0']));
+    assert.equal(items1to8.selectedItems.length, 8);
+    assert.equal(items1to8.selectedPnrs.length, 4);
+    assert.equal(items1to8.isPartial, true);
+    assert.equal(items1to8.totalGross, 9540000);
+    assert.equal(items1to8.effectiveAgentFare, 160000);
+    assert.equal(items1to8.balanceDue, 9380000);
+
+    // Case 3: Select ONLY item #9 (1SFPD2) — must NOT leak 160,000 agent fare from items 1..8
+    const onlyItem9Excluded = new Set(allItems.filter(it => it.itemKey !== '4:1SFPD2:0').map(it => it.itemKey));
+    const item9Only = evaluateSelection(onlyItem9Excluded);
+    assert.equal(item9Only.selectedItems.length, 1);
+    assert.equal(item9Only.selectedPnrs.length, 1);
+    assert.equal(item9Only.selectedPnrs[0], '1SFPD2');
+    assert.equal(item9Only.totalGross, 400000);
+    assert.equal(item9Only.effectiveAgentFare, 0);
+    assert.equal(item9Only.balanceDue, 400000);
+});
+
+
 
