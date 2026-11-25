@@ -1115,8 +1115,8 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
 
 #home-view #tasks-reminders-box .panel-header h3 i,
 #home-view .tasks-reminders-panel .panel-header h3 i {
-    background: #FDF3E0 !important;
-    color: #DD9426 !important;
+    background: #FFF1F2 !important;
+    color: #E11D48 !important;
 }
 
 #home-view .panel-hint,
@@ -1638,8 +1638,8 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
     height: 18px !important;
     padding: 0 6px !important;
     border-radius: 999px !important;
-    background: #FDF3E0 !important;
-    color: #DD9426 !important;
+    background: #FFF1F2 !important;
+    color: #E11D48 !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     line-height: 18px !important;
@@ -1660,12 +1660,18 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
     gap: 8px !important;
     padding: 8px 10px !important;
     border-radius: 10px !important;
-    background: #FDF3E0 !important;
-    border: 1px solid rgba(221, 148, 38, 0.26) !important;
+    background: #FFF1F2 !important;
+    border: 1px solid #FECDD3 !important;
     width: 100% !important;
     text-align: left !important;
     cursor: pointer !important;
     box-shadow: none !important;
+    transition: background 0.15s ease, border-color 0.15s ease !important;
+}
+
+#home-view .dashboard-auto-task:hover {
+    background: #FFE4E6 !important;
+    border-color: #FDA4AF !important;
 }
 
 #home-view .dashboard-auto-task .task-auto-icon,
@@ -1673,8 +1679,8 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
     width: 24px !important;
     height: 24px !important;
     border-radius: 999px !important;
-    background: rgba(221, 148, 38, 0.18) !important;
-    color: #DD9426 !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
     font-size: 11.5px !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -1683,23 +1689,23 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
 
 #home-view .dashboard-auto-task.danger .task-auto-icon,
 #home-view .dashboard-auto-task.expired .auto-task-icon {
-    background: #FDEEE7 !important;
-    color: #E4572E !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
 #home-view .dashboard-auto-task.visa-reminder .task-auto-icon {
-    background: #E8F5F5 !important;
-    color: #0D6E77 !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
 #home-view .dashboard-auto-task.visa-reminder.danger .task-auto-icon {
-    background: #FDEEE7 !important;
-    color: #E4572E !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
 #home-view .dashboard-auto-task.visa-reminder.warning .task-auto-icon {
-    background: rgba(221, 148, 38, 0.18) !important;
-    color: #DD9426 !important;
+    background: #FFE4E6 !important;
+    color: #E11D48 !important;
 }
 
 #home-view .task-auto-body,
@@ -1734,7 +1740,7 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
 #home-view .auto-task-countdown {
     font-size: 11.5px !important;
     font-weight: 700 !important;
-    color: #DD9426 !important;
+    color: #E11D48 !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
@@ -1745,7 +1751,7 @@ body.material-theme .header .global-search-box .global-search-suggestions[hidden
 #home-view .dashboard-auto-task .dashboard-status.danger,
 #home-view .dashboard-auto-task.danger .dashboard-status,
 #home-view .dashboard-auto-task.expired .auto-task-countdown {
-    color: #E4572E !important;
+    color: #BE123C !important;
 }
 
 #home-view .dashboard-auto-task .dashboard-status.neutral {

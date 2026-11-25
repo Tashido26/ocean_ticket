@@ -1004,15 +1004,25 @@ html body.material-theme.dark-theme #home-view .dashboard-panel .panel-hint.unpa
     border: 1px solid rgba(244, 63, 94, 0.32) !important;
 }
 
-/* Tasks & Reminders: Booking Deadlines amber card (replaces bright yellow cream) */
+/* Tasks & Reminders: Soft rose highlight for important reminders */
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .dashboard-auto-task,
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .reminder-item,
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .deadline-row,
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="deadline"],
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="urgent"],
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders [class*="warning"] {
-    background: rgba(245, 158, 11, 0.12) !important;
-    border-color: rgba(245, 158, 11, 0.3) !important;
+    background: rgba(244, 63, 94, 0.14) !important;
+    border-color: rgba(244, 63, 94, 0.34) !important;
     color: #F1F5F9 !important;
+}
+
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .dashboard-auto-task .task-auto-icon {
+    background: rgba(244, 63, 94, 0.22) !important;
+    color: #FDA4AF !important;
+}
+
+html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders .dashboard-auto-task .dashboard-status {
+    color: #FDA4AF !important;
 }
 
 html body.material-theme.dark-theme #home-view #tasks-reminders-box #dashboardTasksReminders strong {
