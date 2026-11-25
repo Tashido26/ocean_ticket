@@ -1361,4 +1361,74 @@ export async function copyCustomerMessageToClipboard(text) {
     }
 }
 
+/**
+ * Computes vertical page slice boundaries [startY, endY] for multi-page PDF canvas rendering
+ * so that no atomic visual block (table row, totals box, payment methods section, footer, etc.)
+ * is ever sliced in half across a page break.
+ *
+ * @param {number} totalHeight Total content height in CSS pixels.
+ * @param {number} pageHeight Standard single page height in CSS pixels (e.g. A4 at 794px width ≈ 1122.94px).
+ * @param {Array<{top: number, bottom: number}>} blocks Atomic indivisible vertical blocks.
+ * @param {{topMargin?: number, bottomMargin?: number, buffer?: number}} [options]
+ * @returns {Array<{startY: number, endY: number, isFirstPage: boolean}>}
+ */
+export function computeCleanPageSlices(totalHeight, pageHeight, blocks = [], options = {}) {
+    const safeTotal = Math.max(0, Number(totalHeight) || 0);
+    const safePage = Math.max(100, Number(pageHeight) || 1123);
+    const topMargin = Math.max(0, Number(options.topMargin ?? 28));
+    const bottomMargin = Math.max(0, Number(options.bottomMargin ?? 28));
+    const buffer = Math.max(0, Number(options.buffer ?? 4));
+
+    if (safeTotal <= 0) return [];
+    if (safeTotal <= safePage) {
+        return [{ startY: 0, endY: safeTotal, isFirstPage: true }];
+    }
+
+    const sortedBlocks = (Array.isArray(blocks) ? blocks : [])
+        .filter(b => b && Number.isFinite(b.top) && Number.isFinite(b.bottom) && b.bottom > b.top)
+        .map(b => ({ top: Math.max(0, b.top), bottom: Math.min(safeTotal, b.bottom) }))
+        .sort((a, b) => a.top - b.top);
+
+    const slices = [];
+    let currentY = 0;
+    let guard = 0;
+
+    while (currentY < safeTotal - 1 && guard < 100) {
+        guard += 1;
+        const isFirstPage = slices.length === 0;
+        const usableHeight = isFirstPage
+            ? Math.max(100, safePage - bottomMargin)
+            : Math.max(100, safePage - topMargin - bottomMargin);
+        const maxEndY = currentY + usableHeight;
+
+        if (maxEndY >= safeTotal) {
+            slices.push({ startY: currentY, endY: safeTotal, isFirstPage });
+            break;
+        }
+
+        // Find any indivisible block straddling maxEndY
+        let cutY = maxEndY;
+        const straddling = sortedBlocks.filter(b => b.top < maxEndY && b.bottom > maxEndY);
+        if (straddling.length > 0) {
+            const earliestTop = Math.min(...straddling.map(b => b.top));
+            const candidateCut = Math.max(currentY, earliestTop - buffer);
+            // Only pull the cut point up if it still advances meaningfully past currentY
+            if (candidateCut > currentY + 40) {
+                cutY = candidateCut;
+            }
+        }
+
+        // Safety: always advance
+        if (cutY <= currentY + 1) {
+            cutY = Math.min(safeTotal, maxEndY);
+        }
+
+        slices.push({ startY: currentY, endY: cutY, isFirstPage });
+        currentY = cutY;
+    }
+
+    return slices;
+}
+
+
 

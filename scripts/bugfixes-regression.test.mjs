@@ -575,5 +575,48 @@ test('Payment Reminder Selective Picker: subset selection recalculates totals, P
     assert.equal(item9Only.balanceDue, 400000);
 });
 
+test('computeCleanPageSlices: never slices PAYMENT METHODS or table rows across multi-page PDF breaks', async () => {
+    const { computeCleanPageSlices } = await import('../utils.js');
+
+    // Scenario 1: Exact user bug — PAYMENT METHODS block straddles bottom of Page 1 (A4 = 1123px)
+    const blocks = [
+        { top: 40, bottom: 110 },    // header
+        { top: 140, bottom: 260 },   // billing
+        { top: 280, bottom: 860 },   // table rows
+        { top: 880, bottom: 990 },   // totals section
+        { top: 1010, bottom: 1045 }, // thank you
+        { top: 1085, bottom: 1245 }, // PAYMENT METHODS + bank cards (straddles 1093px usable bottom!)
+        { top: 1265, bottom: 1315 }  // footer
+    ];
+    const slices = computeCleanPageSlices(1340, 1123, blocks, { topMargin: 30, bottomMargin: 30, buffer: 6 });
+
+    assert.equal(slices.length, 2, 'Should split cleanly into 2 pages');
+    assert.equal(slices[0].startY, 0);
+    assert.equal(slices[0].endY <= 1085, true, 'Page 1 must end cleanly ABOVE PAYMENT METHODS (no sliced heading)');
+    assert.equal(slices[0].endY >= 1045, true, 'Page 1 must still keep the Thank You line intact');
+    assert.equal(slices[1].startY, slices[0].endY, 'Page 2 must start seamlessly where Page 1 ended');
+    assert.equal(slices[1].endY, 1340, 'Page 2 must include all remaining content through footer');
+
+    // Scenario 2: Verify NO block is straddled on a 3-page document with 30 table rows
+    const rowBlocks = Array.from({ length: 30 }, (_, i) => ({
+        top: 200 + i * 95,
+        bottom: 200 + i * 95 + 85
+    }));
+    const multiSlices = computeCleanPageSlices(3200, 1123, rowBlocks, { topMargin: 30, bottomMargin: 30, buffer: 6 });
+    assert.equal(multiSlices.length >= 3, true, 'Long document should span 3+ pages');
+    for (let i = 0; i < multiSlices.length - 1; i++) {
+        const cutY = multiSlices[i].endY;
+        const slicedBlock = rowBlocks.find(b => b.top < cutY && b.bottom > cutY);
+        assert.equal(slicedBlock, undefined, `Page break at ${cutY} must never slice through any table row`);
+    }
+
+    // Scenario 3: Fits on 1 page
+    const single = computeCleanPageSlices(980, 1123, blocks);
+    assert.equal(single.length, 1);
+    assert.equal(single[0].startY, 0);
+    assert.equal(single[0].endY, 980);
+});
+
+
 
 

@@ -31,7 +31,8 @@ import {
     compactPlace,
     getPnrSectors,
     getPnrRouteDisplay,
-    getPnrTravelDateDisplay
+    getPnrTravelDateDisplay,
+    computeCleanPageSlices
 } from "./utils.js";
 import { updateUnpaidCount, displayTickets } from "./tickets.js";
 import { getSettlementSummary, updateSettlementDashboard } from "./settlement.js";
@@ -3374,6 +3375,36 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
             downloadPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rendering...';
             await loadDocumentLibraries('pdf', 'canvas');
             await waitForTargetImages(target);
+
+            // Measure atomic indivisible DOM blocks before rendering canvas so multi-page
+            // breaks never slice through a table row, totals box, PAYMENT METHODS, or footer.
+            const targetRect = target.getBoundingClientRect();
+            const totalDomHeight = Math.max(target.scrollHeight || 0, targetRect.height || 0);
+            const blockSelectors = [
+                '.prc-inv-top',
+                '.prc-company-lines',
+                '.prc-header-rule',
+                '.prc-billing-row',
+                '.prc-inv-table thead',
+                '.prc-inv-table tbody tr',
+                '.prc-totals-section',
+                '.prc-thank-you',
+                '.prc-payment-section',
+                '.prc-footer'
+            ];
+            const atomicBlocks = [];
+            blockSelectors.forEach(sel => {
+                target.querySelectorAll(sel).forEach(el => {
+                    const r = el.getBoundingClientRect();
+                    if (r.height > 0) {
+                        atomicBlocks.push({
+                            top: Math.max(0, r.top - targetRect.top),
+                            bottom: Math.max(0, r.bottom - targetRect.top)
+                        });
+                    }
+                });
+            });
+
             const canvas = await window.html2canvas(target, {
                 scale: 2,
                 useCORS: true,
@@ -3382,7 +3413,6 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                 width: 794,
                 windowWidth: 1200
             });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({
                 orientation: 'p',
@@ -3390,26 +3420,57 @@ export function openPaymentReminderCardModal({ accountKey = '', pnr = '' } = {})
                 format: 'a4'
             });
             const pdfWidth = 210;
+            const pdfPageHeight = 297;
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             if (pdfHeight <= 297.5) {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             } else if (pdfHeight <= 340) {
                 // If content slightly exceeds standard A4 (within ~14%), scale proportionally to fit cleanly on 1 single page!
-                const scale = 297 / pdfHeight;
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const scale = pdfPageHeight / pdfHeight;
                 const scaledWidth = pdfWidth * scale;
                 const xOffset = (pdfWidth - scaledWidth) / 2;
-                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, 297);
+                pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, pdfPageHeight);
             } else {
-                let heightLeft = pdfHeight;
-                let position = 0;
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= 297;
-                while (heightLeft > 0) {
-                    position -= 297;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                    heightLeft -= 297;
-                }
+                // Multi-page: slice cleanly between atomic blocks so nothing is cut in half across pages
+                const domWidth = targetRect.width || 794;
+                const pageHeightCssPx = domWidth * (pdfPageHeight / pdfWidth);
+                const topMarginPx = 30;
+                const bottomMarginPx = 30;
+                const slices = computeCleanPageSlices(totalDomHeight, pageHeightCssPx, atomicBlocks, {
+                    topMargin: topMarginPx,
+                    bottomMargin: bottomMarginPx,
+                    buffer: 6
+                });
+                const pxToCanvasRatio = totalDomHeight > 0 ? (canvas.height / totalDomHeight) : 2;
+                const topMarginMm = (topMarginPx / domWidth) * pdfWidth;
+
+                slices.forEach((slice, pageIdx) => {
+                    const srcY = Math.max(0, Math.round(slice.startY * pxToCanvasRatio));
+                    const rawSliceH = Math.round((slice.endY - slice.startY) * pxToCanvasRatio);
+                    const sliceCanvasH = Math.min(rawSliceH, canvas.height - srcY);
+                    if (sliceCanvasH <= 2) return;
+
+                    const pageCanvas = document.createElement('canvas');
+                    pageCanvas.width = canvas.width;
+                    pageCanvas.height = sliceCanvasH;
+                    const ctx = pageCanvas.getContext('2d');
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                    ctx.drawImage(
+                        canvas,
+                        0, srcY, canvas.width, sliceCanvasH,
+                        0, 0, canvas.width, sliceCanvasH
+                    );
+
+                    const sliceImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+                    const sliceHeightMm = (sliceCanvasH * pdfWidth) / canvas.width;
+                    const yOffsetMm = slice.isFirstPage ? 0 : topMarginMm;
+
+                    if (pageIdx > 0) pdf.addPage();
+                    pdf.addImage(sliceImgData, 'JPEG', 0, yOffsetMm, pdfWidth, sliceHeightMm);
+                });
             }
             pdf.save(`Payment-Reminder-${safeFileSlug}-${new Date().toISOString().slice(0, 10)}.pdf`);
             showToast('Payment Reminder (A4 PDF) downloaded!', 'success');
