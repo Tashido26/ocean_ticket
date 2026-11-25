@@ -28,6 +28,36 @@ export const DESTINATION_PRESETS = {
         bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
         benefits: 'Express check-in, Free WiFi'
     },
+    'Chiang Mai - R2': {
+        destination: 'Chiang Mai',
+        propertyName: 'R2 Hotel Chiangmai',
+        propertyAddress: '123 Rimklongcholprathan Rd, Suthep,\nMueang Chiang Mai, Chiang Mai 50200, Thailand',
+        propertyContact: '+66 88 138 0523',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
+    Kunming: {
+        destination: 'Kunming',
+        propertyName: 'Ibis Styles Hotel (Kunming Nanping Pedestrian Street)',
+        propertyAddress: '418 Qingnian Road, Wuhua District,\nKunming, Yunnan 650011, China',
+        propertyContact: '+86 871 6811 9988',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Free Parking'
+    },
+    Vientiane: {
+        destination: 'Vientiane',
+        propertyName: 'Landmark Vientiane Life Center',
+        propertyAddress: 'Khouvieng Road, Nongchan Village,\nSisattanak District, Vientiane, Laos',
+        propertyContact: '+856 20 55 155 812',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi, Breakfast included'
+    },
     Guangzhou: {
         destination: 'Guangzhou',
         propertyName: 'Grand Park Guangzhou Hotel',
@@ -130,6 +160,9 @@ export const DESTINATION_PRESETS = {
     }
 };
 DESTINATION_PRESETS.ChiangMai = DESTINATION_PRESETS['Chiang Mai'];
+DESTINATION_PRESETS['R2 Hotel Chiangmai'] = DESTINATION_PRESETS['Chiang Mai - R2'];
+DESTINATION_PRESETS['Ibis Styles Kunming'] = DESTINATION_PRESETS.Kunming;
+DESTINATION_PRESETS['Landmark Vientiane Life Center'] = DESTINATION_PRESETS.Vientiane;
 DESTINATION_PRESETS.DaNang = DESTINATION_PRESETS['Da Nang'];
 DESTINATION_PRESETS.HoChiMinh = DESTINATION_PRESETS['Ho Chi Minh'];
 DESTINATION_PRESETS.Saigon = DESTINATION_PRESETS['Ho Chi Minh'];
@@ -1386,6 +1419,9 @@ function extractHotelAndAddress(text) {
 function detectHotelDestination(text = '', propertyName = '', propertyAddress = '') {
     const combined = `${text} ${propertyName} ${propertyAddress}`.toLowerCase();
     if (combined.includes('singapore')) return 'Singapore';
+    if (combined.includes('r2 hotel') || combined.includes('r2 chiang') || combined.includes('rimklongcholprathan')) {
+        return 'Chiang Mai - R2';
+    }
     if (combined.includes('chiang mai') || combined.includes('duangtawan') || combined.includes('cnx') || combined.includes('loi kroh')) {
         return 'Chiang Mai';
     }
@@ -1397,6 +1433,12 @@ function detectHotelDestination(text = '', propertyName = '', propertyAddress = 
     }
     if (combined.includes('ho chi minh') || combined.includes('hochíminh') || combined.includes('saigon') || combined.includes('sài gòn') || combined.includes('golden lunar') || combined.includes('phạm ngũ lão') || combined.includes('pham ngu lao')) {
         return 'Ho Chi Minh';
+    }
+    if (combined.includes('vientiane') || combined.includes('laos') || combined.includes('khouvieng') || combined.includes('patuxai')) {
+        return 'Vientiane';
+    }
+    if (combined.includes('kunming') || combined.includes('nanping') || combined.includes('qingnian road') || combined.includes('yunnan')) {
+        return 'Kunming';
     }
     if (combined.includes('guangzhou') || combined.includes('china') || combined.includes('beijing') || combined.includes('shanghai') || combined.includes('shenzhen') || combined.includes('chengdu')) {
         return 'Guangzhou';

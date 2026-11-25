@@ -617,6 +617,33 @@ test('computeCleanPageSlices: never slices PAYMENT METHODS or table rows across 
     assert.equal(single[0].endY, 980);
 });
 
+test('Agoda Hotel Presets: includes Vientiane (Landmark), Kunming (Ibis Styles), and Chiang Mai (R2 Hotel)', async () => {
+    const { DESTINATION_PRESETS, parseHotelConfirmationText } = await import('../agoda-hotel-converter.js');
+
+    assert.equal(DESTINATION_PRESETS.Vientiane.propertyName, 'Landmark Vientiane Life Center');
+    assert.equal(DESTINATION_PRESETS.Vientiane.propertyContact, '+856 20 55 155 812');
+    assert.match(DESTINATION_PRESETS.Vientiane.propertyAddress, /Khouvieng Road/i);
+
+    assert.equal(DESTINATION_PRESETS.Kunming.propertyName, 'Ibis Styles Hotel (Kunming Nanping Pedestrian Street)');
+    assert.equal(DESTINATION_PRESETS.Kunming.propertyContact, '+86 871 6811 9988');
+    assert.match(DESTINATION_PRESETS.Kunming.propertyAddress, /418 Qingnian Road/i);
+
+    assert.equal(DESTINATION_PRESETS['Chiang Mai - R2'].propertyName, 'R2 Hotel Chiangmai');
+    assert.equal(DESTINATION_PRESETS['Chiang Mai - R2'].propertyContact, '+66 88 138 0523');
+    assert.match(DESTINATION_PRESETS['Chiang Mai - R2'].propertyAddress, /Rimklongcholprathan/i);
+
+    // Verify parser destination detection
+    const r2Parsed = parseHotelConfirmationText('Property : R2 Hotel Chiangmai\nAddress : 123 Rimklongcholprathan Rd, Chiang Mai');
+    assert.equal(r2Parsed.destination, 'Chiang Mai - R2');
+
+    const kmParsed = parseHotelConfirmationText('Property : Ibis Styles Hotel (Kunming Nanping Pedestrian Street)\nAddress : 418 Qingnian Road, Kunming, China');
+    assert.equal(kmParsed.destination, 'Kunming');
+
+    const vteParsed = parseHotelConfirmationText('Property : Landmark Vientiane Life Center\nAddress : Khouvieng Road, Vientiane, Laos');
+    assert.equal(vteParsed.destination, 'Vientiane');
+});
+
+
 
 
 
