@@ -18,6 +18,16 @@ export const DESTINATION_PRESETS = {
         bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
         benefits: 'Express check-in, Free WiFi'
     },
+    'Bangkok - City Park': {
+        destination: 'Bangkok',
+        propertyName: 'City Park Hotel Bangkok Pratunam by Pcl',
+        propertyAddress: '71 Soi Somprasong 3 (Phetchaburi 15), Phayathai,\nRatchathewi, Bangkok 10400, Thailand',
+        propertyContact: '+66 2 019 2277',
+        stampFile: 'agoda-stamp.png',
+        bookedPayableTitle: 'Booked And Payable By :',
+        bookedPayableAddress: 'Agoda Company Pte, Ltd.\n30 Cecil Street, Prudential Tower #19-08,\nSingapore 049712',
+        benefits: 'Express check-in, Free WiFi'
+    },
     'Chiang Mai': {
         destination: 'Chiang Mai',
         propertyName: 'Duangtawan Hotel Chiang Mai',
@@ -310,6 +320,7 @@ export const DESTINATION_PRESETS = {
     }
 };
 DESTINATION_PRESETS.ChiangMai = DESTINATION_PRESETS['Chiang Mai'];
+DESTINATION_PRESETS['City Park Hotel Bangkok Pratunam'] = DESTINATION_PRESETS['Bangkok - City Park'];
 DESTINATION_PRESETS['R2 Hotel Chiangmai'] = DESTINATION_PRESETS['Chiang Mai - R2'];
 DESTINATION_PRESETS['Ibis Styles Kunming'] = DESTINATION_PRESETS.Kunming;
 DESTINATION_PRESETS['Landmark Vientiane Life Center'] = DESTINATION_PRESETS.Vientiane;
@@ -1573,6 +1584,9 @@ function extractHotelAndAddress(text) {
 function detectHotelDestination(text = '', propertyName = '', propertyAddress = '') {
     const combined = `${text} ${propertyName} ${propertyAddress}`.toLowerCase();
     if (combined.includes('singapore')) return 'Singapore';
+    if (combined.includes('city park') || combined.includes('somprasong 3') || combined.includes('phetchaburi 15')) {
+        return 'Bangkok - City Park';
+    }
     if (combined.includes('r2 hotel') || combined.includes('r2 chiang') || combined.includes('rimklongcholprathan')) {
         return 'Chiang Mai - R2';
     }

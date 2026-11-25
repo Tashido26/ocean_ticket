@@ -660,6 +660,9 @@ test('Agoda Hotel Presets: includes Vientiane (Landmark), Kunming (Ibis Styles),
     assert.equal(parseHotelConfirmationText('Property : L7 Myeongdong\nAddress : Seoul, South Korea').destination, 'Seoul');
     assert.equal(parseHotelConfirmationText('Property : Cititel Penang\nAddress : George Town, Penang, Malaysia').destination, 'Penang');
     assert.equal(parseHotelConfirmationText('Property : Novotel Beijing Peace\nAddress : Dongcheng, Beijing, China').destination, 'Beijing');
+    assert.equal(DESTINATION_PRESETS['Bangkok - City Park'].propertyName, 'City Park Hotel Bangkok Pratunam by Pcl');
+    assert.equal(DESTINATION_PRESETS['Bangkok - City Park'].propertyContact, '+66 2 019 2277');
+    assert.equal(parseHotelConfirmationText('Property : City Park Hotel Bangkok Pratunam by Pcl\nAddress : 71 Soi Somprasong 3, Bangkok').destination, 'Bangkok - City Park');
 });
 
 
