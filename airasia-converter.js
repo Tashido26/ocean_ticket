@@ -5699,6 +5699,45 @@ function normalizeGeminiAirline(rawAirline, flights = []) {
 }
 
 /**
+ * Detect if raw PDF text uploaded to E-Ticket Generator is actually a Hotel Voucher.
+ * Returns a Myanmar warning message if mismatched, or empty string if valid.
+ */
+export function detectWrongDocTypeForEticket(rawText) {
+    const text = String(rawText || '');
+    if (text.trim().length < 20) return '';
+    const hotelSignals = [
+        /\bBooking\s*ID\s*:/i,
+        /\bNumber\s+of\s+Rooms\b/i,
+        /\bRoom\s+Type\s*:/i,
+        /\bProperty\s*:/i,
+        /\bProperty\s+Contact\s+Number\b/i,
+        /\bCheck-?in\b[\s\S]{0,120}\bCheck-?out\b/i,
+        /\bBooked\s+and\s+Payable\s+By\b/i,
+        /\bagoda\b/i,
+    ].filter(rx => rx.test(text)).length;
+
+    const flightSignals = [
+        /\bAirline\s+booking\s+reference\b/i,
+        /\bBaggage\s+allowance\b/i,
+        /\bE-?itinerary\b/i,
+        /\bBoarding\b/i,
+        /\b(?:AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO|8M|UB)\s*\d{2,4}\b/i,
+        /\bInternational\s+Airport\b/i,
+    ].filter(rx => rx.test(text)).length;
+
+    if (hotelSignals >= 2 && flightSignals === 0) {
+        return 'ဖိုင်မှားနေပါတယ် — ဒါက Hotel Voucher ဖိုင်ပါ။ Agoda Hotel Booking အကွက်မှာ ထည့်ပေးပါ။';
+    }
+    return '';
+}
+
+function createWrongDocTypeError(message) {
+    const err = new Error(message);
+    err.code = 'WRONG_DOC_TYPE';
+    return err;
+}
+
+/**
  * Scan an uploaded E-Ticket / Itinerary PDF or Image using Gemini AI multimodal OCR.
  * Returns normalized ticket data matching parseItineraryText() shape.
  */
@@ -5731,6 +5770,11 @@ export async function scanEticketWithGemini(file, { endpoint = '/.netlify/functi
     }
 
     const raw = payload.data;
+    const detectedDocType = String(raw.documentType || '').toLowerCase().trim();
+    if (detectedDocType === 'hotel_voucher') {
+        throw createWrongDocTypeError('ဖိုင်မှားနေပါတယ် — ဒါက Hotel Voucher ဖိုင်ပါ။ Agoda Hotel Booking အကွက်မှာ ထည့်ပေးပါ။');
+    }
+
     const rawFlights = Array.isArray(raw.flights) ? raw.flights : [];
     const airline = normalizeGeminiAirline(raw.airline, rawFlights);
 
@@ -5754,6 +5798,10 @@ export async function scanEticketWithGemini(file, { endpoint = '/.netlify/functi
             flightClass: String(f.flightClass || raw.flightClass || 'Economy').trim(),
             cabinClass: String(f.flightClass || raw.flightClass || 'Economy').trim(),
         }));
+
+    if (detectedDocType === 'other' && flights.length === 0) {
+        throw createWrongDocTypeError('ဖိုင်မှားနေပါတယ် — လေယာဉ်လက်မှတ် (E-Ticket / Itinerary) ဖိုင်မဟုတ်ပါ။');
+    }
 
     const rawPassengers = Array.isArray(raw.passengers) ? raw.passengers : [];
     const passengers = rawPassengers

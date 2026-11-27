@@ -135,6 +135,7 @@ Return ONLY valid JSON. No markdown fences, no commentary.
 
 JSON schema:
 {
+  "documentType": "flight_ticket | hotel_voucher | other",
   "airline": "One of: AirAsia, VietJet Air, Thai Airways, Singapore Airlines, EVA Air, Scoot, China Airlines, China Eastern, Vietnam Airlines, Cathay Pacific, Hong Kong Airlines, HK Express (choose the exact operating/marketing airline shown; default AirAsia only if genuinely AirAsia)",
   "bookingNo": "OTA Booking No. if present (e.g. 1688903717866172), else PNR",
   "pnr": "Primary 6-char Airline Booking Reference / PNR (e.g. 59IFWU)",
@@ -178,6 +179,7 @@ JSON schema:
 }
 
 Rules:
+- FIRST classify documentType: "flight_ticket" (airline e-ticket, flight itinerary, boarding pass), "hotel_voucher" (hotel booking confirmation / accommodation voucher), or "other" (passport, invoice, unrelated file). If documentType is NOT "flight_ticket", set documentType accurately and return empty arrays for passengers and flights.
 - Read ALL pages of the PDF carefully so NO passenger or flight leg is missed.
 - NEVER return 'To be advised at check-in' if any E-ticket number (like 297-3944369635 or 13-digit number) is printed anywhere on the document.
 - Strip '(First name)', '(Last name)', '(Adults)', '(Adult)' from passenger names.
@@ -191,6 +193,7 @@ Return ONLY valid JSON. No markdown fences, no commentary.
 
 JSON schema:
 {
+  "documentType": "hotel_voucher | flight_ticket | other",
   "bookingId": "Booking ID (digits/alphanumeric if shown, else empty string)",
   "bookingRefNo": "Hotel / Agoda / OTA Reference Number if shown, else empty string",
   "memberId": "Member ID if shown, else empty string",
@@ -215,6 +218,7 @@ JSON schema:
 }
 
 Rules:
+- FIRST classify documentType: "hotel_voucher" (hotel booking confirmation / accommodation voucher), "flight_ticket" (airline e-ticket, flight itinerary, boarding pass), or "other" (passport, invoice, unrelated file). If documentType is NOT "hotel_voucher", set documentType accurately and leave propertyName empty.
 - Extract exact dates and format arrivalDate / departureDate as 'Month D, YYYY' (e.g. 'December 5, 2026').
 - numRooms, numAdults, numChildren, numExtraBeds must be integers.
 - Never invent a phone number or address if not shown; leave empty string if absent.`;

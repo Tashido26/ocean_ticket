@@ -1905,11 +1905,55 @@ export async function parseHotelConfirmationPdf(file) {
         fullText += pageText + '\n\n';
     }
 
+    const wrongMsg = detectWrongDocTypeForHotel(fullText);
+    if (wrongMsg) {
+        throw createWrongHotelDocError(wrongMsg);
+    }
+
     const parsed = parseHotelConfirmationText(fullText);
     if (!parsed) {
         throw new Error('Could not parse hotel confirmation data from the uploaded PDF.');
     }
     return parsed;
+}
+
+/**
+ * Detect if raw PDF text uploaded to Hotel Booking is actually a Flight Ticket.
+ * Returns a Myanmar warning message if mismatched, or empty string if valid.
+ */
+export function detectWrongDocTypeForHotel(rawText) {
+    const text = String(rawText || '');
+    if (text.trim().length < 20) return '';
+
+    const flightSignals = [
+        /\bAirline\s+booking\s+reference\b/i,
+        /\bBaggage\s+allowance\b/i,
+        /\bE-?itinerary\b/i,
+        /\bBoarding\s+(?:Pass|Time)\b/i,
+        /\b(?:AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO|8M|UB)\s*\d{2,4}\b/i,
+        /\bInternational\s+Airport\b/i,
+        /\bTicket\s+number\b/i,
+    ].filter(rx => rx.test(text)).length;
+
+    const hotelSignals = [
+        /\bNumber\s+of\s+Rooms\b/i,
+        /\bRoom\s+Type\s*:/i,
+        /\bProperty\s*:/i,
+        /\bProperty\s+Contact\s+Number\b/i,
+        /\bCheck-?in\b[\s\S]{0,120}\bCheck-?out\b/i,
+        /\bBooked\s+and\s+Payable\s+By\b/i,
+    ].filter(rx => rx.test(text)).length;
+
+    if (flightSignals >= 2 && hotelSignals === 0) {
+        return 'ဖိုင်မှားနေပါတယ် — ဒါက လေယာဉ်လက်မှတ် (Flight Ticket) ဖိုင်ပါ။ E-Ticket Generator အကွက်မှာ ထည့်ပေးပါ။';
+    }
+    return '';
+}
+
+function createWrongHotelDocError(message) {
+    const err = new Error(message);
+    err.code = 'WRONG_DOC_TYPE';
+    return err;
 }
 
 function readHotelFileAsBase64(file) {
@@ -1958,10 +2002,19 @@ export async function scanHotelWithGemini(file, { endpoint = '/.netlify/function
     }
 
     const raw = payload.data;
+    const detectedDocType = String(raw.documentType || '').toLowerCase().trim();
+    if (detectedDocType === 'flight_ticket') {
+        throw createWrongHotelDocError('ဖိုင်မှားနေပါတယ် — ဒါက လေယာဉ်လက်မှတ် (Flight Ticket) ဖိုင်ပါ။ E-Ticket Generator အကွက်မှာ ထည့်ပေးပါ။');
+    }
+
     const propertyName = String(raw.propertyName || '').trim();
     const propertyAddress = String(raw.propertyAddress || '').trim();
     const clientName = String(raw.clientName || '').trim().toUpperCase();
     const arrivalDate = String(raw.arrivalDate || '').trim();
+
+    if (detectedDocType === 'other' && !propertyName) {
+        throw createWrongHotelDocError('ဖိုင်မှားနေပါတယ် — Hotel Confirmation ဖိုင်မဟုတ်ပါ။');
+    }
 
     if (!propertyName && !clientName && !arrivalDate) {
         throw new Error('Gemini returned empty hotel voucher data');

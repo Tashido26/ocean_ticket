@@ -733,6 +733,38 @@ test('gemini-travel-ocr Netlify function handles CORS preflight for Ocean Ticket
     assert.equal(resBlocked.statusCode, 403);
 });
 
+test('wrong document type detectors warn when Hotel uploaded to E-Ticket or Flight uploaded to Hotel', async () => {
+    const { detectWrongDocTypeForEticket } = await import('../airasia-converter.js');
+    const { detectWrongDocTypeForHotel } = await import('../agoda-hotel-converter.js');
+
+    const hotelSample = `
+        agoda Booking Confirmation
+        Booking ID : 123456789
+        Property : Grande Centre Point Hotel Ratchadamri
+        Number of Rooms : 1
+        Room Type : Deluxe Suite
+        Check-in : December 5, 2026   Check-out : December 10, 2026
+    `;
+    const flightSample = `
+        E-itinerary
+        Booking No. 1688903717866172
+        Airline booking reference 59IFWU
+        China Airlines CI851
+        Taiwan Taoyuan International Airport
+        Baggage allowance: 2 pieces per person, 32 kg each
+    `;
+
+    // Hotel uploaded into E-Ticket -> warns
+    assert.match(detectWrongDocTypeForEticket(hotelSample), /Hotel Voucher/i);
+    // Flight uploaded into E-Ticket -> valid (empty warning)
+    assert.equal(detectWrongDocTypeForEticket(flightSample), '');
+
+    // Flight uploaded into Hotel -> warns
+    assert.match(detectWrongDocTypeForHotel(flightSample), /Flight Ticket/i);
+    // Hotel uploaded into Hotel -> valid (empty warning)
+    assert.equal(detectWrongDocTypeForHotel(hotelSample), '');
+});
+
 
 
 

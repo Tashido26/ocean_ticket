@@ -28,7 +28,7 @@ const renderVisaApplications = () => visaModule?.renderVisaApplications();
 const hideVisaForm = () => visaModule?.hideVisaForm();
 import { getAllDocuments, uploadDocument, deleteDocument, renameDocument, formatFileSize, formatUploadDate } from './documents.js';
 import { loadDocumentLibraries } from './document-libraries.js';
-let extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini;
+let extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini, detectWrongDocTypeForEticket;
 let renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf, scanHotelWithGemini;
 
 async function getGeminiAuthToken() {
@@ -2532,6 +2532,10 @@ function initializeAirAsiaGenerator() {
                     const authToken = await getGeminiAuthToken();
                     parsedData = await scanEticketWithGemini(file, { authToken });
                 } catch (aiErr) {
+                    if (aiErr?.code === 'WRONG_DOC_TYPE') {
+                        showToast(aiErr.message, 'error');
+                        return;
+                    }
                     console.warn('[E-Ticket Gemini OCR] Falling back to local parser:', aiErr);
                     showToast('Gemini AI unavailable — falling back to local parser...', 'warning');
                 }
@@ -2577,6 +2581,11 @@ function initializeAirAsiaGenerator() {
                 } else {
                     showToast('Extracting itinerary from PDF...', 'info');
                     const rawText = await extractTextFromPdf(file);
+                    const wrongDocMsg = typeof detectWrongDocTypeForEticket === 'function' ? detectWrongDocTypeForEticket(rawText) : '';
+                    if (wrongDocMsg) {
+                        showToast(wrongDocMsg, 'error');
+                        return;
+                    }
                     if (!rawText || rawText.trim().length < 30) {
                         showToast('Could not extract text from PDF (it might be a scanned image). Opening form for manual review.', 'warning');
                     }
@@ -2808,6 +2817,10 @@ function initializeChinaHotelGenerator() {
                     const authToken = await getGeminiAuthToken();
                     parsedData = await scanHotelWithGemini(file, { authToken });
                 } catch (aiErr) {
+                    if (aiErr?.code === 'WRONG_DOC_TYPE') {
+                        showToast(aiErr.message, 'error');
+                        return;
+                    }
                     console.warn('[Hotel Gemini OCR] Falling back to local parser:', aiErr);
                     if (isPdf) {
                         showToast('Gemini AI unavailable — falling back to local PDF parser...', 'warning');
@@ -2850,6 +2863,10 @@ function initializeChinaHotelGenerator() {
             const viaLabel = parsedData._scannedBy === 'gemini' ? ' (Gemini AI)' : '';
             showToast(`Voucher extracted successfully${viaLabel}: ${hotelName}`, 'success');
         } catch (err) {
+            if (err?.code === 'WRONG_DOC_TYPE') {
+                showToast(err.message, 'error');
+                return;
+            }
             console.error('Hotel voucher parsing error:', err);
             showToast(`Hotel scan failed: ${err.message}`, 'error');
         }
@@ -3263,7 +3280,7 @@ async function loadPageFeatures(viewName) {
                 import('./agoda-hotel-converter.js'),
                 import('./nrc-data.js')
             ]);
-            ({ extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini } = air);
+            ({ extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini, detectWrongDocTypeForEticket } = air);
             ({ renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf, scanHotelWithGemini } = agoda);
             initializeAirAsiaGenerator();
             initializeChinaHotelGenerator();
