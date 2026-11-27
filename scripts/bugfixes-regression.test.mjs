@@ -665,6 +665,75 @@ test('Agoda Hotel Presets: includes Vientiane (Landmark), Kunming (Ibis Styles),
     assert.equal(parseHotelConfirmationText('Property : City Park Hotel Bangkok Pratunam by Pcl\nAddress : 71 Soi Somprasong 3, Bangkok').destination, 'Bangkok - City Park');
 });
 
+// Test: Trip.com China Airlines E-Ticket parsing, baggage pieces+weight, and Gemini OCR exports
+test('parseItineraryText extracts China Airlines, E-Ticket numbers per passenger, and piece+weight baggage', async () => {
+    const { parseItineraryText, scanEticketWithGemini } = await import('../airasia-converter.js');
+    const { scanHotelWithGemini } = await import('../agoda-hotel-converter.js');
+
+    assert.equal(typeof scanEticketWithGemini, 'function');
+    assert.equal(typeof scanHotelWithGemini, 'function');
+
+    const sampleTripComText = `
+        E-itinerary
+        Booking No. 1688903717866172
+        Passengers
+        Name Ticket number Airline booking reference
+        SAN WAI CHIN (Adult)
+        Business 297-3944369635 59IFWU
+        YANG MYINT SHEIN (Adult)
+        Business 297-3944369636 59IFWU
+        Taipei - Chiang Mai
+        07:20 Saturday, 5 December 2026
+        Taiwan Taoyuan International Airport Terminal 1
+        China Airlines CI851
+        10:25 Saturday, 5 December 2026
+        Chiang Mai International Airport
+        Baggage allowance
+        Checked baggage: 2 pieces per person, 32 kg each. Each piece max 119 x 119 x 81 cm.
+        Carry-on baggage: 2 pieces per person, 7 kg each. Max 56 x 36 x 23 cm per piece.
+        Personal item: 1 piece per person.
+    `;
+
+    const parsed = parseItineraryText(sampleTripComText);
+    assert.equal(parsed.airline, 'China Airlines');
+    assert.equal(parsed.bookingNo, '1688903717866172');
+    assert.equal(parsed.pnr, '59IFWU');
+    assert.equal(parsed.eTicketNo, '297-3944369635');
+    assert.equal(parsed.passengers.length, 2);
+    assert.equal(parsed.passengers[0].eticket, '297-3944369635');
+    assert.equal(parsed.passengers[1].eticket, '297-3944369636');
+    assert.match(parsed.checkedBaggage, /2 pieces per person, 32 kg each/i);
+    assert.match(parsed.carryOnBaggage, /2 pieces per person, 7 kg each/i);
+});
+
+test('gemini-travel-ocr Netlify function handles CORS preflight for Ocean Ticket and TravelDocsGen', async () => {
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const fn = require('../netlify/functions/gemini-travel-ocr.js');
+    assert.equal(typeof fn.handler, 'function');
+
+    const resTravelDocs = await fn.handler({
+        httpMethod: 'OPTIONS',
+        headers: { origin: 'https://traveldocsgen.netlify.app' }
+    });
+    assert.equal(resTravelDocs.statusCode, 204);
+    assert.equal(resTravelDocs.headers['Access-Control-Allow-Origin'], 'https://traveldocsgen.netlify.app');
+
+    const resOcean = await fn.handler({
+        httpMethod: 'OPTIONS',
+        headers: { origin: 'https://oceanticket.netlify.app' }
+    });
+    assert.equal(resOcean.statusCode, 204);
+    assert.equal(resOcean.headers['Access-Control-Allow-Origin'], 'https://oceanticket.netlify.app');
+
+    const resBlocked = await fn.handler({
+        httpMethod: 'OPTIONS',
+        headers: { origin: 'https://evil.example.com' }
+    });
+    assert.equal(resBlocked.statusCode, 403);
+});
+
+
 
 
 

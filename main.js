@@ -28,8 +28,20 @@ const renderVisaApplications = () => visaModule?.renderVisaApplications();
 const hideVisaForm = () => visaModule?.hideVisaForm();
 import { getAllDocuments, uploadDocument, deleteDocument, renameDocument, formatFileSize, formatUploadDate } from './documents.js';
 import { loadDocumentLibraries } from './document-libraries.js';
-let extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat;
-let renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf;
+let extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini;
+let renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf, scanHotelWithGemini;
+
+async function getGeminiAuthToken() {
+    try {
+        const { auth } = await import('./firebase-config.js');
+        if (auth?.currentUser) {
+            return await auth.currentUser.getIdToken();
+        }
+    } catch (e) {
+        console.warn('[Gemini OCR] Could not retrieve Firebase ID token:', e);
+    }
+    return '';
+}
 
 // UI Modules
 import { showView, initializeDatepickers, initializeTimePicker, initializeCityDropdowns, updateToggleLabels, updateDynamicTimes, updateNotifications, updateUpcomingPnrs, initializeUISettings, openModal, closeModal, showConfirmModal, populateFlightLocations, addPassengerForm, removePassengerForm, resetPassengerForms, addBookingPassengerForm, removeBookingPassengerForm, resetBookingPassengerForms, showNewBookingForm, hideNewBookingForm, showInvoiceOptionModal, initializePaymentMethodEnhancements, addExistingPassengerForm, applyFlightTypeToAllPaxForms, initializeSellFormEnhancements, updateSellRoutePreview, setupDepartureReturnDatepickers } from './ui.js';
@@ -2360,18 +2372,18 @@ function initializeAirAsiaGenerator() {
 
         const isMismatchedFlightNo = (fn, targetAirline) => {
             if (!fn) return true;
-            if (targetAirline === 'AirAsia' && !/^AK/i.test(fn)) return /^(VJ|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'VietJet Air' && !/^VJ/i.test(fn)) return /^(AK|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'Thai Airways' && !/^TG/i.test(fn)) return /^(AK|VJ|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'Singapore Airlines' && !/^SQ/i.test(fn)) return /^(AK|VJ|TG|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'EVA Air' && !/^BR/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'Scoot' && !/^TR/i.test(fn)) return /^(AK|VJ|TG|SQ|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'China Airlines' && !/^CI/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|MU|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'China Eastern' && !/^MU/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|CI|VN|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'Vietnam Airlines' && !/^VN/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|CI|MU|CX|HX|UO)/i.test(fn);
-            if (targetAirline === 'Cathay Pacific' && !/^CX/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|CI|MU|VN|HX|UO)/i.test(fn);
-            if (targetAirline === 'Hong Kong Airlines' && !/^HX/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|CI|MU|VN|CX|UO)/i.test(fn);
-            if (targetAirline === 'HK Express' && !/^UO/i.test(fn)) return /^(AK|VJ|TG|SQ|TR|BR|CI|MU|VN|CX|HX)/i.test(fn);
+            if (targetAirline === 'AirAsia' && !/^(AK|FD|QZ|D7|XJ|Z2)/i.test(fn)) return /^(VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'VietJet Air' && !/^(VJ|VZ)/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|TG|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'Thai Airways' && !/^TG/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|SQ|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'Singapore Airlines' && !/^SQ/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|TR|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'EVA Air' && !/^BR/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'Scoot' && !/^TR/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|BR|CI|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'China Airlines' && !/^CI/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|MU|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'China Eastern' && !/^MU/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|VN|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'Vietnam Airlines' && !/^VN/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|CX|HX|UO)/i.test(fn);
+            if (targetAirline === 'Cathay Pacific' && !/^CX/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|HX|UO)/i.test(fn);
+            if (targetAirline === 'Hong Kong Airlines' && !/^HX/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|CX|UO)/i.test(fn);
+            if (targetAirline === 'HK Express' && !/^UO/i.test(fn)) return /^(AK|FD|QZ|D7|XJ|Z2|VJ|VZ|TG|SQ|TR|BR|CI|MU|VN|CX|HX)/i.test(fn);
             return false;
         };
 
@@ -2502,7 +2514,7 @@ function initializeAirAsiaGenerator() {
 
     async function handleFile(file) {
         if (!file) return;
-        const isPdf = file.name.toLowerCase().endsWith('.pdf');
+        const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
         const isImg = /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name) || (file.type && file.type.startsWith('image/'));
 
         if (!isPdf && !isImg) {
@@ -2511,62 +2523,78 @@ function initializeAirAsiaGenerator() {
         }
 
         try {
-            let parsedData;
-            if (isImg) {
-                showToast('Analyzing travel schedule image (OCR)...', 'info');
-                const parsedSchedule = await parseTripScheduleImage(file);
-                const flights = (parsedSchedule.flights && parsedSchedule.flights.length > 0) ? parsedSchedule.flights.map(f => ({
-                    flightNo: f.flightNo || '',
-                    airlineName: f.airlineName || f.operatedBy || 'AirAsia Berhad',
-                    duration: f.duration || '',
-                    aircraft: f.aircraft || 'Airbus A320neo',
-                    cabinClass: f.cabinClass || f.flightClass || 'Economy, Y',
-                    flightClass: f.cabinClass || f.flightClass || 'Economy, Y',
-                    seat: f.seat || (typeof generateRandomSeat === 'function' ? generateRandomSeat() : '12A'),
-                    depTime: f.depTime || '',
-                    depDateFormatted: f.depDateFormatted || f.depDate || '',
-                    depAirport: f.depAirport || f.from || '',
-                    depTerminal: f.depTerminal || '',
-                    arrTime: f.arrTime || '',
-                    arrDateFormatted: f.arrDateFormatted || f.arrDate || '',
-                    arrAirport: f.arrAirport || f.to || '',
-                    arrTerminal: f.arrTerminal || '',
-                    route: f.route || (f.fromCode && f.toCode ? `${f.fromCode} - ${f.toCode}` : '')
-                })) : [];
+            let parsedData = null;
 
-                parsedData = {
-                    airline: parsedSchedule.detectedAirline || 'China Airlines',
-                    pnr: parsedSchedule.pnr || '',
-                    bookingNo: parsedSchedule.pnr || '',
-                    eTicketNo: parsedSchedule.ticketNo || '',
-                    passengerName: parsedSchedule.passengerName || '',
-                    passengers: [{ name: parsedSchedule.passengerName || '', type: 'Adult', eticket: parsedSchedule.ticketNo || '' }],
-                    flights: flights,
-                    checkedBaggage: parsedSchedule.checkedBaggage,
-                    carryOnBaggage: parsedSchedule.carryOnBaggage,
-                    carryOnWeight: parsedSchedule.carryOnWeight,
-                    personalItem: parsedSchedule.personalItem
-                };
-            } else {
-                showToast('Extracting itinerary from PDF...', 'info');
-                const rawText = await extractTextFromPdf(file);
-                if (!rawText || rawText.trim().length < 30) {
-                    showToast('Could not extract text from PDF (it might be a scanned image). Opening form for manual review.', 'warning');
+            // 1. Primary: Gemini AI multimodal scanning (PDF + Image)
+            if (typeof scanEticketWithGemini === 'function') {
+                try {
+                    showToast('Scanning itinerary with Gemini AI...', 'info');
+                    const authToken = await getGeminiAuthToken();
+                    parsedData = await scanEticketWithGemini(file, { authToken });
+                } catch (aiErr) {
+                    console.warn('[E-Ticket Gemini OCR] Falling back to local parser:', aiErr);
+                    showToast('Gemini AI unavailable — falling back to local parser...', 'warning');
                 }
-                parsedData = parseItineraryText(rawText);
-                if (!parsedData.flights || parsedData.flights.length === 0 || !parsedData.flightNo) {
-                    const altSchedule = parseItinerarySchedule(rawText);
-                    if (altSchedule.flights && altSchedule.flights.length > 0) {
-                        parsedData.airline = altSchedule.detectedAirline || parsedData.airline || 'China Airlines';
-                        parsedData.flights = altSchedule.flights;
-                        parsedData.pnr = parsedData.pnr || altSchedule.pnr;
-                        parsedData.passengerName = altSchedule.passengerName || '';
-                        parsedData.passengers = [{ name: altSchedule.passengerName || '', type: 'Adult' }];
-                        if (altSchedule.checkedBaggage && !parsedData.checkedBaggage) {
-                            parsedData.checkedBaggage = altSchedule.checkedBaggage;
-                        }
-                        if (altSchedule.carryOnWeight && !parsedData.carryOnWeight) {
-                            parsedData.carryOnWeight = altSchedule.carryOnWeight;
+            }
+
+            // 2. Fallback: local PDF.js / image OCR parser
+            if (!parsedData) {
+                if (isImg) {
+                    showToast('Analyzing travel schedule image (OCR)...', 'info');
+                    const parsedSchedule = await parseTripScheduleImage(file);
+                    const flights = (parsedSchedule.flights && parsedSchedule.flights.length > 0) ? parsedSchedule.flights.map(f => ({
+                        flightNo: f.flightNo || '',
+                        airlineName: f.airlineName || f.operatedBy || 'AirAsia Berhad',
+                        duration: f.duration || '',
+                        aircraft: f.aircraft || 'Airbus A320neo',
+                        cabinClass: f.cabinClass || f.flightClass || 'Economy, Y',
+                        flightClass: f.cabinClass || f.flightClass || 'Economy, Y',
+                        seat: f.seat || (typeof generateRandomSeat === 'function' ? generateRandomSeat() : '12A'),
+                        depTime: f.depTime || '',
+                        depDateFormatted: f.depDateFormatted || f.depDate || '',
+                        depAirport: f.depAirport || f.from || '',
+                        depTerminal: f.depTerminal || '',
+                        arrTime: f.arrTime || '',
+                        arrDateFormatted: f.arrDateFormatted || f.arrDate || '',
+                        arrAirport: f.arrAirport || f.to || '',
+                        arrTerminal: f.arrTerminal || '',
+                        route: f.route || (f.fromCode && f.toCode ? `${f.fromCode} - ${f.toCode}` : '')
+                    })) : [];
+
+                    parsedData = {
+                        airline: parsedSchedule.detectedAirline || 'China Airlines',
+                        pnr: parsedSchedule.pnr || '',
+                        bookingNo: parsedSchedule.pnr || '',
+                        eTicketNo: parsedSchedule.ticketNo || '',
+                        passengerName: parsedSchedule.passengerName || '',
+                        passengers: [{ name: parsedSchedule.passengerName || '', type: 'Adult', eticket: parsedSchedule.ticketNo || '' }],
+                        flights: flights,
+                        checkedBaggage: parsedSchedule.checkedBaggage,
+                        carryOnBaggage: parsedSchedule.carryOnBaggage,
+                        carryOnWeight: parsedSchedule.carryOnWeight,
+                        personalItem: parsedSchedule.personalItem
+                    };
+                } else {
+                    showToast('Extracting itinerary from PDF...', 'info');
+                    const rawText = await extractTextFromPdf(file);
+                    if (!rawText || rawText.trim().length < 30) {
+                        showToast('Could not extract text from PDF (it might be a scanned image). Opening form for manual review.', 'warning');
+                    }
+                    parsedData = parseItineraryText(rawText);
+                    if (!parsedData.flights || parsedData.flights.length === 0 || !parsedData.flightNo) {
+                        const altSchedule = parseItinerarySchedule(rawText);
+                        if (altSchedule.flights && altSchedule.flights.length > 0) {
+                            parsedData.airline = altSchedule.detectedAirline || parsedData.airline || 'China Airlines';
+                            parsedData.flights = altSchedule.flights;
+                            parsedData.pnr = parsedData.pnr || altSchedule.pnr;
+                            parsedData.passengerName = altSchedule.passengerName || '';
+                            parsedData.passengers = [{ name: altSchedule.passengerName || '', type: 'Adult' }];
+                            if (altSchedule.checkedBaggage && !parsedData.checkedBaggage) {
+                                parsedData.checkedBaggage = altSchedule.checkedBaggage;
+                            }
+                            if (altSchedule.carryOnWeight && !parsedData.carryOnWeight) {
+                                parsedData.carryOnWeight = altSchedule.carryOnWeight;
+                            }
                         }
                     }
                 }
@@ -2575,7 +2603,8 @@ function initializeAirAsiaGenerator() {
             populateForm(parsedData);
             modal.classList.add('show');
             const detectedName = parsedData.airline || 'Airline';
-            showToast(`${detectedName} ticket data extracted successfully!`, 'success');
+            const viaLabel = parsedData._scannedBy === 'gemini' ? ' (Gemini AI)' : '';
+            showToast(`${detectedName} ticket data extracted successfully${viaLabel}!`, 'success');
         } catch (err) {
             console.error('File parsing error:', err);
             showToast(`Parsing failed: ${err.message}`, 'error');
@@ -2759,17 +2788,41 @@ function initializeChinaHotelGenerator() {
 
     if (!modal) return;
 
-    // Handle uploaded Agoda / Trip.com PDF file
+    // Handle uploaded Agoda / Trip.com PDF or Image file (Gemini AI primary, local PDF.js fallback)
     async function handleHotelPdfFile(file) {
         if (!file) return;
-        if (!file.name.toLowerCase().endsWith('.pdf')) {
-            showToast('Please upload a valid PDF file.', 'warning');
+        const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+        const isImg = /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name) || (file.type && file.type.startsWith('image/'));
+        if (!isPdf && !isImg) {
+            showToast('Please upload a valid PDF or hotel confirmation image.', 'warning');
             return;
         }
 
-        showToast('Extracting Agoda / Trip.com hotel confirmation...', 'info');
         try {
-            const parsedData = await parseHotelConfirmationPdf(file);
+            let parsedData = null;
+
+            // 1. Primary: Gemini AI multimodal scanning (PDF + Image)
+            if (typeof scanHotelWithGemini === 'function') {
+                try {
+                    showToast('Scanning hotel voucher with Gemini AI...', 'info');
+                    const authToken = await getGeminiAuthToken();
+                    parsedData = await scanHotelWithGemini(file, { authToken });
+                } catch (aiErr) {
+                    console.warn('[Hotel Gemini OCR] Falling back to local parser:', aiErr);
+                    if (isPdf) {
+                        showToast('Gemini AI unavailable — falling back to local PDF parser...', 'warning');
+                    } else {
+                        throw aiErr;
+                    }
+                }
+            }
+
+            // 2. Fallback: local PDF.js parser (for PDFs)
+            if (!parsedData) {
+                showToast('Extracting Agoda / Trip.com hotel confirmation...', 'info');
+                parsedData = await parseHotelConfirmationPdf(file);
+            }
+
             populateForm(parsedData);
 
             // Also update the quick panel inputs on the Services tab
@@ -2794,10 +2847,11 @@ function initializeChinaHotelGenerator() {
 
             modal.classList.add('show');
             const hotelName = parsedData.propertyName || 'Hotel';
-            showToast(`Voucher extracted successfully: ${hotelName}`, 'success');
+            const viaLabel = parsedData._scannedBy === 'gemini' ? ' (Gemini AI)' : '';
+            showToast(`Voucher extracted successfully${viaLabel}: ${hotelName}`, 'success');
         } catch (err) {
-            console.error('Hotel PDF parsing error:', err);
-            showToast(`PDF parsing failed: ${err.message}`, 'error');
+            console.error('Hotel voucher parsing error:', err);
+            showToast(`Hotel scan failed: ${err.message}`, 'error');
         }
     }
 
@@ -3209,8 +3263,8 @@ async function loadPageFeatures(viewName) {
                 import('./agoda-hotel-converter.js'),
                 import('./nrc-data.js')
             ]);
-            ({ extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat } = air);
-            ({ renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf } = agoda);
+            ({ extractTextFromPdf, parseItineraryText, renderAirAsiaTicketHtml, downloadAirAsiaPdf, downloadAirAsiaImage, shareAirAsiaTicket, formatCheckedBaggageLine, parseTripScheduleImage, parseItinerarySchedule, formatPassengerName, generateRandomSeat, scanEticketWithGemini } = air);
+            ({ renderAgodaHotelHtml, downloadAgodaPdf, downloadAgodaImage, shareAgodaBooking, generateRandomBookingId, generateRandomMemberId, generateRandomBookingRefNo, formatAgodaDate, calculateDefaultCancellationDate, DESTINATION_PRESETS, parseHotelConfirmationPdf, scanHotelWithGemini } = agoda);
             initializeAirAsiaGenerator();
             initializeChinaHotelGenerator();
             if (typeof nrcMod?.initNrcLookupService === 'function') nrcMod.initNrcLookupService();

@@ -1911,3 +1911,96 @@ export async function parseHotelConfirmationPdf(file) {
     }
     return parsed;
 }
+
+function readHotelFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            const idx = result.indexOf(',');
+            resolve(idx >= 0 ? result.slice(idx + 1) : result);
+        };
+        reader.onerror = () => reject(new Error('Failed to read uploaded file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Scan an uploaded Hotel Confirmation PDF or Image using Gemini AI multimodal OCR.
+ * Returns normalized hotel data matching parseHotelConfirmationPdf() shape.
+ */
+export async function scanHotelWithGemini(file, { endpoint = '/.netlify/functions/gemini-travel-ocr', authToken = '' } = {}) {
+    if (!file) throw new Error('No file provided');
+    const fileBase64 = await readHotelFileAsBase64(file);
+    const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    let res;
+    try {
+        res = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ docType: 'hotel', fileBase64, mimeType }),
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok || !payload.ok || !payload.data) {
+        throw new Error(payload.error || `Gemini hotel scan failed (${res.status})`);
+    }
+
+    const raw = payload.data;
+    const propertyName = String(raw.propertyName || '').trim();
+    const propertyAddress = String(raw.propertyAddress || '').trim();
+    const clientName = String(raw.clientName || '').trim().toUpperCase();
+    const arrivalDate = String(raw.arrivalDate || '').trim();
+
+    if (!propertyName && !clientName && !arrivalDate) {
+        throw new Error('Gemini returned empty hotel voucher data');
+    }
+
+    const numRooms = Number.isFinite(Number(raw.numRooms)) && Number(raw.numRooms) > 0 ? parseInt(raw.numRooms, 10) : 1;
+    const numAdults = Number.isFinite(Number(raw.numAdults)) && Number(raw.numAdults) > 0 ? parseInt(raw.numAdults, 10) : 2;
+    const numChildren = Number.isFinite(Number(raw.numChildren)) && Number(raw.numChildren) >= 0 ? parseInt(raw.numChildren, 10) : 0;
+    const numExtraBeds = Number.isFinite(Number(raw.numExtraBeds)) && Number(raw.numExtraBeds) >= 0 ? parseInt(raw.numExtraBeds, 10) : 0;
+
+    const destination = detectHotelDestination(
+        `${raw.city || ''} ${propertyName} ${propertyAddress}`,
+        propertyName,
+        propertyAddress
+    );
+
+    return {
+        bookingId: String(raw.bookingId || '').trim(),
+        bookingRefNo: String(raw.bookingRefNo || '').trim(),
+        memberId: String(raw.memberId || '').trim(),
+        clientName,
+        countryOfResidence: String(raw.countryOfResidence || '').trim() || 'Myanmar',
+        arrivalDate,
+        departureDate: String(raw.departureDate || '').trim(),
+        numRooms,
+        roomType: String(raw.roomType || '').trim(),
+        numAdults,
+        numChildren,
+        numExtraBeds,
+        propertyName,
+        propertyAddress,
+        propertyContact: String(raw.propertyContact || '').trim(),
+        promotion: String(raw.promotion || '').trim(),
+        cancellationPolicy: String(raw.cancellationPolicy || '').trim(),
+        cancellationDate: String(raw.cancellationDate || '').trim(),
+        benefits: String(raw.benefits || '').trim(),
+        remarksSpecial: String(raw.remarksSpecial || '').trim(),
+        destination,
+        _scannedBy: 'gemini',
+        _model: payload.model || '',
+    };
+}

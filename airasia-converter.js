@@ -847,16 +847,34 @@ export function formatRouteCompact(routeStr, depAirport = '', arrAirport = '') {
 export function parseItineraryText(rawText) {
     const clean = rawText.replace(/\u2236/g, ':');
 
-    // 0. Airline Auto-Detection
+    // 0. Airline Auto-Detection (All 12 supported airlines)
     let airline = 'AirAsia';
+    const isChinaAirlines = /(?:china\s*airlines|\bCI\s*\d{2,4}\b)/i.test(clean);
+    const isChinaEastern = /(?:china\s*eastern|\bMU\s*\d{2,4}\b)/i.test(clean);
+    const isVietnamAirlines = /(?:vietnam\s*airlines|\bVN\s*\d{2,4}\b)/i.test(clean);
+    const isCathayPacific = /(?:cathay\s*pacific|\bCX\s*\d{2,4}\b)/i.test(clean);
+    const isHongKongAirlines = /(?:hong\s*kong\s*airlines|\bHX\s*\d{2,4}\b)/i.test(clean);
+    const isHkExpress = /(?:hk\s*express|hong\s*kong\s*express|\bUO\s*\d{2,4}\b)/i.test(clean);
     const isScoot = /(?:scoot|flyscoot|flyscoot\.com|\bTR\s*\d{2,4}\b)/i.test(clean);
     const isEva = /(?:eva\s*air(?:ways)?|evaair\.com|\bBR\s*\d{2,4}\b)/i.test(clean);
     const isSIA = /(?:singapore\s*air(?:lines)?|singaporeair\.com|\bSQ\s*\d{2,4}\b)/i.test(clean);
     const isThai = /(?:thai\s*airways|\bTG\s*\d{3,4}\b)/i.test(clean);
-    const isVietJet = /(?:vietjet|viet\s*jet|\bVJ\d{3,4}\b|\bVZ\d{3,4}\b)/i.test(clean);
-    const isAirAsia = /(?:airasia|air\s*asia|\b(?:AK|FD|QZ|D7|XJ|Z2)\d{3,4}\b)/i.test(clean);
+    const isVietJet = /(?:vietjet|viet\s*jet|\bVJ\s*\d{3,4}\b|\bVZ\s*\d{3,4}\b)/i.test(clean);
+    const isAirAsia = /(?:airasia|air\s*asia|\b(?:AK|FD|QZ|D7|XJ|Z2)\s*\d{3,4}\b)/i.test(clean);
 
-    if (isScoot) {
+    if (isChinaAirlines) {
+        airline = 'China Airlines';
+    } else if (isChinaEastern) {
+        airline = 'China Eastern';
+    } else if (isVietnamAirlines) {
+        airline = 'Vietnam Airlines';
+    } else if (isCathayPacific) {
+        airline = 'Cathay Pacific';
+    } else if (isHongKongAirlines) {
+        airline = 'Hong Kong Airlines';
+    } else if (isHkExpress) {
+        airline = 'HK Express';
+    } else if (isScoot) {
         airline = 'Scoot';
     } else if (isEva) {
         airline = 'EVA Air';
@@ -948,11 +966,21 @@ export function parseItineraryText(rawText) {
         }
     }
 
-    // 5. E-Ticket No
+    // 5. E-Ticket No (supports direct label AND Trip.com table rows like "Business 297-3944369635 59IFWU")
     let eTicketNo = 'To be advised at check-in';
-    const eticketMatch = clean.match(/E-ticket\s*No\.?\s*([0-9-]{10,})/i);
+    const extractedTableTickets = [];
+    const tableTicketMatches = [...clean.matchAll(/(?:Economy|Business|Premium\s*Economy|First(?:\s*Class)?)\s+(\d{3}-\d{10}|\d{13})\b/gi)];
+    for (const tm of tableTicketMatches) {
+        const val = tm[1].trim();
+        if (val && !extractedTableTickets.includes(val)) {
+            extractedTableTickets.push(val);
+        }
+    }
+    const eticketMatch = clean.match(/E-ticket\s*No\.?\s*[:：]?\s*(\d{3}-\d{10}|[0-9-]{10,})/i);
     if (eticketMatch && !eticketMatch[1].includes('--')) {
         eTicketNo = eticketMatch[1].trim();
+    } else if (extractedTableTickets.length > 0) {
+        eTicketNo = extractedTableTickets[0];
     }
 
     // 6. Passengers (Supports Multiple Passengers)
@@ -1106,6 +1134,16 @@ export function parseItineraryText(rawText) {
         if (singleName) {
             passengers.push({ name: singleName, type: singleType === 'adult' ? 'Adult' : singleType, eticket: '', passport: '', expiry: '' });
         }
+    }
+
+    // Attach table-extracted per-passenger E-ticket numbers when passenger entries lack them
+    if (extractedTableTickets.length > 0 && passengers.length > 0) {
+        passengers.forEach((p, idx) => {
+            if (!p.eticket && !p.eTicketNo && extractedTableTickets[idx]) {
+                p.eticket = extractedTableTickets[idx];
+                p.eTicketNo = extractedTableTickets[idx];
+            }
+        });
     }
 
     const passengerName = passengers[0]?.name || '';
@@ -1464,7 +1502,8 @@ export function parseItineraryText(rawText) {
     const carryMatch = clean.match(/Carry-on\s*baggage\b[\s\S]*?(?=(?:Personal|Checked|Important|\*|\n\s*\n|$))/i);
     if (carryMatch) {
         const carryText = carryMatch[0].replace(/^Carry-on\s*baggage\s*[:：]?\s*/i, '').trim();
-        const carryPieces = carryText.match(/(\d+\s*piece[^\r\n,]*)/i);
+        const carryPiecesWithWeight = carryText.match(/(\d+\s*pieces?\s*per\s*person\s*,\s*\d+\s*kg(?:\s*each)?)/i);
+        const carryPieces = carryPiecesWithWeight || carryText.match(/(\d+\s*piece[^\r\n,]*)/i);
         const carryDim = carryText.match(/(?:max\s*)?([0-9\s*xX]{7,}cm)/i);
         if (carryPieces || carryDim) {
             carryOnBaggage = `${carryPieces ? carryPieces[1].trim() : '1 piece per person'}\n${carryDim ? 'Max ' + carryDim[1].replace(/\s+/g, ' ').replace(/[xX]/g, ' x ').trim() + ' per piece' : 'Max 56 x 36 x 23 cm per piece'}`;
@@ -1541,12 +1580,13 @@ export function parseItineraryText(rawText) {
             checkedBaggage = 'No free baggage allowance\nOptional checked baggage can be purchased separately';
         } else {
             const targetText = checkedSectionText || clean;
+            const pieceAndWeightMatch = targetText.match(/(\d+\s*pieces?\s*per\s*person\s*,\s*\d+\s*kg(?:\s*each)?)/i);
             const weightMatch = checkedSectionText
                 ? checkedSectionText.match(/(\d+)\s*kg/i)
                 : clean.match(/(?:Checked\s*baggage|Checked)[\s\S]*?(\d+)\s*kg/i);
 
-            if (weightMatch) {
-                const weightVal = weightMatch[1];
+            if (pieceAndWeightMatch || weightMatch) {
+                const headline = pieceAndWeightMatch ? pieceAndWeightMatch[1].trim() : `${weightMatch[1]} kg per person`;
                 const dimMatch = targetText.match(/\(([0-9\s*xX]+cm)\)/i) ||
                                  targetText.match(/(?:cannot\s*exceed|max)[\s\S]*?([0-9\s*xX]{7,}cm)/i);
                 let dimStr = '119 x 119 x 81 cm';
@@ -1555,7 +1595,7 @@ export function parseItineraryText(rawText) {
                 }
                 const totalMatch = targetText.match(/cannot\s*exceed\s*(\d+\s*cm)/i);
                 const totalStr = totalMatch ? ` (total ${totalMatch[1]})` : '';
-                checkedBaggage = `${weightVal} kg per person\nEach piece max ${dimStr}${totalStr}`;
+                checkedBaggage = `${headline}\nEach piece max ${dimStr}${totalStr}`;
             } else if (clean.includes('Baggage Allowance') || checkedSectionText) {
                 checkedBaggage = 'No free baggage allowance\nOptional checked baggage can be purchased separately';
             } else {
@@ -5426,7 +5466,7 @@ export function renderAirAsiaTicketHtml(data) {
         <!-- Flight Information Section -->
         <div style="margin-bottom:24px;">
             <div style="font-size:15px; font-weight:700; color:#E31E24; margin-bottom:8px;">Flight Information</div>
-            <table style="width:100%; border-collapse:collapse; background:#F5F5F5; border:1px solid #CCCCCC; font-size:12px;">
+            <table style="width:100%; border-collapse:collapse; table-layout:fixed; word-break:break-word; background:#F5F5F5; border:1px solid #CCCCCC; font-size:12px;">
                 <thead>
                     <tr style="background:#E31E24; color:#FFFFFF;">
                         <th style="padding:8px 10px; text-align:left; border:1px solid #CCCCCC; width:22%; font-weight:700;">Flight</th>
@@ -5609,4 +5649,193 @@ export async function shareAirAsiaTicket(data) {
             }
         }
     }
+}
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = String(reader.result || '');
+            const idx = result.indexOf(',');
+            resolve(idx >= 0 ? result.slice(idx + 1) : result);
+        };
+        reader.onerror = () => reject(new Error('Failed to read uploaded file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+const SUPPORTED_ETICKET_AIRLINES = [
+    'AirAsia',
+    'VietJet Air',
+    'Thai Airways',
+    'Singapore Airlines',
+    'EVA Air',
+    'Scoot',
+    'China Airlines',
+    'China Eastern',
+    'Vietnam Airlines',
+    'Cathay Pacific',
+    'Hong Kong Airlines',
+    'HK Express',
+];
+
+function normalizeGeminiAirline(rawAirline, flights = []) {
+    const firstFlight = flights[0] || {};
+    const combined = `${rawAirline || ''} ${firstFlight.airlineName || ''} ${firstFlight.flightNo || ''}`.trim();
+    if (SUPPORTED_ETICKET_AIRLINES.includes(rawAirline)) return rawAirline;
+    if (/china\s*airlines|\bCI\s*\d/i.test(combined)) return 'China Airlines';
+    if (/china\s*eastern|\bMU\s*\d/i.test(combined)) return 'China Eastern';
+    if (/vietnam\s*airlines|\bVN\s*\d/i.test(combined)) return 'Vietnam Airlines';
+    if (/cathay\s*pacific|\bCX\s*\d/i.test(combined)) return 'Cathay Pacific';
+    if (/hong\s*kong\s*airlines|\bHX\s*\d/i.test(combined)) return 'Hong Kong Airlines';
+    if (/hk\s*express|\bUO\s*\d/i.test(combined)) return 'HK Express';
+    if (/vietjet|\bV[JZ]\s*\d/i.test(combined)) return 'VietJet Air';
+    if (/thai\s*airways|\bTG\s*\d/i.test(combined)) return 'Thai Airways';
+    if (/singapore\s*air(?:lines)?|\bSQ\s*\d/i.test(combined)) return 'Singapore Airlines';
+    if (/eva\s*air|\bBR\s*\d/i.test(combined)) return 'EVA Air';
+    if (/scoot|flyscoot|\bTR\s*\d/i.test(combined)) return 'Scoot';
+    if (/air\s*asia|\b(AK|FD|QZ|D7|XJ|Z2)\s*\d/i.test(combined)) return 'AirAsia';
+    return 'AirAsia';
+}
+
+/**
+ * Scan an uploaded E-Ticket / Itinerary PDF or Image using Gemini AI multimodal OCR.
+ * Returns normalized ticket data matching parseItineraryText() shape.
+ */
+export async function scanEticketWithGemini(file, { endpoint = '/.netlify/functions/gemini-travel-ocr', authToken = '' } = {}) {
+    if (!file) throw new Error('No file provided');
+    const fileBase64 = await readFileAsBase64(file);
+    const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    let res;
+    try {
+        res = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ docType: 'eticket', fileBase64, mimeType }),
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok || !payload.ok || !payload.data) {
+        throw new Error(payload.error || `Gemini scan failed (${res.status})`);
+    }
+
+    const raw = payload.data;
+    const rawFlights = Array.isArray(raw.flights) ? raw.flights : [];
+    const airline = normalizeGeminiAirline(raw.airline, rawFlights);
+
+    const flights = rawFlights
+        .filter(f => f && (f.flightNo || f.depAirport || f.arrAirport || f.depTime))
+        .map(f => ({
+            flightNo: String(f.flightNo || '').trim().toUpperCase().replace(/\s+/g, ''),
+            airlineName: String(f.airlineName || '').trim() || airline,
+            pnr: String(f.pnr || raw.pnr || '').trim().toUpperCase(),
+            depTime: String(f.depTime || '').trim(),
+            depDateFormatted: String(f.depDateFormatted || '').trim(),
+            depAirport: String(f.depAirport || '').trim(),
+            depTerminal: String(f.depTerminal || '').trim(),
+            arrTime: String(f.arrTime || '').trim(),
+            arrDateFormatted: String(f.arrDateFormatted || '').trim(),
+            arrAirport: String(f.arrAirport || '').trim(),
+            arrTerminal: String(f.arrTerminal || '').trim(),
+            route: String(f.route || '').trim(),
+            duration: String(f.duration || '').trim(),
+            aircraft: String(f.aircraft || '').trim(),
+            flightClass: String(f.flightClass || raw.flightClass || 'Economy').trim(),
+            cabinClass: String(f.flightClass || raw.flightClass || 'Economy').trim(),
+        }));
+
+    const rawPassengers = Array.isArray(raw.passengers) ? raw.passengers : [];
+    const passengers = rawPassengers
+        .filter(p => p && String(p.name || '').trim())
+        .map(p => ({
+            name: String(p.name || '').trim().replace(/\s*\((?:First name|Last name|Adults?|Child|Infant)\)/gi, '').replace(/\s+/g, ' ').toUpperCase(),
+            type: String(p.type || 'Adult').trim() || 'Adult',
+            eticket: String(p.eticket || '').trim(),
+            eTicketNo: String(p.eticket || '').trim(),
+            passport: String(p.passport || '').trim(),
+            expiry: String(p.expiry || '').trim(),
+            seat: String(p.seat || '').trim(),
+        }));
+
+    if (flights.length === 0 && passengers.length === 0 && !raw.pnr && !raw.bookingNo) {
+        throw new Error('Gemini returned empty itinerary data');
+    }
+
+    const firstPaxTicket = passengers.find(p => p.eticket)?.eticket || '';
+    let eTicketNo = String(raw.eTicketNo || '').trim();
+    if (!eTicketNo || /^to be advised/i.test(eTicketNo)) {
+        eTicketNo = firstPaxTicket || 'To be advised at check-in';
+    }
+    // Ensure primary passenger has eticket if top-level has a real ticket number
+    if (eTicketNo && !/^to be advised/i.test(eTicketNo) && passengers.length > 0 && !passengers[0].eticket) {
+        passengers[0].eticket = eTicketNo;
+        passengers[0].eTicketNo = eTicketNo;
+    }
+
+    const pnrs = [];
+    if (Array.isArray(raw.pnrs)) {
+        raw.pnrs.forEach(p => {
+            const clean = String(p || '').trim().toUpperCase();
+            if (clean && !pnrs.includes(clean)) pnrs.push(clean);
+        });
+    }
+    const primaryPnr = String(raw.pnr || pnrs[0] || flights[0]?.pnr || '').trim().toUpperCase();
+    if (primaryPnr && !pnrs.includes(primaryPnr)) pnrs.unshift(primaryPnr);
+
+    const primaryFlight = flights[0] || {};
+    const result = {
+        airline,
+        bookingNo: String(raw.bookingNo || primaryPnr || '').trim(),
+        pnr: primaryPnr,
+        pnrs,
+        eTicketNo,
+        flightClass: String(raw.flightClass || primaryFlight.flightClass || 'Economy').trim(),
+        issuedDate: String(raw.issuedDate || '').trim(),
+        checkinNotice: '',
+        passengers: passengers.length > 0 ? passengers : [{ name: '', type: 'Adult', eticket: eTicketNo === 'To be advised at check-in' ? '' : eTicketNo }],
+        passengerName: passengers[0]?.name || '',
+        passengerType: passengers[0]?.type || 'Adult',
+        flights,
+        flightNo: primaryFlight.flightNo || '',
+        airlineName: primaryFlight.airlineName || airline,
+        depTime: primaryFlight.depTime || '',
+        depDateFormatted: primaryFlight.depDateFormatted || '',
+        depAirport: primaryFlight.depAirport || '',
+        depTerminal: primaryFlight.depTerminal || '',
+        arrTime: primaryFlight.arrTime || '',
+        arrDateFormatted: primaryFlight.arrDateFormatted || '',
+        arrAirport: primaryFlight.arrAirport || '',
+        arrTerminal: primaryFlight.arrTerminal || '',
+        route: primaryFlight.route || '',
+        duration: primaryFlight.duration || '',
+        aircraft: primaryFlight.aircraft || '',
+        checkedBaggage: String(raw.checkedBaggage || '').trim(),
+        carryOnBaggage: String(raw.carryOnBaggage || '').trim(),
+        carryOnWeight: String(raw.carryOnWeight || '').trim() || undefined,
+        personalItem: String(raw.personalItem || '').trim(),
+        _scannedBy: 'gemini',
+        _model: payload.model || '',
+    };
+
+    try {
+        const checkins = getSectorCheckinList(result);
+        if (checkins && checkins[0]?.time && !/before departure/i.test(checkins[0].time)) {
+            result.checkinNotice = checkins[0].time;
+        }
+    } catch {
+        // leave checkinNotice empty so render computes it automatically
+    }
+
+    return result;
 }

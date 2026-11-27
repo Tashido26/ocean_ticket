@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ocean-travel-2d1c7bbd';
+const CACHE_NAME = 'ocean-travel-fe3bcde1';
 const CORE_ASSETS = [
     './',
     './index.html',
@@ -9,7 +9,7 @@ const CORE_ASSETS = [
     './vendor/datepicker-full.min.js',
     './vendor/chart.min.js',
     './document-libraries.js?v=7c5a726d',
-    './main.js?v=23c2aa06',
+    './main.js?v=6549ea26',
     './dashboard.js?v=199abd55',
     './auth.js?v=625c50ce',
     './firebase-config.js?v=aab230c1',
@@ -26,8 +26,8 @@ const CORE_ASSETS = [
     './manage.js?v=7b2b1ad9',
     './history.js?v=e6df389c',
     './hotel.js?v=5036b396',
-    './agoda-hotel-converter.js?v=24b12351',
-    './airasia-converter.js?v=89192a13',
+    './agoda-hotel-converter.js?v=29b9326d',
+    './airasia-converter.js?v=ace6208e',
     './invoice.js?v=cff528c0',
     './invoice-selection.mjs?v=103d4c95',
     './documents.js?v=cfee9d8d',
